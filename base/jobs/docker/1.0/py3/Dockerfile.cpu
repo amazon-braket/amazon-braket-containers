@@ -134,6 +134,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-# COPY ./lib/python3.7/site-packages/sagemaker_train/train.py /opt/ml/code/braket_entry_point.py
+COPY braket_container.py /opt/ml/code/braket_container.py
 
-ENV SAGEMAKER_PROGRAM braket_entry_point.py
+ENV SAGEMAKER_PROGRAM braket_container.py
