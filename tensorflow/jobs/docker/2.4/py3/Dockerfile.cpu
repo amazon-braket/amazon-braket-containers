@@ -8,7 +8,6 @@ RUN wget https://bootstrap.pypa.io/pip/3.3/get-pip.py && python3 get-pip.py
 RUN pip3 install --upgrade pip
 
 # This is a port of setup done here for jupyter notebooks:
-# https://code.amazon.com/packages/BraketNotebook/blobs/8b685f1016eb9a4ca401e2d95f59b26e0d29187f/--/src/buildspec.yml#L1
 # It is as much the sames as possible because we would like to consolodate them sometime and keeping it consistent
 # seemed like a good idea to make combinining them easier later.
 

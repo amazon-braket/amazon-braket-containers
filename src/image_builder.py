@@ -1,17 +1,15 @@
-"""
-Copyright 2021-2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License"). You
-may not use this file except in compliance with the License. A copy of
-the License is located at
-
-    http://aws.amazon.com/apache2.0/
-
-or in the "license" file accompanying this file. This file is
-distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
-ANY KIND, either express or implied. See the License for the specific
-language governing permissions and limitations under the License.
-"""
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+#     http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
 
 import concurrent.futures
 import datetime
@@ -36,12 +34,10 @@ def _find_image_object(images_list, image_name):
     :param image_name: <str> Name of image as per buildspec
     :return: <DockerImage> Object with image_name as "name" attribute
     """
-    ret_image_object = None
     for image in images_list:
         if image.name == image_name:
-            ret_image_object = image
-            break
-    return ret_image_object
+            return image
+    return None
 
 
 # TODO: Abstract away to ImageBuilder class
