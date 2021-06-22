@@ -55,6 +55,17 @@ class Buildspec:
         """
         This method overrides anchors in a scalar string with
         values from the environment
+
+        Parameters:
+            yaml_object: one of:
+                ruamel.yaml.comments.CommentedMap
+                ruamel.yaml.scalarstring.ScalarString,
+                ruamel.yaml.scalarfloat.ScalarFloat,
+                ruamel.yaml.scalarstring.PlainScalarString,
+                ruamel.yaml.scalarbool.ScalarBoolean,
+
+        Returns:
+            yaml_object
         """
         # If the yaml object is a PlainScalarString or ScalarFloat and an environment variable
         # with the same name exists, return the environment variable otherwise,
@@ -112,8 +123,7 @@ class Buildspec:
             default: str - default value to return
 
         Returns:
-            the object with the passed in name, or None if no such object exists
-
+            the object with the passed in name, or 'default' if no such object exists
         """
         try:
             return self._buildspec[name]
@@ -130,6 +140,5 @@ class Buildspec:
 
         Returns:
             object
-
         """
         return self._buildspec[name]

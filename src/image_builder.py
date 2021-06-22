@@ -30,9 +30,13 @@ from output import OutputFormatter
 def _find_image_object(images_list, image_name):
     """
     Find and return an image object from images_list with a name that matches image_name
-    :param images_list: <list> List of <DockerImage> objects
-    :param image_name: <str> Name of image as per buildspec
-    :return: <DockerImage> Object with image_name as "name" attribute
+
+    Parameters:
+        images_list: <list> List of <DockerImage> objects
+        image_name: <str> Name of image as per buildspec
+
+    Returns:
+        <DockerImage> Object with image_name as "name" attribute
     """
     for image in images_list:
         if image.name == image_name:
@@ -42,6 +46,15 @@ def _find_image_object(images_list, image_name):
 
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
+    """
+    Builds a set of docker images, in parallel, according to a buildspec
+
+    Parameters:
+        buildspec: the buildspec
+
+    Returns:
+        None
+    """
     FORMATTER = OutputFormatter(constants.PADDING)
 
     BUILDSPEC = Buildspec()
@@ -240,16 +253,43 @@ def image_builder(buildspec):
 
 
 def tag_image_with_pr_number(image_tag):
+    """
+    Generates a tag for a pull request.
+
+    Parameters:
+        image_tag: the initial image tag.
+
+    Returns:
+        The image tag for a pull request.
+    """
     pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
     return f"{image_tag}-{pr_number}"
 
 
 def tag_image_with_datetime(image_tag):
+    """
+    Generates a tag with a datetime.
+
+    Parameters:
+        image_tag: the initial image tag.
+
+    Returns:
+        The image tag with the current datetime.
+    """
     datetime_suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     return f"{image_tag}-{datetime_suffix}"
 
 
 def modify_repository_name_for_context(image_repo_uri, build_context):
+    """
+    Modifies the repository name for mainline vs nightly builds.
+
+    Parameters:
+        image_repo_uri: the initial repository name.
+
+    Returns:
+        The modified repository name.
+    """
     repo_uri_values = image_repo_uri.split("/")
     repo_name = repo_uri_values[-1]
     if build_context == "MAINLINE":

@@ -61,11 +61,12 @@ class JobParameters:
 
 def download_s3_file(bucket_name, filepath, local_file_name):
     """
+    Downloads a file from S3.
 
-    :param bucket_name: string
-    :param filepath: string
-    :param local_file_name: string
-    :return:
+    Parameters:
+        bucket_name: string
+        filepath: string
+        local_file_name: string
     """
     _s3 = boto3.Session().resource('s3')
 
@@ -79,10 +80,14 @@ def download_s3_file(bucket_name, filepath, local_file_name):
 
 def download_file(remote_url: str, link_type: str):
     """
-    Fetch remote files and save with provided local_path name
-    :param link_type: string
-    :param remote_url: string
-    :return: file_name: string
+    Fetch remote files and save them locally
+
+    Parameters:
+        link_type: string
+        remote_url: string
+
+    Returns:
+        the local file name of the downloaded file
     """
     LOGGER.info(f"Downloading {remote_url}")
 
@@ -109,11 +114,15 @@ def download_file(remote_url: str, link_type: str):
 def get_pr_modified_files(pr_number):
     """
     Fetch all the files modified for a git pull request and return them as a string
-    :param pr_number: int
-    :return: str with all the modified files
+
+    Parameters:
+        pr_number: int
+
+    Returns:
+        str with all the modified files
     """
-    # This import statement has been placed inside this function because it creates a dependency that is unnecessary
-    # for local builds and builds outside of Pull Requests.
+    # This import statement has been placed inside this function because it creates a dependency
+    # that is unnecessary for local builds and builds outside of Pull Requests.
     from dlc.github_handler import GitHubHandler
 
     # Example: "https://github.com/aws/deep-learning-containers.git"
@@ -130,9 +139,10 @@ def update_image_run_test_types(image_build_string, test_type):
     """
     Map the test_types with image_tags or job_type values, we use this mapping in fetch_dlc_images_for_test_jobs
     to append images for each test job
-    :param image_build_string: str (image_name or training or inference or all)
-    :param test_type: str (all or ec2 or ecs or eks or sagemaker)
-    :return:
+
+    Parameters:
+        image_build_string: str (image_name or training or inference or all)
+        test_type: str (all or ec2 or ecs or eks or sagemaker)
     """
     if image_build_string in JobParameters.image_run_test_types.keys():
         test = JobParameters.image_run_test_types.get(image_build_string)
@@ -154,10 +164,11 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
     Parse all the files in PR to find docker file related changes for any framework
     triggers an image build matching the image_type(training/testing), device_type(cpu_gpu)
     and python version(py2 and py3) of the changed docker files
-    :param files: str
-    :param framework: str
-    :param pattern: str
-    :return: None
+
+    Parameters:
+        files: str
+        framework: str
+        pattern: str
     """
     rule = re.findall(rf"{pattern}", files)
     for dockerfile in rule:
@@ -184,11 +195,12 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
 
 def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     """
-    trigger a build for all the images related to a framework when there is change in framework/buildspec.yml
-    :param files: str
-    :param framework: str
-    :param pattern: str
-    :return: None
+    Trigger a build for all the images related to a framework when there is change in framework/buildspec.yml
+
+    Parameters:
+        files: str
+        framework: str
+        pattern: str
     """
     rule = re.findall(rf"{pattern}", files)
     for buildspec in rule:
@@ -202,10 +214,11 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
 # Rule 3: If any file in the build code changes, build all images
 def parse_modifed_root_files_info(files, pattern=""):
     """
-    trigger a build for all the images for all the frameworks when there is change in src, test, testspec.yml files
-    :param files: str
-    :param pattern: str
-    :return: None
+    Trigger a build for all the images for all the frameworks when there is change in src, test, testspec.yml files
+
+    Parameters:
+        files: str
+        pattern: str
     """
     rule = re.findall(rf"{pattern}", files)
     if rule:
@@ -218,10 +231,11 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
     Parse all the files in PR to find sagemaker tests related changes for any framework
     to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
     and python_versions(py2,py3)
-    :param files: str
-    :param framework: str
-    :param pattern: str
-    :return: None
+
+    Parameters:
+        files: str
+        framework: str
+        pattern: str
     """
     rule = re.findall(rf"{pattern}", files)
     for test_file in rule:
@@ -260,10 +274,11 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
     Parse all the files in PR to find ecs/eks/ec2 tests related changes for any framework
     to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
     and python_versions(py2,py3)
-    :param files:
-    :param framework:
-    :param pattern:
-    :return: None
+
+    Parameters:
+        files:
+        framework:
+        pattern:
     """
     rule = re.findall(rf"{pattern}", files)
     # JobParameters variables are not set with constants.ALL
@@ -308,6 +323,7 @@ def pr_build_setup(pr_number, framework):
     variables
     Parameters:
         pr_number: int
+        framework : str
 
     Returns:
         device_types: [str]
@@ -402,8 +418,12 @@ def build_setup(
 def fetch_dlc_images_for_test_jobs(images):
     """
     use the JobParamters.run_test_types values to pass on image ecr urls to each test type.
-    :param images: list
-    :return: dictionary
+
+    Parameters:
+        images: list
+
+    Returns:
+        dictionary
     """
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
@@ -445,6 +465,13 @@ def fetch_dlc_images_for_test_jobs(images):
 
 
 def write_to_json_file(file_name, content):
+    """
+    Writes a jason blob to a file.
+
+    Parameters:
+        file_name: str
+        content: str
+    """
     with open(file_name, "w") as fp:
         json.dump(content, fp)
 
@@ -455,10 +482,10 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
     ENV variables set by os do not persist, as a new shell is instantiated for post_build steps
 
-    :param images: List of image objects
-    :param images_env: Name for the images environment variable
-    :param env_file: File to write environment variables to
-    :param kwargs: other environment variables to set
+    Parameters:
+        images: List of image objects
+        images_env: Name for the images environment variable
+        kwargs: other environment variables to set
     """
     test_envs = []
 
@@ -477,5 +504,10 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
 
 def get_codebuild_project_name():
-    # Default value for codebuild project name is "local_test" when run outside of CodeBuild
+    """
+    Returns the default value for codebuild project name is "local_test" when run outside of CodeBuild
+
+    Returns:
+        the codebuild project name.
+    """
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]

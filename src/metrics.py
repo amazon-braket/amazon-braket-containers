@@ -17,11 +17,28 @@ import constants
 
 class Metrics(object):
     def __init__(self, context="DEV", region="us-west-2", namespace="braket-container-metrics"):
+        """
+        Constructor for the metrics object.
+
+        Parameters:
+            context: the value of the BuildContext dimension
+            region: the AWS region
+            namespace: the metrics namespace
+        """
         self.client = boto3.Session(region_name=region).client("cloudwatch")
         self.context = context
         self.namespace = namespace
 
     def push(self, name, unit, value, metrics_info):
+        """
+        Pushes metrics to CloudWatch Metrics.
+
+        Parameters:
+            name: the name of the metric
+            unit: the metric unit
+            value: the metric value
+            metrics_info: additional dimensions for the metric
+        """
 
         dimensions = [{"Name": "BuildContext", "Value": self.context}]
 
@@ -46,6 +63,12 @@ class Metrics(object):
         return response
 
     def push_image_metrics(self, image):
+        """
+        Pushes metrics about a docker image to CloudWatch Metrics.
+
+        Parameters:
+            image: docker image information.
+        """
         info = {
             "framework": image.framework,
             "version": image.version,

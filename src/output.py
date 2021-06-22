@@ -30,6 +30,9 @@ class OutputFormatter:
     def __init__(self, padding=0):
         """
         Constructor that defines the attributes of the formatter class
+
+        Parameters:
+            padding: number of characters for the left and right padding in the output.
         """
         self.width = shutil.get_terminal_size().columns
         self.padding_length = padding
@@ -42,6 +45,13 @@ class OutputFormatter:
         logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
     def log(self, level, message):
+        """
+        Prints a log value.
+
+        Parameters:
+            level: the log level
+            message: the log message
+        """
         if level == constants.INFO:
             logging.info(message)
         if level == constants.ERROR:
@@ -60,6 +70,9 @@ class OutputFormatter:
     def title(self, title):
         """
         Print title for the block
+
+        Parameters:
+            title: the title.
         """
         title = title.center(self.width, "=")
         print(title)
@@ -67,6 +80,9 @@ class OutputFormatter:
     def banner(self, title):
         """
         Print banner (title for the program
+
+        Parameters:
+            title: the banner title.
         """
         title = pyfiglet.figlet_format(title)
         lines = title.split("\n")
@@ -79,9 +95,11 @@ class OutputFormatter:
     def progress(self, futures):
         """
         Print a progressbar
-        Note: futures is a dictionary. Keys = Name of the thread,
-        Value = concurrent.futures object. The function being executed
-        MUST return a dictionary with 'status' key that defines the status code.
+
+        Parameters:
+            futures: dictionary where Keys = Name of the thread, Value = concurrent.futures object.
+            The function being executed MUST return a dictionary with 'status' key that defines
+            the status code.
         """
 
         done = defaultdict(bool)
@@ -117,7 +135,9 @@ class OutputFormatter:
     def table(self, rows):
         """
         Print a table from dictionary
-        rows = iter of tuples
+
+        Parameters:
+            rows: iter of tuples
         """
         for (key, value) in rows:
             # TODO: left and right align key and value
@@ -127,11 +147,17 @@ class OutputFormatter:
     def print(self, line):
         """
         To keep all output to stdout consistent. Gives room to format each line in the future.
+
+        Parameters:
+            line: the line to print
         """
         print(line)
 
     def print_lines(self, lines):
         """
         Print multiple lines
+
+        Parameters:
+            lines: the lines to print
         """
         self.print("\n".join(lines))

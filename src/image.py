@@ -27,6 +27,21 @@ class DockerImage:
     def __init__(
         self, info, dockerfile, repository, tag, to_build, context=None,
     ):
+        """
+        The constructor for the Context class
+
+        Parameters:
+            info: metadata about the image.
+            dockerfile: path to the docker file
+            repository: the name of the image repository
+            tag: the tag to add to the image build
+            to_build: true if this image needs to be built
+            context: the Context object managing the docker build context
+
+        Returns:
+            None
+
+        """
 
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
@@ -53,11 +68,23 @@ class DockerImage:
         self.log = []
 
     def __getattr__(self, name):
+        """
+        Gets an attribute
+
+        Parameters:
+            name: the name of the attribute
+
+        Returns:
+            the attribute value
+        """
         return self.info[name]
 
     def collect_installed_packages_information(self):
         """
         Returns an array with outcomes of the commands listed in the 'commands' array
+
+        Returns:
+            returns the list of installed packages
         """
         docker_client = DockerClient(base_url=constants.DOCKER_URL)
         command_responses = []
@@ -71,6 +98,9 @@ class DockerImage:
     def build(self):
         """
         The build function builds the specified docker image
+
+        Returns:
+            returns the build status
         """
         self.summary["start_time"] = datetime.now()
 
