@@ -63,7 +63,7 @@ def download_s3_file(bucket_name, filepath, local_file_name):
     """
     Downloads a file from S3.
 
-    Parameters:
+    Args:
         bucket_name: string
         filepath: string
         local_file_name: string
@@ -82,7 +82,7 @@ def download_file(remote_url: str, link_type: str):
     """
     Fetch remote files and save them locally
 
-    Parameters:
+    Args:
         link_type: string
         remote_url: string
 
@@ -115,7 +115,7 @@ def get_pr_modified_files(pr_number):
     """
     Fetch all the files modified for a git pull request and return them as a string
 
-    Parameters:
+    Args:
         pr_number: int
 
     Returns:
@@ -140,7 +140,7 @@ def update_image_run_test_types(image_build_string, test_type):
     Map the test_types with image_tags or job_type values, we use this mapping in fetch_dlc_images_for_test_jobs
     to append images for each test job
 
-    Parameters:
+    Args:
         image_build_string: str (image_name or training or inference or all)
         test_type: str (all or ec2 or ecs or eks or sagemaker)
     """
@@ -165,7 +165,7 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
     triggers an image build matching the image_type(training/testing), device_type(cpu_gpu)
     and python version(py2 and py3) of the changed docker files
 
-    Parameters:
+    Args:
         files: str
         framework: str
         pattern: str
@@ -197,7 +197,7 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     """
     Trigger a build for all the images related to a framework when there is change in framework/buildspec.yml
 
-    Parameters:
+    Args:
         files: str
         framework: str
         pattern: str
@@ -216,7 +216,7 @@ def parse_modifed_root_files_info(files, pattern=""):
     """
     Trigger a build for all the images for all the frameworks when there is change in src, test, testspec.yml files
 
-    Parameters:
+    Args:
         files: str
         pattern: str
     """
@@ -232,7 +232,7 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
     to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
     and python_versions(py2,py3)
 
-    Parameters:
+    Args:
         files: str
         framework: str
         pattern: str
@@ -275,7 +275,7 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
     to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
     and python_versions(py2,py3)
 
-    Parameters:
+    Args:
         files:
         framework:
         pattern:
@@ -321,7 +321,7 @@ def pr_build_setup(pr_number, framework):
     """
     Identify the PR changeset and set the appropriate environment
     variables
-    Parameters:
+    Args:
         pr_number: int
         framework : str
 
@@ -372,7 +372,7 @@ def build_setup(
     Setup the appropriate environment variables depending on whether this is a PR build
     or a dev build
 
-    Parameters:
+    Args:
         framework: str
         device_types: [str]
         image_types: [str]
@@ -419,7 +419,7 @@ def fetch_dlc_images_for_test_jobs(images):
     """
     use the JobParamters.run_test_types values to pass on image ecr urls to each test type.
 
-    Parameters:
+    Args:
         images: list
 
     Returns:
@@ -468,7 +468,7 @@ def write_to_json_file(file_name, content):
     """
     Writes a jason blob to a file.
 
-    Parameters:
+    Args:
         file_name: str
         content: str
     """
@@ -482,7 +482,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
     ENV variables set by os do not persist, as a new shell is instantiated for post_build steps
 
-    Parameters:
+    Args:
         images: List of image objects
         images_env: Name for the images environment variable
         kwargs: other environment variables to set

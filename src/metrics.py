@@ -20,7 +20,7 @@ class Metrics(object):
         """
         Constructor for the metrics object.
 
-        Parameters:
+        Args:
             context: the value of the BuildContext dimension
             region: the AWS region
             namespace: the metrics namespace
@@ -33,7 +33,7 @@ class Metrics(object):
         """
         Pushes metrics to CloudWatch Metrics.
 
-        Parameters:
+        Args:
             name: the name of the metric
             unit: the metric unit
             value: the metric value
@@ -66,7 +66,7 @@ class Metrics(object):
         """
         Pushes metrics about a docker image to CloudWatch Metrics.
 
-        Parameters:
+        Args:
             image: docker image information.
         """
         info = {

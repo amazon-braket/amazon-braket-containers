@@ -36,7 +36,7 @@ class Buildspec:
         This function loads the buildspec file and
         populates the buildspec object.
 
-        Parameters:
+        Args:
             path: str
 
         Returns:
@@ -56,7 +56,7 @@ class Buildspec:
         This method overrides anchors in a scalar string with
         values from the environment
 
-        Parameters:
+        Args:
             yaml_object: one of:
                 ruamel.yaml.comments.CommentedMap
                 ruamel.yaml.scalarstring.ScalarString,
@@ -96,7 +96,7 @@ class Buildspec:
         in the yaml file. Specifying !join [x,y,z] should
         result in the string xyz
 
-        Parameters:
+        Args:
             loader: ruamel.yaml.constructor.RoundTripConstructor
             node: ruamel.yaml.nodes.SequenceNode
 
@@ -118,7 +118,7 @@ class Buildspec:
         """
         Returns default if there's no such key in the buildspec.
 
-        Parameters:
+        Args:
             name: str
             default: str - default value to return
 
@@ -135,7 +135,7 @@ class Buildspec:
         This method adds dictionary style access to an object of the
         Buildspec class.
 
-        Parameters:
+        Args:
             name: str
 
         Returns:

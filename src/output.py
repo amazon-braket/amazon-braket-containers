@@ -31,7 +31,7 @@ class OutputFormatter:
         """
         Constructor that defines the attributes of the formatter class
 
-        Parameters:
+        Args:
             padding: number of characters for the left and right padding in the output.
         """
         self.width = shutil.get_terminal_size().columns
@@ -48,7 +48,7 @@ class OutputFormatter:
         """
         Prints a log value.
 
-        Parameters:
+        Args:
             level: the log level
             message: the log message
         """
@@ -71,7 +71,7 @@ class OutputFormatter:
         """
         Print title for the block
 
-        Parameters:
+        Args:
             title: the title.
         """
         title = title.center(self.width, "=")
@@ -81,7 +81,7 @@ class OutputFormatter:
         """
         Print banner (title for the program
 
-        Parameters:
+        Args:
             title: the banner title.
         """
         title = pyfiglet.figlet_format(title)
@@ -96,7 +96,7 @@ class OutputFormatter:
         """
         Print a progressbar
 
-        Parameters:
+        Args:
             futures: dictionary where Keys = Name of the thread, Value = concurrent.futures object.
             The function being executed MUST return a dictionary with 'status' key that defines
             the status code.
@@ -136,7 +136,7 @@ class OutputFormatter:
         """
         Print a table from dictionary
 
-        Parameters:
+        Args:
             rows: iter of tuples
         """
         for (key, value) in rows:
@@ -148,7 +148,7 @@ class OutputFormatter:
         """
         To keep all output to stdout consistent. Gives room to format each line in the future.
 
-        Parameters:
+        Args:
             line: the line to print
         """
         print(line)
@@ -157,7 +157,7 @@ class OutputFormatter:
         """
         Print multiple lines
 
-        Parameters:
+        Args:
             lines: the lines to print
         """
         self.print("\n".join(lines))

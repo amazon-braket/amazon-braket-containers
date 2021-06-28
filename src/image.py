@@ -30,7 +30,7 @@ class DockerImage:
         """
         The constructor for the Context class
 
-        Parameters:
+        Args:
             info: metadata about the image.
             dockerfile: path to the docker file
             repository: the name of the image repository
@@ -71,7 +71,7 @@ class DockerImage:
         """
         Gets an attribute
 
-        Parameters:
+        Args:
             name: the name of the attribute
 
         Returns:

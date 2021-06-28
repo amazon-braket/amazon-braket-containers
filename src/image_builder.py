@@ -31,12 +31,12 @@ def _find_image_object(images_list, image_name):
     """
     Find and return an image object from images_list with a name that matches image_name
 
-    Parameters:
-        images_list: <list> List of <DockerImage> objects
-        image_name: <str> Name of image as per buildspec
+    Args:
+        images_list (list):  List of <DockerImage> objects
+        image_name (str): Name of image as per buildspec
 
     Returns:
-        <DockerImage> Object with image_name as "name" attribute
+        DockerImage: Object with image_name as "name" attribute
     """
     for image in images_list:
         if image.name == image_name:
@@ -49,7 +49,7 @@ def image_builder(buildspec):
     """
     Builds a set of docker images, in parallel, according to a buildspec
 
-    Parameters:
+    Args:
         buildspec: the buildspec
 
     Returns:
@@ -256,7 +256,7 @@ def tag_image_with_pr_number(image_tag):
     """
     Generates a tag for a pull request.
 
-    Parameters:
+    Args:
         image_tag: the initial image tag.
 
     Returns:
@@ -270,7 +270,7 @@ def tag_image_with_datetime(image_tag):
     """
     Generates a tag with a datetime.
 
-    Parameters:
+    Args:
         image_tag: the initial image tag.
 
     Returns:
@@ -284,7 +284,7 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
     """
     Modifies the repository name for mainline vs nightly builds.
 
-    Parameters:
+    Args:
         image_repo_uri: the initial repository name.
 
     Returns:

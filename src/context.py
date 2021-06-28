@@ -27,7 +27,7 @@ class Context:
         """
         The constructor for the Context class
 
-        Parameters:
+        Args:
             artifacts: array of (source, destination) tuples
             context_path: path for the resulting tar.gz file
             artifact_root: root directory for all artifacts
@@ -53,7 +53,8 @@ class Context:
     def add(self, artifacts):
         """
         Adds artifacts to the build context
-        Parameters:
+
+        Args:
             artifacts: array of (source, destination) tuples
         """
         self.artifacts.update(artifacts)
@@ -73,7 +74,7 @@ class Context:
         """
         Removes the context tar file
 
-        Parameters:
+        Args:
             None
 
         Returns:
