@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - start-dockerd
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - pip install -r src/requirements.txt
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building $FRAMEWORK framework...
+      - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
+  post_build:
+    commands:
+      - echo Build step finished on `date`
