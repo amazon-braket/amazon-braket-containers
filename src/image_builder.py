@@ -238,6 +238,20 @@ def image_builder(buildspec):
                 else:
                     raise Exception(f"Build passed. {e}")
 
+        results_path = os.getenv("BUILD_RESULTS_PATH")
+        if results_path:
+            FORMATTER.title("Writing Results")
+            FORMATTER.print(f"Saving to path {results_path}")
+
+            summary_result = []
+            for image in IMAGES:
+                summary_result.append(image.summary)
+            try:
+                utils.write_to_json_file(results_path, summary_result)
+            except Exception as e:
+                FORMATTER.print(f"Unable to save results. {e}")
+            FORMATTER.print(f"Finished writing results.")
+
         if is_any_build_failed_size_limit:
             raise Exception("Build failed because of file limit")
 

@@ -1,23 +1,27 @@
 version: 0.2
-
 phases:
   install:
     runtime-versions:
       docker: 18
     commands:
       - echo Initializing docker daemon...
-      - nohup dockerd --host=unix:///var/run/docker.sock --storage-driver=overlay&
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --storage-driver=overlay&
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - pip install -r test/sagemaker_tests/base/jobs/requirements.txt
+      - pip install -r src/requirements.txt
   build:
     commands:
-      - echo Testing started on `date`
-      - echo Testing image with tag $IMAGE_TAG as $ROLE_NAME ...
-      - pytest --role $ROLE_NAME --tag $IMAGE_TAG
+      - echo Build started on `date`
+      - echo Building $FRAMEWORK framework...
+      - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
   post_build:
     commands:
+      - echo Build step finished on `date`
+      - pip install -r test/sagemaker_tests/base/jobs/requirements.txt
+      - echo Testing started on `date`
+      - echo Testing images as $ROLE_NAME ...
+      - pytest --role $ROLE_NAME
       - echo Testing step finished on `date`
