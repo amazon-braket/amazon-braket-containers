@@ -1,3 +1,4 @@
-mock
-sagemaker
 docker-compose
+mock
+pytest
+sagemaker
