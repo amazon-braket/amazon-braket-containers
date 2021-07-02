@@ -24,5 +24,3 @@ phases:
 artifacts:
   files:
     - $BUILD_RESULTS_PATH
-  name: BUILD_RESULTS_JSON
-  discard-paths: yes
