@@ -21,3 +21,8 @@ phases:
   post_build:
     commands:
       - echo Build step finished on `date`
+artifacts:
+  files:
+    - $BUILD_RESULTS_PATH
+  name: BUILD_RESULTS_JSON
+  discard-paths: yes
