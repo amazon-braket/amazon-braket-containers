@@ -16,6 +16,11 @@ phases:
     commands:
       - echo Testing started on `date`
       - echo Testing images as $ROLE_NAME ...
+      - echo Code Builds dir $CODEBUILD_SRC_DIR ...
+      - echo Code Builds Artifacts dir $CODEBUILD_SRC_DIR_BUILD_RESULTS ...
+      - ls
+      - ls $CODEBUILD_SRC_DIR_BUILD_RESULTS
+      - more $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
       - pytest --role $ROLE_NAME --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
   post_build:
     commands:
