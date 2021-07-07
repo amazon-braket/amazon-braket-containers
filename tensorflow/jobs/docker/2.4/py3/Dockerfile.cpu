@@ -63,12 +63,12 @@ RUN pip3 install --user qutip
 
 ENV PATH="/opt/ml/code:${PATH}"
 
-COPY ./lib/python3.7/site-packages/sagemaker_train/train.py /opt/ml/code/braket_entry_point.py
+COPY braket_container.py /opt/ml/code/braket_container.py
 
-ENV SAGEMAKER_PROGRAM braket_entry_point.py
+ENV SAGEMAKER_PROGRAM braket_container.py
 
 # This command was found in this articla that helped with activating conda:
 # https://pythonspeed.com/articles/activate-conda-dockerfile/
 # TODO: Evaluate moving away from conda run since it is experimental and deemed unfit for production
 # https://github.com/conda/conda/issues/9599
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "Braket", "python", "/opt/ml/code/braket_entry_point.py"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "Braket", "python", "/opt/ml/code/braket_container.py"]
