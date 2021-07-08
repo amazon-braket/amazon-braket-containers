@@ -13,6 +13,10 @@ phases:
       - pip install -r src/requirements.txt
   build:
     commands:
+      - echo Checking ECR Login
+      - more ~/.ecr/log/ecr-login.log
+      - echo Checking DOCKER config
+      - more ~/.docker/config.json
       - echo Build started on `date`
       - echo Building $FRAMEWORK framework...
       - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
