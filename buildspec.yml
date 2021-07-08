@@ -10,13 +10,10 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - $(aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com)
       - pip install -r src/requirements.txt
   build:
     commands:
-      - echo Checking ECR Login
-      - more ~/.ecr/log/ecr-login.log
-      - echo Checking DOCKER config
-      - more ~/.docker/config.json
       - echo Build started on `date`
       - echo Building $FRAMEWORK framework...
       - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
