@@ -50,7 +50,7 @@ ENV PIP_PKGS="$PIP_PKGS setuptools sagemaker-training"
 ENV CONDA_PKGS="$CONDA_PKGS awscli=1.18.121 botocore=1.17.44 rsa=4.4.1 scipy=1.5.2"
 ENV PIP_PKGS="$PIP_PKGS awscli==1.18.121 botocore==1.17.44 rsa==4.4.1 scipy==1.5.2"
 RUN mkdir -p envs
-RUN conda create --name Braket --yes $CONDA_PKGS
+SHELL ["conda", "create", "--name", "Braket", "--yes", "$CONDA_PKGS"]
 # conda active <env> does not work in CodeBuild, likely due to non-interactive shell and conda init <shell> and all it's non-interactive
 # shell workarounds not working either.  Use deprecated direct use of activate to make this work.
 
