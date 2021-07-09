@@ -24,7 +24,7 @@ images:
   BuildTensorflowCPUJobsPy3DockerImage:
     <<: *JOBS_REPOSITORY
     build: &TENSORFLOW_CPU_JOBS_PY3 false
-    image_size_baseline: 13000
+    image_size_baseline: 7026
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37

@@ -4,12 +4,45 @@ FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-
 
 MAINTAINER Amazon Braket <amazon-braket-dev@amazon.com>
 
-RUN wget https://bootstrap.pypa.io/pip/3.3/get-pip.py && python3 get-pip.py
-RUN pip3 install --upgrade pip
+ARG PIP=pip3
 
-# This is a port of setup done here for jupyter notebooks:
-# It is as much the sames as possible because we would like to consolodate them sometime and keeping it consistent
-# seemed like a good idea to make combinining them easier later.
+# Installing our custom python libraries
+RUN ${PIP} install --no-cache --upgrade \
+        amazon-braket-default-simulator==1.2.1 \
+        amazon-braket-ocean-plugin==1.0.4 \
+        amazon-braket-schemas==1.2.2 \
+        amazon-braket-sdk==1.7.1 \
+        amazon-braket-pennylane-plugin==1.3.0 \
+        awscli==1.18.121 \
+        botocore==1.17.44 \
+        decorator==4.4.0 \
+        dask==2.30.0 \
+        dwave-ocean-sdk==3.3.0 \
+        ipykernel==5.3.4 \
+        jinja2==2.11.3 \
+        keras==2.4.3 \
+        matplotlib==3.2.2 \
+        markupsafe==1.1.1 \
+        networkx==2.4 \
+        numpy==1.19.2 \
+        openfermion==1.0.0 \
+        pandas==1.1.4 \
+        PennyLane==0.16.0 \
+        PennyLane-Qchem==0.16.0 \
+        protobuf==3.12.4 \
+        pydantic==1.7 \
+        requests==2.21.0 \
+        rsa==4.4.1 \
+        scikit-learn==0.20.3 \
+        six==1.15.0 \
+        scipy==1.5.2 \
+        typing_extensions==3.7.4.3
+
+RUN ${PIP} install --no-cache --upgrade sagemaker-training
+
+# Some packages can not be installed using pip (because they are not
+# python managed packages) - so we need Conda to install and use them.
+# See: https://www.anaconda.com/blog/understanding-conda-and-pip
 
 ENV _ANACONDA_ARCHIVE_URL=https://repo.anaconda.com/archive
 ENV _MINICONDA_ARCHIVE_URL=https://repo.anaconda.com/miniconda
@@ -18,7 +51,6 @@ ENV CONDA_INSTALLER=Anaconda3-2020.11-Linux-x86_64.sh
 ENV CONDA_INSTALLER_URL="$_ANACONDA_ARCHIVE_URL/$CONDA_INSTALLER"
 ENV CONDA_INSTALLER_MD5=4cd48ef23a075e8555a8b6d0a8c4bae2
 ENV CONDA_INSTALL_DIR="$HOME/Braket/anaconda3"
-
 
 RUN wget --quiet "$CONDA_INSTALLER_URL" --output-document "$CONDA_INSTALLER"
 RUN echo "$CONDA_INSTALLER_MD5  $CONDA_INSTALLER" | md5sum --status --check -
@@ -29,46 +61,12 @@ ENV PATH="$CONDA_INSTALL_DIR/bin:$PATH"
 RUN conda config --system --append channels conda-forge
 RUN conda config --system --append channels psi4
 
+ENV CONDA_PKGS="openbabel==3.1.1=py37h200e996_1 psi4=1.3.2+ecbda83"
 
-
-# Conda packages
-ENV CONDA_PKGS="boto3=1.14.43 ipykernel=5.3.4 keras=2.3.1 matplotlib=3.2.2 networkx=2.4"
-ENV CONDA_PKGS="$CONDA_PKGS numpy=1.19.1 openbabel==3.1.1=py37h200e996_1 pandas==1.1.4=py37h10a2094_0"
-ENV CONDA_PKGS="$CONDA_PKGS protobuf=3.12.4 psi4=1.3.2+ecbda83 python=3.7 tensorflow==2.1.0=mkl_py37h80a91df_0"
-
-# Pip packages
-ENV PIP_PKGS="amazon-braket-default-simulator==1.1.1 amazon-braket-ocean-plugin==1.0.3 amazon-braket-schemas==1.1.0.post2"
-ENV PIP_PKGS="$PIP_PKGS amazon-braket-sdk==1.5.9 amazon-braket-pennylane-plugin==1.1.0 dask==2.30.0"
-ENV PIP_PKGS="$PIP_PKGS dwave-ocean-sdk==3.3.0 openfermion==1.0.0 PennyLane==0.14.0 PennyLane-Qchem==0.13.1 torch==1.6.0"
-
-# These packages are not used by Jupyter notebooks and we have not previously forced their versions. So, I continued
-# that here
-ENV PIP_PKGS="$PIP_PKGS setuptools sagemaker-training"
-
-
-# Resolve conflicts with conda/pip installs
-ENV CONDA_PKGS="$CONDA_PKGS awscli=1.18.121 botocore=1.17.44 rsa=4.4.1 scipy=1.5.2"
-ENV PIP_PKGS="$PIP_PKGS awscli==1.18.121 botocore==1.17.44 rsa==4.4.1 scipy==1.5.2"
-RUN mkdir -p envs
 SHELL ["conda", "create", "--name", "Braket", "--yes", "$CONDA_PKGS"]
-# conda active <env> does not work in CodeBuild, likely due to non-interactive shell and conda init <shell> and all it's non-interactive
-# shell workarounds not working either.  Use deprecated direct use of activate to make this work.
 
-# Using an environment variable did not work in these arguments
-SHELL ["conda", "run", "-n", "Braket", "/bin/bash", "-c"]
-
-RUN pip install --no-cache-dir $PIP_PKGS
-
-RUN pip3 install --user qutip
-
-ENV PATH="/opt/ml/code:${PATH}"
+# Setup our entry point
 
 COPY braket_container.py /opt/ml/code/braket_container.py
 
 ENV SAGEMAKER_PROGRAM braket_container.py
-
-# This command was found in this articla that helped with activating conda:
-# https://pythonspeed.com/articles/activate-conda-dockerfile/
-# TODO: Evaluate moving away from conda run since it is experimental and deemed unfit for production
-# https://github.com/conda/conda/issues/9599
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "Braket", "python", "/opt/ml/code/braket_container.py"]
