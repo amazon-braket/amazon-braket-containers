@@ -18,6 +18,7 @@ import logging
 import sys
 import boto3
 import constants
+import datetime
 
 from invoke.context import Context
 from botocore.exceptions import ClientError
@@ -464,6 +465,12 @@ def fetch_dlc_images_for_test_jobs(images):
     return DLC_IMAGES
 
 
+def datetime_handler(x):
+    if isinstance(x, datetime.datetime):
+        return x.isoformat()
+    raise TypeError("Unknown type")
+
+
 def write_to_json_file(file_name, content):
     """
     Writes a jason blob to a file.
@@ -473,7 +480,7 @@ def write_to_json_file(file_name, content):
         content: str
     """
     with open(file_name, "w") as fp:
-        json.dump(content, fp)
+        json.dump(content, fp, default=datetime_handler)
 
 
 def set_test_env(images, images_env="DLC_IMAGES", **kwargs):

@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Initializing docker daemon...
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --storage-driver=overlay&
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - pip install -r src/requirements.txt
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building $FRAMEWORK framework...
+      - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
+  post_build:
+    commands:
+      - echo Build step finished on `date`
+artifacts:
+  files:
+    - $BUILD_RESULTS_PATH
+  name: BUILD_RESULTS
+  discard-paths: yes

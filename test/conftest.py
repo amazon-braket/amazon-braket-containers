@@ -13,14 +13,16 @@
 
 import os
 import pytest
+import json
 
 
 def pytest_addoption(parser):
     parser.addoption('--region', default=os.getenv("REGION"))
     parser.addoption('--account', default=os.getenv("ACCOUNT_ID"))
     parser.addoption('--repository', default=os.getenv("REPOSITORY_NAME"))
+    parser.addoption('--from-build-results', default=os.getenv("BUILD_RESULTS_PATH"))
     parser.addoption('--role', required=True)
-    parser.addoption('--tag', required=True)
+    parser.addoption('--tag')
 
 
 @pytest.fixture(scope='session')
@@ -34,16 +36,19 @@ def account(request):
 
 
 @pytest.fixture(scope='session')
-def repository_name(request):
-    return request.config.getoption('--repository')
-
-
-@pytest.fixture(scope='session')
 def role(request):
     return request.config.getoption('--role')
 
 
 @pytest.fixture(scope='session')
-def image_tag(request):
-    return request.config.getoption('--tag')
-
+def image_list(request, account, region):
+    repository_name = request.config.getoption('--repository')
+    image_tag = request.config.getoption('--tag')
+    if repository_name and image_tag:
+        return [f"{account}.dkr.ecr.{region}.amazonaws.com/{repository_name}:{image_tag}"]
+    build_results_file = request.config.getoption('--from-build-results')
+    if build_results_file:
+        with open(build_results_file, "r") as build_file:
+            build_results = json.load(build_file)
+        return [image["ecr_url"] for image in build_results]
+    raise Exception("No images specified for testing")

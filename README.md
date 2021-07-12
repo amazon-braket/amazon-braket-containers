@@ -71,7 +71,18 @@ the images you want to test locally (likely need to pull them from ECR)
     ```
 
 
+### Structural Overview
 
+This repo is structured to mirror the DLC GitHub repo for (deep-learning-containers) images. Until we can unify the
+code bases, we need to copy much of the code to make the transition easier.  
+
+We use the buildspec.yml and testspec.yml files as part of our CodeBuild pipeline to build these images
+to our image repositories. 
+
+The buildspec runs src/main.py, using environment variables to set the specifics of the build. As far as I can tell, 
+environment variables are the easiest mechanism for doing this through CodeBuild. From main, we use utils.py to setup
+the correct environment variables, and build it using image_builder.py and image.py. braket_container.py will
+hold our custom code that we want to run when the image is invoked for a job.
 
 
 ## Security
