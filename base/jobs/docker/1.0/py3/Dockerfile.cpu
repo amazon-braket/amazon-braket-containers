@@ -125,7 +125,7 @@ RUN ${PIP} install --no-cache --upgrade sagemaker-training
 
 # Some packages can not be installed using pip (because they are not
 # python managed packages) - install them using apt get
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get install -y \
         python-openbabel \
         psi4
 
