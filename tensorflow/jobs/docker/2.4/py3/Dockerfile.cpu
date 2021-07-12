@@ -41,29 +41,11 @@ RUN ${PIP} install --no-cache --upgrade \
 RUN ${PIP} install --no-cache --upgrade sagemaker-training
 
 # Some packages can not be installed using pip (because they are not
-# python managed packages) - so we need Conda to install and use them.
-# See: https://www.anaconda.com/blog/understanding-conda-and-pip
+# python managed packages) - install them using apt get
 
-ENV _ANACONDA_ARCHIVE_URL=https://repo.anaconda.com/archive
-ENV _MINICONDA_ARCHIVE_URL=https://repo.anaconda.com/miniconda
-
-ENV CONDA_INSTALLER=Anaconda3-2020.11-Linux-x86_64.sh
-ENV CONDA_INSTALLER_URL="$_ANACONDA_ARCHIVE_URL/$CONDA_INSTALLER"
-ENV CONDA_INSTALLER_MD5=4cd48ef23a075e8555a8b6d0a8c4bae2
-ENV CONDA_INSTALL_DIR="$HOME/Braket/anaconda3"
-
-RUN wget --quiet "$CONDA_INSTALLER_URL" --output-document "$CONDA_INSTALLER"
-RUN echo "$CONDA_INSTALLER_MD5  $CONDA_INSTALLER" | md5sum --status --check -
-RUN chmod a+x $CONDA_INSTALLER
-RUN ./$CONDA_INSTALLER -b -p $CONDA_INSTALL_DIR
-
-ENV PATH="$CONDA_INSTALL_DIR/bin:$PATH"
-RUN conda config --system --append channels conda-forge
-RUN conda config --system --append channels psi4
-
-ENV CONDA_PKGS="openbabel==3.1.1=py37h200e996_1 psi4=1.3.2+ecbda83"
-
-SHELL ["conda", "create", "--name", "Braket", "--yes", "$CONDA_PKGS"]
+RUN apt-get install -y --no-install-recommends \
+        python-openbabel \
+        psi4
 
 # Setup our entry point
 

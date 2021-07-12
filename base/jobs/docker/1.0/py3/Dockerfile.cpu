@@ -123,6 +123,12 @@ RUN ${PIP} install --no-cache --upgrade \
 
 RUN ${PIP} install --no-cache --upgrade sagemaker-training
 
+# Some packages can not be installed using pip (because they are not
+# python managed packages) - install them using apt get
+RUN apt-get install -y --no-install-recommends \
+        python-openbabel \
+        psi4
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
