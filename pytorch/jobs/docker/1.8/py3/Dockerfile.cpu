@@ -158,8 +158,3 @@ RUN HOME_DIR=/root \
 COPY braket_container.py /opt/ml/code/braket_container.py
 
 ENV SAGEMAKER_PROGRAM braket_container.py
-
-
-
-
-
