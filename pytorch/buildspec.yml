@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
-framework: &FRAMEWORK tensorflow
-version: &VERSION 2.4.1
-short_version: &SHORT_VERSION 2.4
+framework: &FRAMEWORK pytorch
+version: &VERSION 1.8.1
+short_version: &SHORT_VERSION 1.8
 
 repository_info:
   jobs_repository: &JOBS_REPOSITORY
@@ -21,10 +21,10 @@ context:
       target: braket_container.py
 
 images:
-  BuildTensorflowCPUJobsPy3DockerImage:
+  BuildPytorchCPUJobsPy3DockerImage:
     <<: *JOBS_REPOSITORY
-    build: &TENSORFLOW_CPU_JOBS_PY3 false
-    image_size_baseline: 7026
+    build: &PYTORCH_CPU_JOBS_PY3 false
+    image_size_baseline: 4899
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
