@@ -23,16 +23,16 @@ SCRIPT_NAME = "run_script.py"
 SCRIPT_PATH = "./test/resources/"
 
 
-def test_basics(account, region, role, s3_bucket, image_list):
+def test_basics(account, region, role, s3_bucket, s3_location, image_list):
     assert len(image_list) > 0, "Unable to find images for testing"
     os.system(f"aws ecr get-login-password --region {region} | docker login --username AWS"
               f" --password-stdin {account}.dkr.ecr.{region}.amazonaws.com")
-    upload_test_script_to_s3(s3_bucket)
+    upload_test_script_to_s3(s3_bucket, s3_location)
     for image_path in image_list:
-        single_image_test(account, role, s3_bucket, image_path)
+        single_image_test(account, role, s3_bucket, s3_location, image_path)
 
 
-def upload_test_script_to_s3(s3_bucket):
+def upload_test_script_to_s3(s3_bucket, s3_location):
     credentials = get_session().get_credentials()
     s3_client = boto3.client(
         "s3",
@@ -40,12 +40,12 @@ def upload_test_script_to_s3(s3_bucket):
         aws_secret_access_key=credentials.secret_key,
         aws_session_token=credentials.token,
     )
-    s3_client.upload_file(SCRIPT_PATH + SCRIPT_NAME, s3_bucket, SCRIPT_NAME)
+    s3_client.upload_file(SCRIPT_PATH + SCRIPT_NAME, s3_bucket, f"{s3_location}/{SCRIPT_NAME}")
 
 
-def single_image_test(account, role, s3_bucket, image_path):
+def single_image_test(account, role, s3_bucket, s3_location, image_path):
     environment_variables = {
-        "AMZN_BRAKET_S3_URI" : f"s3://{s3_bucket}/{SCRIPT_NAME}",
+        "AMZN_BRAKET_S3_URI" : f"s3://{s3_bucket}/{s3_location}/{SCRIPT_NAME}",
         "AMZN_BRAKET_ENTRY_POINT": f"{SCRIPT_NAME}",
     }
     estimator = Estimator(image_uri=image_path,

@@ -22,6 +22,7 @@ def pytest_addoption(parser):
     parser.addoption('--repository', default=os.getenv("REPOSITORY_NAME"))
     parser.addoption('--from-build-results', default=os.getenv("BUILD_RESULTS_PATH"))
     parser.addoption('--s3-bucket', default=os.getenv("S3_BUCKET"))
+    parser.addoption('--s3-location', default=os.getenv("S3_LOCATION"))
     parser.addoption('--role', default=os.getenv("$ROLE_NAME"))
     parser.addoption('--tag', default=os.getenv("$IMAGE_TAG"))
 
@@ -44,6 +45,11 @@ def role(request):
 @pytest.fixture(scope='session')
 def s3_bucket(request):
     return request.config.getoption('--s3-bucket')
+
+
+@pytest.fixture(scope='session')
+def s3_location(request):
+    return request.config.getoption('--s3-location') or "image_test"
 
 
 @pytest.fixture(scope='session')
