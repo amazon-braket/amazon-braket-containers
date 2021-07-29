@@ -95,6 +95,9 @@ class DockerImage:
         docker_client.containers.prune()
         return command_responses
 
+    def prebuild(self, prebuild_tag):
+        self.client.pull(repository=self.repository, tag=prebuild_tag)
+
     def build(self):
         """
         The build function builds the specified docker image
