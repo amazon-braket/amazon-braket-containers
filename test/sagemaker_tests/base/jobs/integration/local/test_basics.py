@@ -58,5 +58,6 @@ def single_image_test(account, role, s3_bucket, s3_location, image_path):
     with redirect_stdout(estimator_output):
         estimator.fit()
     output = estimator_output.getvalue()
-    assert output.find("Braket Container Run Success") > 0
-    assert output.find("exited with code 0") > 0
+    if output.find("Braket Container Run Success") < 0 or output.find("exited with code 0") < 0:
+        assert output == "Expected output not found."
+
