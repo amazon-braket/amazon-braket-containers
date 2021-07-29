@@ -63,5 +63,4 @@ def single_image_test(account, role, s3_bucket, s3_location, image_path):
     output = estimator_output.getvalue()
     print(output)
     assert output.find("Braket Container Run Success") > 0, "Container did not run successfully"
-    assert output.find("exited with code 1") > 0, "Exit code was not zero"
-
+    assert output.find("exited with code 0") > 0, "Exit code was not zero"
