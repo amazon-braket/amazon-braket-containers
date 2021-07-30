@@ -155,7 +155,7 @@ def get_code_setup_parameters():
         compression_type: the compression used to archive the code (optional)
     These values are stored in environment variables, however, we also allow the storing of
     these values in the hyperparameters to facilitate testing in local mode.
-    If the s3_uri or entry_point can not be found, the script will exist with an error.
+    If the s3_uri or entry_point can not be found, the script will exit with an error.
 
     Returns:
         the code setup parameters as described above.
