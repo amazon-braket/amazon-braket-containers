@@ -82,13 +82,17 @@ def download_customer_code(s3_uri : str):
     Returns:
         str: the path to the file containing the code.
     """
-    s3_client = boto3.client("s3")
-    parsed_url = urlparse(s3_uri, allow_fragments=False)
-    s3_bucket = parsed_url.netloc
-    s3_key = parsed_url.path.lstrip("/")
-    local_s3_file = os.path.join(ORIGINAL_CUSTOMER_CODE_PATH, os.path.basename(s3_key))
-    s3_client.download_file(s3_bucket, s3_key, local_s3_file)
-    return local_s3_file
+    try:
+        s3_client = boto3.client("s3")
+        parsed_url = urlparse(s3_uri, allow_fragments=False)
+        s3_bucket = parsed_url.netloc
+        s3_key = parsed_url.path.lstrip("/")
+        local_s3_file = os.path.join(ORIGINAL_CUSTOMER_CODE_PATH, os.path.basename(s3_key))
+        s3_client.download_file(s3_bucket, s3_key, local_s3_file)
+        return local_s3_file
+    except Exception as e:
+        log_failure(f"Unable to download code.\nException: {e}")
+        sys.exit(1)
 
 
 def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
