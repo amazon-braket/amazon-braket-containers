@@ -18,12 +18,11 @@ import json
 import shutil
 import subprocess
 import sys
-from multiprocessing import Process
+import multiprocessing
 from pathlib import Path
 from urllib.parse import urlparse
 
 import boto3
-from botocore.session import get_session
 
 OPT_ML = os.path.join("/opt", "ml")
 OPT_BRAKET = os.path.join("/opt", "braket")
@@ -73,31 +72,32 @@ def create_symlink():
             raise e
 
 
-def download_customer_code(s3_client, s3_uri):
+def download_customer_code(s3_uri : str):
     """
     Downloads the customer code to the original customer path. The code is assumed to be a single
     file in S3. The file may be a compressed archive containing all the customer code.
 
     Args:
-        s3_client: the S3 client.
-        s3_uri: the S3 URI to get the code from.
+        s3_uri (str): the S3 URI to get the code from.
     Returns:
-        the path to the file containing the code.
+        str: the path to the file containing the code.
     """
-    s3_bucket = s3_uri.netloc
-    s3_key = s3_uri.path.lstrip("/")
+    s3_client = boto3.client("s3")
+    parsed_url = urlparse(s3_uri, allow_fragments=False)
+    s3_bucket = parsed_url.netloc
+    s3_key = parsed_url.path.lstrip("/")
     local_s3_file = os.path.join(ORIGINAL_CUSTOMER_CODE_PATH, os.path.basename(s3_key))
     s3_client.download_file(s3_bucket, s3_key, local_s3_file)
     return local_s3_file
 
 
-def unpack_code_and_add_to_path(local_s3_file, compression_type):
+def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
     """
     Unpack the customer code, if necessary. Add the customer code to the system path.
 
     Args:
-        local_s3_file: the file representing the customer code.
-        compression_type: if the customer code is stored in an archive, this value will
+        local_s3_file (str): the file representing the customer code.
+        compression_type (str): if the customer code is stored in an archive, this value will
             represent the compression type of the archive.
     """
     if compression_type in ["gzip", "zip"]:
@@ -114,18 +114,21 @@ def unpack_code_and_add_to_path(local_s3_file, compression_type):
     sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
 
 
-def kick_off_customer_script(entry_point):
+def kick_off_customer_script(entry_point : str):
     """
     Runs the customer script as a separate process.
 
     Args:
-        entry_point: the entry point to the customer code, represented as <module>:<method>.
+        entry_point (str): the entry point to the customer code, represented as <module>:<method>.
+
+    Returns:
+        Process: the process handle to the running process.
     """
     try:
         str_module, _, str_method = entry_point.partition(":")
         customer_module = importlib.import_module(str_module)
         customer_method = getattr(customer_module, str_method)
-        customer_code_process = Process(target=customer_method)
+        customer_code_process = multiprocessing.Process(target=customer_method)
         customer_code_process.start()
     except Exception as e:
         log_failure(f"Unable to run job at entry point {entry_point}\nException: {e}")
@@ -133,12 +136,12 @@ def kick_off_customer_script(entry_point):
     return customer_code_process
 
 
-def join_customer_script(customer_code_process):
+def join_customer_script(customer_code_process : multiprocessing.Process):
     """
     Joins the process running the customer code.
 
     Args:
-        customer_code_process: the process running the customer code.
+        customer_code_process (Process): the process running the customer code.
     """
     try:
         customer_code_process.join()
@@ -158,7 +161,7 @@ def get_code_setup_parameters():
     If the s3_uri or entry_point can not be found, the script will exit with an error.
 
     Returns:
-        the code setup parameters as described above.
+        str, str, str: the code setup parameters as described above.
     """
     s3_uri = os.getenv('AMZN_BRAKET_S3_URI')
     entry_point = os.getenv('AMZN_BRAKET_ENTRY_POINT')
@@ -167,13 +170,17 @@ def get_code_setup_parameters():
         return s3_uri, entry_point, compression_type
     hyperparameters_env = os.getenv('SM_HPS')
     if hyperparameters_env:
-        hyperparameters = json.loads(hyperparameters_env)
-        if not s3_uri:
-            s3_uri = hyperparameters.get("AMZN_BRAKET_S3_URI")
-        if not entry_point:
-            entry_point = hyperparameters.get("AMZN_BRAKET_ENTRY_POINT")
-        if not compression_type:
-            compression_type = hyperparameters.get("AMZN_BRAKET_COMPRESSION_TYPE")
+        try:
+            hyperparameters = json.loads(hyperparameters_env)
+            if not s3_uri:
+                s3_uri = hyperparameters.get("AMZN_BRAKET_S3_URI")
+            if not entry_point:
+                entry_point = hyperparameters.get("AMZN_BRAKET_ENTRY_POINT")
+            if not compression_type:
+                compression_type = hyperparameters.get("AMZN_BRAKET_COMPRESSION_TYPE")
+        except Exception as e:
+            log_failure("Hyperparameters not specified in env")
+            sys.exit(1)
     if not s3_uri:
         log_failure("No customer script specified")
         sys.exit(1)
@@ -183,15 +190,15 @@ def get_code_setup_parameters():
     return s3_uri, entry_point, compression_type
 
 
-def run_customer_code_as_process(entry_point):
+def run_customer_code_as_process(entry_point : str):
     """
     When provided the name of the package and the method to run, we run them as a process.
 
     Args:
-        entry_point: the code to run in the format <package>:<method>.
+        entry_point (str): the code to run in the format <package>:<method>.
 
     Returns:
-        The exit code of the customer code run.
+        int: The exit code of the customer code run.
     """
     print("Running Code As Process")
     customer_code_process = kick_off_customer_script(entry_point)
@@ -200,16 +207,16 @@ def run_customer_code_as_process(entry_point):
     return customer_code_process.exitcode
 
 
-def run_customer_code_as_subprocess(entry_point):
+def run_customer_code_as_subprocess(entry_point : str):
     """
     When provided just the name of the file to run, we run it as a subprocess. This will
     run the subprocess in the directory where the files are extracted.
 
     Args:
-        entry_point: the name of the file to run.
+        entry_point (str): the name of the file to run.
 
     Returns:
-        The exit code of the customer code run.
+        int: The exit code of the customer code run.
     """
     print("Running Code As Subprocess")
     result = subprocess.run("python " + entry_point, cwd=EXTRACTED_CUSTOMER_CODE_PATH, shell=True)
@@ -218,19 +225,15 @@ def run_customer_code_as_subprocess(entry_point):
     return return_code
 
 
-def run_customer_code(s3_client):
+def run_customer_code():
     """
     Downloads and runs the customer code.
 
-    Args:
-        s3_client: the S3 client that can be used to download the customer code.
-
     Returns:
-        The exit code of the customer code run.
+        int: The exit code of the customer code run.
     """
-    print("Initiating Code Setup")
     s3_uri, entry_point, compression_type = get_code_setup_parameters()
-    local_s3_file = download_customer_code(s3_client, urlparse(s3_uri, allow_fragments=False))
+    local_s3_file = download_customer_code(s3_uri)
     unpack_code_and_add_to_path(local_s3_file, compression_type)
     if entry_point.find(":") >= 0:
         return run_customer_code_as_process(entry_point)
@@ -242,16 +245,9 @@ def setup_and_run():
     This method sets up the Braket container, then downloads and runs the customer code.
     """
     print("Beginning Setup")
-    credentials = get_session().get_credentials()
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=credentials.access_key,
-        aws_secret_access_key=credentials.secret_key,
-        aws_session_token=credentials.token,
-    )
     create_symlink()
     create_paths()
-    exit_code = run_customer_code(s3_client)
+    exit_code = run_customer_code()
     sys.exit(exit_code)
 
 
