@@ -21,6 +21,7 @@ import sys
 import multiprocessing
 from pathlib import Path
 from urllib.parse import urlparse
+from typing import Tuple
 
 import boto3
 
@@ -72,7 +73,7 @@ def create_symlink():
             raise e
 
 
-def download_customer_code(s3_uri : str):
+def download_customer_code(s3_uri : str) -> str:
     """
     Downloads the customer code to the original customer path. The code is assumed to be a single
     file in S3. The file may be a compressed archive containing all the customer code.
@@ -118,7 +119,7 @@ def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
     sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
 
 
-def kick_off_customer_script(entry_point : str):
+def kick_off_customer_script(entry_point : str) -> multiprocessing.Process:
     """
     Runs the customer script as a separate process.
 
@@ -154,7 +155,7 @@ def join_customer_script(customer_code_process : multiprocessing.Process):
         sys.exit(1)
 
 
-def get_code_setup_parameters():
+def get_code_setup_parameters() -> Tuple[str, str, str]:
     """
     Returns the code setup parameters:
         s3_uri: the S3 location where the code is stored.
@@ -194,7 +195,7 @@ def get_code_setup_parameters():
     return s3_uri, entry_point, compression_type
 
 
-def run_customer_code_as_process(entry_point : str):
+def run_customer_code_as_process(entry_point : str) -> int:
     """
     When provided the name of the package and the method to run, we run them as a process.
 
@@ -211,7 +212,7 @@ def run_customer_code_as_process(entry_point : str):
     return customer_code_process.exitcode
 
 
-def run_customer_code_as_subprocess(entry_point : str):
+def run_customer_code_as_subprocess(entry_point : str) -> int:
     """
     When provided just the name of the file to run, we run it as a subprocess. This will
     run the subprocess in the directory where the files are extracted.
@@ -229,7 +230,7 @@ def run_customer_code_as_subprocess(entry_point : str):
     return return_code
 
 
-def run_customer_code():
+def run_customer_code() -> int:
     """
     Downloads and runs the customer code.
 
