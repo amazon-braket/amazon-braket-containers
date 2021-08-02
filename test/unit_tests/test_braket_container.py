@@ -15,9 +15,6 @@ from src.braket_container import (
     setup_and_run
 )
 
-ENV_VARIBLES = {};
-
-
 @mock.patch('pathlib._normal_accessor.mkdir')
 def test_log_failure_logging(mock_mkdir):
     with mock.patch('builtins.open', mock.mock_open()) as file_open:
@@ -131,14 +128,11 @@ def test_unpack_code_and_add_to_path_zipped(mock_shutil, compression_type):
     ]
 )
 @mock.patch('src.braket_container.log_failure')
-@mock.patch('src.braket_container.os')
 @mock.patch('src.braket_container.sys')
-def test_get_code_setup_parameters(mock_sys, mock_os, mock_log_failure, environment):
-    ENV_VARIBLES.clear()
+def test_get_code_setup_parameters(mock_sys, mock_log_failure, environment, monkeypatch):
     set_vars = environment.setdefault("set_vars", {})
     for key in set_vars:
-        ENV_VARIBLES[key] = set_vars[key]
-    mock_os.getenv.side_effect = get_mock_env_variables
+        monkeypatch.setenv(key, set_vars[key])
     s3_uri, entry_point, compression_type = get_code_setup_parameters()
     expected = environment["expected_result"]
     if expected:
@@ -201,7 +195,3 @@ def test_setup_and_run_as_process(mock_sys, mock_os, mock_mkdir, mock_boto, mock
     mock_process_object.start.assert_called()
     mock_process_object.join.assert_called()
     mock_sys.exit.assert_called_with(expected_return_value)
-
-
-def get_mock_env_variables(key):
-    return ENV_VARIBLES.setdefault(key, None)
