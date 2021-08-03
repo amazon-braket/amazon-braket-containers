@@ -13,8 +13,8 @@ phases:
   build:
     commands:
       - echo Testing started on `date`
-      - echo Testing images as $ROLE_NAME at $CODEBUILD_SRC_DIR_BUILD_RESULTS...
-      - pytest --role $ROLE_NAME --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
+      - echo Testing images at $CODEBUILD_SRC_DIR_BUILD_RESULTS...
+      - pytest test/sagemaker_tests -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
   post_build:
     commands:
       - echo Testing step finished on `date`
