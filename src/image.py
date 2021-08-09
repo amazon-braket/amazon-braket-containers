@@ -25,7 +25,7 @@ class DockerImage:
     """
 
     def __init__(
-        self, info, dockerfile, repository, tag, to_build, context=None,
+        self, info, dockerfile, repository, tag, to_build, context=None, cache_tag=None
     ):
         """
         The constructor for the Context class
@@ -37,6 +37,7 @@ class DockerImage:
             tag: the tag to add to the image build
             to_build: true if this image needs to be built
             context: the Context object managing the docker build context
+            cache_tag: the tag that this container can use as a cache
 
         Returns:
             None
@@ -58,6 +59,7 @@ class DockerImage:
         self.repository = repository
         self.tag = tag
         self.ecr_url = f"{self.repository}:{self.tag}"
+        self.cache_tag = cache_tag
 
         if not isinstance(to_build, bool):
             to_build = True if to_build == "true" else False
@@ -95,9 +97,6 @@ class DockerImage:
         docker_client.containers.prune()
         return command_responses
 
-    def prebuild(self, prebuild_tag):
-        self.client.pull(repository=self.repository, tag=prebuild_tag)
-
     def build(self):
         """
         The build function builds the specified docker image
@@ -125,6 +124,13 @@ class DockerImage:
         with open(self.context.context_path, "rb") as context_file:
             response = []
 
+            cache_from = None
+            if self.cache_tag:
+                response.append("Pulling cached image")
+                self.client.pull(repository=self.repository, tag=self.cache_tag)
+                cache_from = [f"{self.repository}:{self.cache_tag}"]
+                response.append(f"Setting cache to: {cache_from}")
+
             for line in self.client.build(
                 fileobj=context_file,
                 path=self.dockerfile,
@@ -133,7 +139,8 @@ class DockerImage:
                 decode=True,
                 tag=self.ecr_url,
                 buildargs=self.build_args,
-                labels=self.labels
+                labels=self.labels,
+                cache_from=cache_from
             ):
                 if line.get("error") is not None:
                     self.context.remove()
