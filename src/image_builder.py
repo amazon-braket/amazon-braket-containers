@@ -155,21 +155,12 @@ def image_builder(buildspec):
             tag=image_tag,
             to_build=image_config["build"],
             context=context,
+            cache_tag=os.getenv("PREBUILD_TAG")
         )
 
         IMAGES.append(image_object)
 
     FORMATTER.banner("Braket Container Build")
-
-    prebuild_tag = os.getenv("PREBUILD_TAG")
-    if prebuild_tag:
-        FORMATTER.title("Prebuild")
-        FORMATTER.print(f"Fetching prebuild with tag {prebuild_tag}.")
-        try:
-            for image in IMAGES:
-                image.prebuild(prebuild_tag)
-        except Exception as e:
-            FORMATTER.print(f"No prebuild images found: {e}.")
 
     FORMATTER.title("Status")
 
