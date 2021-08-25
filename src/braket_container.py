@@ -168,9 +168,9 @@ def get_code_setup_parameters() -> Tuple[str, str, str]:
     Returns:
         str, str, str: the code setup parameters as described above.
     """
-    s3_uri = os.getenv('AMZN_BRAKET_S3_URI')
-    entry_point = os.getenv('AMZN_BRAKET_ENTRY_POINT')
-    compression_type = os.getenv('AMZN_BRAKET_COMPRESSION_TYPE')
+    s3_uri = os.getenv('AMZN_BRAKET_SCRIPT_S3_URI')
+    entry_point = os.getenv('AMZN_BRAKET_SCRIPT_ENTRY_POINT')
+    compression_type = os.getenv('AMZN_BRAKET_SCRIPT_COMPRESSION_TYPE')
     if s3_uri and entry_point:
         return s3_uri, entry_point, compression_type
     hyperparameters_env = os.getenv('SM_HPS')
@@ -178,11 +178,11 @@ def get_code_setup_parameters() -> Tuple[str, str, str]:
         try:
             hyperparameters = json.loads(hyperparameters_env)
             if not s3_uri:
-                s3_uri = hyperparameters.get("AMZN_BRAKET_S3_URI")
+                s3_uri = hyperparameters.get("AMZN_BRAKET_SCRIPT_S3_URI")
             if not entry_point:
-                entry_point = hyperparameters.get("AMZN_BRAKET_ENTRY_POINT")
+                entry_point = hyperparameters.get("AMZN_BRAKET_SCRIPT_ENTRY_POINT")
             if not compression_type:
-                compression_type = hyperparameters.get("AMZN_BRAKET_COMPRESSION_TYPE")
+                compression_type = hyperparameters.get("AMZN_BRAKET_SCRIPT_COMPRESSION_TYPE")
         except Exception as e:
             log_failure("Hyperparameters not specified in env")
             sys.exit(1)

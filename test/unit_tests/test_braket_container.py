@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest import mock
 from urllib.parse import urlparse
 
-import os
 import pytest
 
 from src.braket_container import (
@@ -88,16 +87,16 @@ def test_unpack_code_and_add_to_path_zipped(mock_shutil, compression_type):
         },
         {
             "set_vars": {
-                "AMZN_BRAKET_S3_URI" : "test_s3_uri",
-                "AMZN_BRAKET_ENTRY_POINT" : "test_entry_point",
-                "AMZN_BRAKET_COMPRESSION_TYPE" : "test_comp"
+                "AMZN_BRAKET_SCRIPT_S3_URI" : "test_s3_uri",
+                "AMZN_BRAKET_SCRIPT_ENTRY_POINT" : "test_entry_point",
+                "AMZN_BRAKET_SCRIPT_COMPRESSION_TYPE" : "test_comp"
             },
             "expected_result": ["test_s3_uri", "test_entry_point", "test_comp"]
         },
         {
             "set_vars": {
-                "AMZN_BRAKET_S3_URI" : "test_s3_uri",
-                "AMZN_BRAKET_ENTRY_POINT" : "test_entry_point",
+                "AMZN_BRAKET_SCRIPT_S3_URI" : "test_s3_uri",
+                "AMZN_BRAKET_SCRIPT_ENTRY_POINT" : "test_entry_point",
             },
             "expected_result": ["test_s3_uri", "test_entry_point", None]
         },
@@ -115,13 +114,13 @@ def test_unpack_code_and_add_to_path_zipped(mock_shutil, compression_type):
         },
         {
             "set_vars": {
-                "SM_HPS": "{\"AMZN_BRAKET_S3_URI\":\"test_s3_uri\", \"AMZN_BRAKET_ENTRY_POINT\":\"test_entry_point\", \"AMZN_BRAKET_COMPRESSION_TYPE\":\"test_comp\"}",
+                "SM_HPS": "{\"AMZN_BRAKET_SCRIPT_S3_URI\":\"test_s3_uri\", \"AMZN_BRAKET_SCRIPT_ENTRY_POINT\":\"test_entry_point\", \"AMZN_BRAKET_SCRIPT_COMPRESSION_TYPE\":\"test_comp\"}",
             },
             "expected_result": ["test_s3_uri", "test_entry_point", "test_comp"]
         },
         {
             "set_vars": {
-                "SM_HPS": "{\"AMZN_BRAKET_S3_URI\":\"test_s3_uri\", \"AMZN_BRAKET_ENTRY_POINT\":\"test_entry_point\"}",
+                "SM_HPS": "{\"AMZN_BRAKET_SCRIPT_S3_URI\":\"test_s3_uri\", \"AMZN_BRAKET_SCRIPT_ENTRY_POINT\":\"test_entry_point\"}",
             },
             "expected_result": ["test_s3_uri", "test_entry_point", None]
         },
