@@ -105,7 +105,7 @@ def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
         compression_type (str): if the customer code is stored in an archive, this value will
             represent the compression type of the archive.
     """
-    if compression_type in ["gzip", "zip"]:
+    if compression_type and compression_type.strip().lower() in ["gzip", "zip"]:
         try:
             shutil.unpack_archive(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
         except Exception as e:
