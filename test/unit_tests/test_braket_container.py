@@ -66,7 +66,7 @@ def test_unpack_code_and_add_to_path_non_zipped(mock_shutil):
 
 
 @pytest.mark.parametrize(
-    "compression_type", ["gzip", "zip"]
+    "compression_type", ["gzip", "zip", "Gzip", " Gzip", " GZIP "]
 )
 @mock.patch('src.braket_container.shutil')
 def test_unpack_code_and_add_to_path_zipped(mock_shutil, compression_type):
