@@ -7,6 +7,7 @@ import pytest
 from src.braket_container import (
     create_paths,
     create_symlink,
+    install_additional_libraries,
     download_customer_code,
     log_failure,
     unpack_code_and_add_to_path,
@@ -46,7 +47,33 @@ def test_create_paths(mock_mkdir):
     mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code'), 511)
     mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code/original'), 511)
     mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code/extracted'), 511)
-    assert mock_mkdir.call_count == 3
+    mock_mkdir.assert_any_call(Path('/opt/braket/additional_lib/original'), 511)
+    mock_mkdir.assert_any_call(Path('/opt/braket/additional_lib/extracted'), 511)
+    assert mock_mkdir.call_count == 5
+
+
+@mock.patch('src.braket_container.subprocess')
+@mock.patch('src.braket_container.os.scandir')
+@mock.patch('src.braket_container.shutil')
+@mock.patch('src.braket_container.boto3')
+def test_install_additional_libraries(mock_boto, mock_shutil, mock_scandir, subprocess, monkeypatch):
+    mock_s3 = mock_boto.client.return_value = mock.MagicMock()
+    item0 = mock.MagicMock()
+    item0.is_dir.return_value = False
+    item1 = mock.MagicMock()
+    item1.is_dir.return_value = True
+    item1.path = "temp_path"
+    mock_scandir.return_value = [item0, item1]
+    monkeypatch.setenv("AMZN_BRAKET_IMAGE_ADDITIONAL_LIB", "s3://test_bucket/test_location")
+    install_additional_libraries()
+    mock_s3.download_file.assert_called_with("test_bucket", "test_location",
+                                             "/opt/braket/additional_lib/original/test_location")
+    mock_shutil.unpack_archive.assert_called_with(
+        "/opt/braket/additional_lib/original/test_location",
+        "/opt/braket/additional_lib/extracted"
+    )
+    assert subprocess.run.call_count == 1
+    subprocess.run.assert_called_with(["pip", "install", "-e", "temp_path"])
 
 
 @mock.patch('src.braket_container.boto3')
@@ -154,6 +181,7 @@ def test_get_code_setup_parameters(mock_sys, mock_log_failure, environment, monk
 def test_setup_and_run_as_subprocess(mock_sys, mock_os, mock_mkdir, mock_boto, mock_shutil, mock_get_code_setup, mock_subprocess):
     # Setup
     expected_return_value = 3
+    mock_os.getenv.return_value = ""
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_entry_point", None
     run_result_object = mock.MagicMock()
     run_result_object.returncode = expected_return_value
@@ -182,6 +210,7 @@ def test_setup_and_run_as_subprocess(mock_sys, mock_os, mock_mkdir, mock_boto, m
 def test_setup_and_run_as_process(mock_sys, mock_os, mock_mkdir, mock_boto, mock_shutil, mock_get_code_setup, mock_importlib, mock_process):
     # Setup
     expected_return_value = 3
+    mock_os.getenv.return_value = ""
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_module:test_function", None
     mock_process_object = mock.MagicMock()
     mock_process.Process.return_value = mock_process_object
