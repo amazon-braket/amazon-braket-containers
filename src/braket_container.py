@@ -32,6 +32,10 @@ ORIGINAL_CUSTOMER_CODE_PATH = os.path.join(CUSTOMER_CODE_PATH, "original")
 EXTRACTED_CUSTOMER_CODE_PATH = os.path.join(CUSTOMER_CODE_PATH, "extracted")
 ERROR_LOG_PATH = os.path.join(OPT_ML, "output")
 ERROR_LOG_FILE = os.path.join(ERROR_LOG_PATH, "failure")
+ORIGINAL_ADDITIONAL_LIBRARY_PATH = os.path.join(OPT_BRAKET, "additional_lib", "original")
+EXTRACTED_ADDITIONAL_LIBRARY_PATH = os.path.join(OPT_BRAKET, "additional_lib", "extracted")
+
+print("Boto3 Version: ", boto3.__version__)
 
 
 def log_failure(*args):
@@ -57,6 +61,8 @@ def create_paths():
     Path(CUSTOMER_CODE_PATH).mkdir(parents=True, exist_ok=True)
     Path(ORIGINAL_CUSTOMER_CODE_PATH).mkdir(parents=True, exist_ok=True)
     Path(EXTRACTED_CUSTOMER_CODE_PATH).mkdir(parents=True, exist_ok=True)
+    Path(ORIGINAL_ADDITIONAL_LIBRARY_PATH).mkdir(parents=True, exist_ok=True)
+    Path(EXTRACTED_ADDITIONAL_LIBRARY_PATH).mkdir(parents=True, exist_ok=True)
 
 
 def create_symlink():
@@ -73,6 +79,48 @@ def create_symlink():
             raise e
 
 
+def download_s3_file(s3_uri : str, local_path : str) -> str:
+    """
+    Downloads a file to a local path.
+
+    Args:
+        s3_uri (str): the S3 URI to get the file from.
+        local_path (str) : the local path to download to
+    Returns:
+        str: the path to the file containing the downloaded path.
+    """
+    s3_client = boto3.client("s3")
+    parsed_url = urlparse(s3_uri, allow_fragments=False)
+    s3_bucket = parsed_url.netloc
+    s3_key = parsed_url.path.lstrip("/")
+    local_s3_file = os.path.join(local_path, os.path.basename(s3_key))
+    s3_client.download_file(s3_bucket, s3_key, local_s3_file)
+    return local_s3_file
+
+
+def install_additional_libraries() -> None:
+    """
+    Downloads and installs additional libraries, if any, as defined in the
+    AMZN_BRAKET_IMAGE_ADDITIONAL_LIB env variable.
+
+    The libraries are downloaded to ORIGINAL_ADDITIONAL_LIBRARY_PATH and extracted to
+    EXTRACTED_ADDITIONAL_LIBRARY_PATH. Each library is then installed.
+    """
+    s3_uri = os.getenv('AMZN_BRAKET_IMAGE_ADDITIONAL_LIB')
+    if s3_uri:
+        try:
+            print("Installing additional libraries")
+            local_path = download_s3_file(s3_uri, ORIGINAL_ADDITIONAL_LIBRARY_PATH)
+            shutil.unpack_archive(local_path, EXTRACTED_ADDITIONAL_LIBRARY_PATH)
+            for item in os.scandir(EXTRACTED_ADDITIONAL_LIBRARY_PATH):
+                if item.is_dir():
+                    print(f"Installing {item.path}")
+                    subprocess.run(["pip", "install", "-e", item.path])
+        except Exception as e:
+            log_failure(f"Unable to install additional libraries.\nException: {e}")
+            sys.exit(1)
+
+
 def download_customer_code(s3_uri : str) -> str:
     """
     Downloads the customer code to the original customer path. The code is assumed to be a single
@@ -84,13 +132,7 @@ def download_customer_code(s3_uri : str) -> str:
         str: the path to the file containing the code.
     """
     try:
-        s3_client = boto3.client("s3")
-        parsed_url = urlparse(s3_uri, allow_fragments=False)
-        s3_bucket = parsed_url.netloc
-        s3_key = parsed_url.path.lstrip("/")
-        local_s3_file = os.path.join(ORIGINAL_CUSTOMER_CODE_PATH, os.path.basename(s3_key))
-        s3_client.download_file(s3_bucket, s3_key, local_s3_file)
-        return local_s3_file
+        return download_s3_file(s3_uri, ORIGINAL_CUSTOMER_CODE_PATH)
     except Exception as e:
         log_failure(f"Unable to download code.\nException: {e}")
         sys.exit(1)
@@ -252,6 +294,7 @@ def setup_and_run():
     print("Beginning Setup")
     create_symlink()
     create_paths()
+    install_additional_libraries()
     exit_code = run_customer_code()
     sys.exit(exit_code)
 
