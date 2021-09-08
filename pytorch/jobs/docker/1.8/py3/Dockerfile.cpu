@@ -116,6 +116,7 @@ RUN ${PIP} install --no-cache --upgrade \
         decorator==4.4.0 \
         dask==2.30.0 \
         dwave-ocean-sdk==3.3.0 \
+        h5py==3.2.1 \
         ipykernel==5.3.4 \
         jinja2==2.11.3 \
         keras==2.4.3 \
