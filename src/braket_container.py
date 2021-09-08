@@ -106,11 +106,11 @@ def install_additional_libraries() -> None:
     The libraries are downloaded to ORIGINAL_ADDITIONAL_LIBRARY_PATH and extracted to
     EXTRACTED_ADDITIONAL_LIBRARY_PATH. Each library is then installed.
     """
-    s3_uri = os.getenv('AMZN_BRAKET_IMAGE_ADDITIONAL_LIB')
-    if s3_uri:
+    lib_s3_uri = os.getenv('AMZN_BRAKET_IMAGE_ADDITIONAL_LIB')
+    if lib_s3_uri:
         try:
-            print("Installing additional libraries")
-            local_path = download_s3_file(s3_uri, ORIGINAL_ADDITIONAL_LIBRARY_PATH)
+            print("Installing additional libraries at ", lib_s3_uri)
+            local_path = download_s3_file(lib_s3_uri, ORIGINAL_ADDITIONAL_LIBRARY_PATH)
             shutil.unpack_archive(local_path, EXTRACTED_ADDITIONAL_LIBRARY_PATH)
             for item in os.scandir(EXTRACTED_ADDITIONAL_LIBRARY_PATH):
                 if item.is_dir():
