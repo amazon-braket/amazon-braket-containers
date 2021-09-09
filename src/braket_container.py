@@ -115,7 +115,7 @@ def install_additional_libraries() -> None:
             for item in os.scandir(EXTRACTED_ADDITIONAL_LIBRARY_PATH):
                 if item.is_dir():
                     print(f"Installing {item.path}")
-                    subprocess.run(["python", "-m", "pip", "install", "-e", item.path])
+                    subprocess.run(["python", "-m", "pip", "install", item.path])
         except Exception as e:
             log_failure(f"Unable to install additional libraries.\nException: {e}")
             sys.exit(1)
