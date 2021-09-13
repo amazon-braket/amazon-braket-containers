@@ -7,7 +7,7 @@ import pytest
 from src.braket_container import (
     create_paths,
     create_symlink,
-    install_additional_libraries,
+    perform_additional_setup,
     download_customer_code,
     log_failure,
     unpack_code_and_add_to_path,
@@ -47,33 +47,24 @@ def test_create_paths(mock_mkdir):
     mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code'), 511)
     mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code/original'), 511)
     mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code/extracted'), 511)
-    mock_mkdir.assert_any_call(Path('/opt/braket/additional_lib/original'), 511)
-    mock_mkdir.assert_any_call(Path('/opt/braket/additional_lib/extracted'), 511)
-    assert mock_mkdir.call_count == 5
+    mock_mkdir.assert_any_call(Path('/opt/braket/additional_setup'), 511)
+    assert mock_mkdir.call_count == 4
 
 
 @mock.patch('src.braket_container.subprocess')
-@mock.patch('src.braket_container.os.scandir')
-@mock.patch('src.braket_container.shutil')
 @mock.patch('src.braket_container.boto3')
-def test_install_additional_libraries(mock_boto, mock_shutil, mock_scandir, subprocess, monkeypatch):
+def test_perform_additional_setup(mock_boto, subprocess, monkeypatch):
     mock_s3 = mock_boto.client.return_value = mock.MagicMock()
-    item0 = mock.MagicMock()
-    item0.is_dir.return_value = False
-    item1 = mock.MagicMock()
-    item1.is_dir.return_value = True
-    item1.path = "temp_path"
-    mock_scandir.return_value = [item0, item1]
-    monkeypatch.setenv("AMZN_BRAKET_IMAGE_ADDITIONAL_LIB", "s3://test_bucket/test_location")
-    install_additional_libraries()
-    mock_s3.download_file.assert_called_with("test_bucket", "test_location",
-                                             "/opt/braket/additional_lib/original/test_location")
-    mock_shutil.unpack_archive.assert_called_with(
-        "/opt/braket/additional_lib/original/test_location",
-        "/opt/braket/additional_lib/extracted"
-    )
+    monkeypatch.setenv("AMZN_BRAKET_IMAGE_SETUP_SCRIPT", "s3://test_bucket/test_location/myscript.sh")
+    perform_additional_setup()
+    mock_s3.download_file.assert_called_with("test_bucket", "test_location/myscript.sh",
+                                             "/opt/braket/additional_setup/myscript.sh")
     assert subprocess.run.call_count == 1
-    subprocess.run.assert_called_with(["pip", "install", "-e", "temp_path"])
+    subprocess.run.assert_called_with(["chmod",
+                                       "+x",
+                                       "/opt/braket/additional_setup/myscript.sh",
+                                       "&&",
+                                       "/opt/braket/additional_setup/myscript.sh"])
 
 
 @mock.patch('src.braket_container.boto3')
