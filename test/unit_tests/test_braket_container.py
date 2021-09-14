@@ -73,7 +73,7 @@ def test_install_additional_libraries(mock_boto, mock_shutil, mock_scandir, subp
         "/opt/braket/additional_lib/extracted"
     )
     assert subprocess.run.call_count == 1
-    subprocess.run.assert_called_with(["pip", "install", "-e", "temp_path"])
+    subprocess.run.assert_called_with(["python", "-m", "pip", "install", "temp_path"])
 
 
 @mock.patch('src.braket_container.boto3')
