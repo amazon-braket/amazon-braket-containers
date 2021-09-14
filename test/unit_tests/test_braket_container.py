@@ -193,6 +193,7 @@ def test_setup_and_run_as_subprocess(mock_sys, mock_os, mock_mkdir, mock_boto, m
     # Assert
     mock_subprocess.run.assert_called_with(
         ["python", "-m", "test_entry_point"],
+        cwd="/opt/braket/code/customer_code/extracted",
     )
     mock_sys.exit.assert_called_with(expected_return_value)
 

@@ -45,7 +45,7 @@ def upload_test_script_to_s3(s3_bucket, s3_location):
 
 def single_image_test(account, role, s3_bucket, s3_location, image_path):
     environment_variables = {
-        "AMZN_BRAKET_SCRIPT_S3_URI" : f"s3://{s3_bucket}/{s3_location}/{SCRIPT_NAME}",
+        "AMZN_BRAKET_SCRIPT_S3_URI": f"s3://{s3_bucket}/{s3_location}/{SCRIPT_NAME}",
         "AMZN_BRAKET_SCRIPT_ENTRY_POINT": f"{SCRIPT_NAME}",
     }
     estimator = Estimator(image_uri=image_path,

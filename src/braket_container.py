@@ -237,7 +237,7 @@ def get_code_setup_parameters() -> Tuple[str, str, str]:
     return s3_uri, entry_point, compression_type
 
 
-def run_customer_code_as_process(entry_point : str) -> int:
+def run_customer_code_as_process(entry_point: str) -> int:
     """
     When provided the name of the package and the method to run, we run them as a process.
 
@@ -254,7 +254,7 @@ def run_customer_code_as_process(entry_point : str) -> int:
     return customer_code_process.exitcode
 
 
-def run_customer_code_as_subprocess(entry_point : str) -> int:
+def run_customer_code_as_subprocess(entry_point: str) -> int:
     """
     When provided just the name of the module to run, we run it as a subprocess.
 
@@ -265,7 +265,7 @@ def run_customer_code_as_subprocess(entry_point : str) -> int:
         int: The exit code of the customer code run.
     """
     print("Running Code As Subprocess")
-    result = subprocess.run(["python", "-m", entry_point])
+    result = subprocess.run(["python", "-m", entry_point], cwd=EXTRACTED_CUSTOMER_CODE_PATH)
     print("Code Run Finished")
     return_code = result.returncode
     return return_code
