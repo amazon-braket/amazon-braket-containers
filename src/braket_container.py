@@ -256,17 +256,16 @@ def run_customer_code_as_process(entry_point : str) -> int:
 
 def run_customer_code_as_subprocess(entry_point : str) -> int:
     """
-    When provided just the name of the file to run, we run it as a subprocess. This will
-    run the subprocess in the directory where the files are extracted.
+    When provided just the name of the module to run, we run it as a subprocess.
 
     Args:
-        entry_point (str): the name of the file to run.
+        entry_point (str): the name of the module to run.
 
     Returns:
         int: The exit code of the customer code run.
     """
     print("Running Code As Subprocess")
-    result = subprocess.run("python " + entry_point, cwd=EXTRACTED_CUSTOMER_CODE_PATH, shell=True)
+    result = subprocess.run(["python", "-m", entry_point])
     print("Code Run Finished")
     return_code = result.returncode
     return return_code
