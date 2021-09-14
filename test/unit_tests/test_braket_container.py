@@ -15,6 +15,7 @@ from src.braket_container import (
     setup_and_run
 )
 
+
 @mock.patch('pathlib._normal_accessor.mkdir')
 def test_log_failure_logging(mock_mkdir):
     with mock.patch('builtins.open', mock.mock_open()) as file_open:
@@ -59,12 +60,12 @@ def test_perform_additional_setup(mock_boto, subprocess, monkeypatch):
     perform_additional_setup()
     mock_s3.download_file.assert_called_with("test_bucket", "test_location/myscript.sh",
                                              "/opt/braket/additional_setup/myscript.sh")
-    assert subprocess.run.call_count == 1
-    subprocess.run.assert_called_with(["chmod",
+    subprocess.run.assert_any_call(["chmod",
                                        "+x",
-                                       "/opt/braket/additional_setup/myscript.sh",
-                                       "&&",
                                        "/opt/braket/additional_setup/myscript.sh"])
+    subprocess.run.assert_any_call("/opt/braket/additional_setup/myscript.sh")
+    assert subprocess.run.call_count == 2
+
 
 
 @mock.patch('src.braket_container.boto3')

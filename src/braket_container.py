@@ -106,7 +106,8 @@ def perform_additional_setup() -> None:
         try:
             print("Getting setup script from ", lib_s3_uri)
             script_to_run = download_s3_file(lib_s3_uri, SETUP_SCRIPT_PATH)
-            subprocess.run(["chmod", "+x", script_to_run, "&&", script_to_run])
+            subprocess.run(["chmod", "+x", script_to_run])
+            subprocess.run(script_to_run)
         except Exception as e:
             log_failure(f"Unable to install additional libraries.\nException: {e}")
             sys.exit(1)
