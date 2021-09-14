@@ -256,7 +256,7 @@ def run_customer_code_as_subprocess(entry_point : str) -> int:
         int: The exit code of the customer code run.
     """
     print("Running Code As Subprocess")
-    result = subprocess.run(["python", "-m", entry_point])
+    result = subprocess.run(["python", "-m", entry_point], cwd=EXTRACTED_CUSTOMER_CODE_PATH)
     print("Code Run Finished")
     return_code = result.returncode
     return return_code
