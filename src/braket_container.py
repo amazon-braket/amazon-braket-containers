@@ -32,8 +32,7 @@ ORIGINAL_CUSTOMER_CODE_PATH = os.path.join(CUSTOMER_CODE_PATH, "original")
 EXTRACTED_CUSTOMER_CODE_PATH = os.path.join(CUSTOMER_CODE_PATH, "extracted")
 ERROR_LOG_PATH = os.path.join(OPT_ML, "output")
 ERROR_LOG_FILE = os.path.join(ERROR_LOG_PATH, "failure")
-ORIGINAL_ADDITIONAL_LIBRARY_PATH = os.path.join(OPT_BRAKET, "additional_lib", "original")
-EXTRACTED_ADDITIONAL_LIBRARY_PATH = os.path.join(OPT_BRAKET, "additional_lib", "extracted")
+SETUP_SCRIPT_PATH = os.path.join(OPT_BRAKET, "additional_setup")
 
 print("Boto3 Version: ", boto3.__version__)
 
@@ -61,8 +60,7 @@ def create_paths():
     Path(CUSTOMER_CODE_PATH).mkdir(parents=True, exist_ok=True)
     Path(ORIGINAL_CUSTOMER_CODE_PATH).mkdir(parents=True, exist_ok=True)
     Path(EXTRACTED_CUSTOMER_CODE_PATH).mkdir(parents=True, exist_ok=True)
-    Path(ORIGINAL_ADDITIONAL_LIBRARY_PATH).mkdir(parents=True, exist_ok=True)
-    Path(EXTRACTED_ADDITIONAL_LIBRARY_PATH).mkdir(parents=True, exist_ok=True)
+    Path(SETUP_SCRIPT_PATH).mkdir(parents=True, exist_ok=True)
 
 
 def create_symlink():
@@ -98,24 +96,18 @@ def download_s3_file(s3_uri : str, local_path : str) -> str:
     return local_s3_file
 
 
-def install_additional_libraries() -> None:
+def perform_additional_setup() -> None:
     """
-    Downloads and installs additional libraries, if any, as defined in the
-    AMZN_BRAKET_IMAGE_ADDITIONAL_LIB env variable.
-
-    The libraries are downloaded to ORIGINAL_ADDITIONAL_LIBRARY_PATH and extracted to
-    EXTRACTED_ADDITIONAL_LIBRARY_PATH. Each library is then installed.
+    Downloads and runs the setup script for additional libraries, if any, as defined in the
+    AMZN_BRAKET_IMAGE_SETUP_SCRIPT env variable.
     """
-    lib_s3_uri = os.getenv('AMZN_BRAKET_IMAGE_ADDITIONAL_LIB')
+    lib_s3_uri = os.getenv('AMZN_BRAKET_IMAGE_SETUP_SCRIPT')
     if lib_s3_uri:
         try:
-            print("Installing additional libraries at ", lib_s3_uri)
-            local_path = download_s3_file(lib_s3_uri, ORIGINAL_ADDITIONAL_LIBRARY_PATH)
-            shutil.unpack_archive(local_path, EXTRACTED_ADDITIONAL_LIBRARY_PATH)
-            for item in os.scandir(EXTRACTED_ADDITIONAL_LIBRARY_PATH):
-                if item.is_dir():
-                    print(f"Installing {item.path}")
-                    subprocess.run(["python", "-m", "pip", "install", item.path])
+            print("Getting setup script from ", lib_s3_uri)
+            script_to_run = download_s3_file(lib_s3_uri, SETUP_SCRIPT_PATH)
+            subprocess.run(["chmod", "+x", script_to_run])
+            subprocess.run(script_to_run)
         except Exception as e:
             log_failure(f"Unable to install additional libraries.\nException: {e}")
             sys.exit(1)
@@ -293,7 +285,7 @@ def setup_and_run():
     print("Beginning Setup")
     create_symlink()
     create_paths()
-    install_additional_libraries()
+    perform_additional_setup()
     exit_code = run_customer_code()
     sys.exit(exit_code)
 
