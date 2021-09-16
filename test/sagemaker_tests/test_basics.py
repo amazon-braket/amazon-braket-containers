@@ -34,13 +34,7 @@ def test_basics(account, region, role, s3_bucket, s3_location, image_list):
 
 
 def upload_test_script_to_s3(s3_bucket, s3_location):
-    credentials = get_session().get_credentials()
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=credentials.access_key,
-        aws_secret_access_key=credentials.secret_key,
-        aws_session_token=credentials.token,
-    )
+    s3_client = boto3.client("s3")
     s3_client.upload_file(SCRIPT_PATH + SCRIPT_NAME, s3_bucket, f"{s3_location}/{SCRIPT_NAME}")
 
 

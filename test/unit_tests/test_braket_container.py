@@ -67,7 +67,6 @@ def test_perform_additional_setup(mock_boto, subprocess, monkeypatch):
     assert subprocess.run.call_count == 2
 
 
-
 @mock.patch('src.braket_container.boto3')
 def test_download_customer_code(mock_boto):
     mock_s3 = mock_boto.client.return_value = mock.MagicMock()

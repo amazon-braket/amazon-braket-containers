@@ -9,13 +9,16 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - pip install -r test/sagemaker_tests/base/jobs/requirements.txt
+      - pip install -r test/requirements.txt
+      - echo Performing additional setup...
+      - python test/perform_additional_setup.py
   build:
     commands:
       - echo Testing started on `date`
       - echo Testing images at $CODEBUILD_SRC_DIR_BUILD_RESULTS...
       - pytest test/unit_tests
       - pytest test/sagemaker_tests -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
+      - pytest test/braket_tests/$FRAMEWORK -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
   post_build:
     commands:
       - echo Testing step finished on `date`
