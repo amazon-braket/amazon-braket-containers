@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from pathlib import Path
 from unittest import mock
 from urllib.parse import urlparse
@@ -12,7 +14,8 @@ from src.braket_container import (
     log_failure,
     unpack_code_and_add_to_path,
     get_code_setup_parameters,
-    setup_and_run
+    colorize,
+    setup_and_run,
 )
 
 
@@ -213,3 +216,23 @@ def test_setup_and_run_as_process(mock_sys, mock_os, mock_mkdir, mock_boto, mock
     mock_process_object.start.assert_called()
     mock_process_object.join.assert_called()
     mock_sys.exit.assert_called_with(expected_return_value)
+
+
+def test_colorize(capsys):
+    @colorize
+    def colorized():
+        print("this should be normal color")
+        print("this should be red", file=sys.stderr)
+        sys.stderr.write("this should also be red")
+
+    colorized()
+
+    captured = capsys.readouterr()
+    assert captured.out == "this should be normal color\n"
+    assert captured.err == "".join(
+        (
+            f"\033[01;31m{'this should be red'}\033[0;0m",
+            f"\033[01;31m\n\033[0;0m",  # print appends \n as a separate write
+            f"\033[01;31m{'this should also be red'}\033[0;0m",
+        )
+    )
