@@ -21,7 +21,7 @@ import boto3
 import tempfile
 
 
-def download_s3_file(s3_uri : str, local_path : str) -> str:
+def download_s3_file(s3_uri: str, local_path: str) -> str:
     """
     Downloads a file to a local path.
 
