@@ -263,6 +263,28 @@ def run_customer_code_as_subprocess(entry_point: str) -> int:
     return return_code
 
 
+def colorize(f):
+    default_color = '\x1b[0;0m'
+    red = '\x1b[01;31m'
+
+    class ColorWrapper:
+        def __init__(self, wrapped):
+            self.wrapped = wrapped
+
+        def write(self, x):
+            return self.wrapped.write(red + x + default_color)
+
+    def wrapper(*args, **kwargs):
+        old_stderr = sys.stderr
+        sys.stderr = ColorWrapper(old_stderr)
+        result = f(*args, **kwargs)
+        sys.stderr = old_stderr
+        return result
+
+    return wrapper
+
+
+@colorize
 def run_customer_code() -> int:
     """
     Downloads and runs the customer code.
@@ -278,27 +300,6 @@ def run_customer_code() -> int:
     return run_customer_code_as_subprocess(entry_point)
 
 
-def colorize(f):
-    default_color = '\x1b[0;0m'
-    red = '\x1b[01;31m'
-
-    class ColorWrapper:
-        def __init__(self, wrapped):
-            self.wrapped = wrapped
-
-        def write(self, x):
-            return self.wrapped.write(red + x + default_color)
-
-    def wrapper(*args, **kwargs):
-        old_stderr = sys.stderr
-        sys.stderr = ColorWrapper(old_stderr)
-        f(*args, **kwargs)
-        sys.stderr = old_stderr
-
-    return wrapper
-
-
-@colorize
 def setup_and_run():
     """
     This method sets up the Braket container, then downloads and runs the customer code.
