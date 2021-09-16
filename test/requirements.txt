@@ -1,0 +1,7 @@
+amazon-braket-schemas
+amazon-braket-sdk
+docker-compose
+mock
+pytest
+pytest-xdist
+sagemaker
