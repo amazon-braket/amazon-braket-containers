@@ -263,7 +263,7 @@ def run_customer_code_as_subprocess(entry_point: str) -> int:
     return return_code
 
 
-def colorize(f):
+def colorize(func):
     default_color = '\x1b[0;0m'
     red = '\x1b[01;31m'
 
@@ -277,7 +277,7 @@ def colorize(f):
     def wrapper(*args, **kwargs):
         old_stderr = sys.stderr
         sys.stderr = ColorWrapper(old_stderr)
-        result = f(*args, **kwargs)
+        result = func(*args, **kwargs)
         sys.stderr = old_stderr
         return result
 
