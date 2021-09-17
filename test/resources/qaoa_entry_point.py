@@ -31,17 +31,12 @@ from . import qaoa_utils
 
 
 def init_pl_device(device_arn, num_nodes, max_parallel):
-    s3_bucket = os.environ["AMZN_BRAKET_OUT_S3_BUCKET"]
-    s3_prefix = "pennylane-test"
-    s3_folder = (s3_bucket, s3_prefix)
-    print(f"s3_folder: {s3_folder}")
-
     return qml.device(
         "braket.aws.qubit",
         device_arn=device_arn,
         wires=num_nodes,
         shots=1000,
-        s3_destination_folder=s3_folder,
+        s3_destination_folder=None,
         parallel=True,
         max_parallel=max_parallel,
     )
