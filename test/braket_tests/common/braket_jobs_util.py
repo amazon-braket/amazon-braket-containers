@@ -34,12 +34,13 @@ def job_test(account, role, s3_bucket, image_path, job_type, **kwargs):
 
 
 def create_job(account, role, s3_bucket, image_path, job_type, **kwargs):
+    aws_session = AwsSession(default_bucket=s3_bucket)
     job_name = f"ContainerTest-{job_type}-{int(time.time())}"
     AwsQuantumJob.create(
+        aws_session=aws_session,
         job_name=job_name,
         device_arn="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
         role_arn=f"arn:aws:iam::{account}:role/{role}",
-        code_location=f"s3://{s3_bucket}/{job_name}/source",
         image_uri=image_path,
         wait_until_complete=True,
         **kwargs
