@@ -3,7 +3,8 @@
 
 FROM public.ecr.aws/ubuntu/ubuntu:18.04
 
-MAINTAINER Amazon Braket <amazon-braket-dev@amazon.com>
+LABEL maintainer="Amazon Braket"
+LABEL major_version="1"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
