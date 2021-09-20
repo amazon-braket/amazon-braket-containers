@@ -127,3 +127,7 @@ def start_function():
     save_job_result({"params": np_params.tolist(), "cost": final_cost})
 
     print("Braket Container Run Success")
+
+
+if __name__ == "__main__":
+    start_function()
