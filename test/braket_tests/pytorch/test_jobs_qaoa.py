@@ -20,13 +20,12 @@ def test_qaoa_circuit(account, region, role, s3_bucket, image_list):
         "source_module": "./test/resources/",
         "entry_point": "resources.qaoa_entry_point",
         "hyperparameters": {
-            "device_arn": "arn:aws:braket:::device/quantum-simulator/amazon/sv1",
-            "num_nodes": "4",
-            "num_edges": "4",
             "p": "2",
             "seed": "1967",
             "max_parallel": "10",
             "num_iterations": "5",
+            "stepsize": "0.1",
+            "shots": "100",
             "interface": "torch",
         }
     }
