@@ -21,7 +21,7 @@ def test_qaoa_circuit(account, region, role, s3_bucket, image_list):
         "entry_point": "resources.qaoa_entry_point",
         "hyperparameters": {
             "p": "2",
-            "seed": "1980",
+            "seed": "1967",
             "max_parallel": "10",
             "num_iterations": "5",
             "stepsize": "0.1",
