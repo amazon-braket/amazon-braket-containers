@@ -29,7 +29,7 @@ Create an ECR repository in your AWS account. In this example, we'll assume it's
 
 1. To build all the dockerfiles specified in the buildspec.yml locally, use the command
     ```shell script
-    python src/main.py --buildspec base/buildspec.yml --framework base
+    python src/main.py --framework base
     ``` 
    The above step should take a while to complete the first time you run it since it will have to download all base
    layers and create intermediate layers for the first time. Subsequent runs should be much faster.
