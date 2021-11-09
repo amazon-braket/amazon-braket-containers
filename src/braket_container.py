@@ -37,10 +37,10 @@ SETUP_SCRIPT_PATH = os.path.join(OPT_BRAKET, "additional_setup")
 print("Boto3 Version: ", boto3.__version__)
 
 
-def log_failure(*args):
+def log_failure_and_exit(*args):
     """
     Log failures to a file so that it can be parsed by the backend service and included in
-    failure messages for a job.
+    failure messages for a job. Exists with code 0.
 
     Args:
         args: variable list of text to write to the file.
@@ -50,6 +50,7 @@ def log_failure(*args):
         for text in args:
             error_log.write(text)
             print(text)
+    sys.exit(0)
 
 
 def create_paths():
@@ -73,8 +74,7 @@ def create_symlink():
     except OSError as e:
         if e.errno != errno.EEXIST:
             print(f"Got unexpected exception: {e}")
-            log_failure("Symlink failure")
-            raise e
+            log_failure_and_exit(f"Symlink failure.\n Exception: {e}")
 
 
 def download_s3_file(s3_uri : str, local_path : str) -> str:
@@ -109,8 +109,7 @@ def perform_additional_setup() -> None:
             subprocess.run(["chmod", "+x", script_to_run])
             subprocess.run(script_to_run)
         except Exception as e:
-            log_failure(f"Unable to install additional libraries.\nException: {e}")
-            sys.exit(1)
+            log_failure_and_exit(f"Unable to install additional libraries.\nException: {e}")
 
 
 def download_customer_code(s3_uri : str) -> str:
@@ -126,8 +125,7 @@ def download_customer_code(s3_uri : str) -> str:
     try:
         return download_s3_file(s3_uri, ORIGINAL_CUSTOMER_CODE_PATH)
     except Exception as e:
-        log_failure(f"Unable to download code.\nException: {e}")
-        sys.exit(1)
+        log_failure_and_exit(f"Unable to download code.\nException: {e}")
 
 
 def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
@@ -143,11 +141,10 @@ def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
         try:
             shutil.unpack_archive(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
         except Exception as e:
-            log_failure(
+            log_failure_and_exit(
                 f"Got an exception while trying to unpack archive: {local_s3_file} of type: "
                 f"{compression_type}.\nException: {e}"
             )
-            sys.exit(1)
     else:
         shutil.move(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
     sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
@@ -170,8 +167,7 @@ def kick_off_customer_script(entry_point : str) -> multiprocessing.Process:
         customer_code_process = multiprocessing.Process(target=customer_method)
         customer_code_process.start()
     except Exception as e:
-        log_failure(f"Unable to run job at entry point {entry_point}\nException: {e}")
-        sys.exit(1)
+        log_failure_and_exit(f"Unable to run job at entry point {entry_point}\nException: {e}")
     return customer_code_process
 
 
@@ -185,8 +181,7 @@ def join_customer_script(customer_code_process : multiprocessing.Process):
     try:
         customer_code_process.join()
     except Exception as e:
-        log_failure(f"Job did not exit gracefully.\nException: {e}")
-        sys.exit(1)
+        log_failure_and_exit(f"Job did not exit gracefully.\nException: {e}")
 
 
 def get_code_setup_parameters() -> Tuple[str, str, str]:
@@ -218,14 +213,11 @@ def get_code_setup_parameters() -> Tuple[str, str, str]:
             if not compression_type:
                 compression_type = hyperparameters.get("AMZN_BRAKET_SCRIPT_COMPRESSION_TYPE")
         except Exception as e:
-            log_failure("Hyperparameters not specified in env")
-            sys.exit(1)
+            log_failure_and_exit("Hyperparameters not specified in env")
     if not s3_uri:
-        log_failure("No customer script specified")
-        sys.exit(1)
+        log_failure_and_exit("No customer script specified")
     if not entry_point:
-        log_failure("No customer entry point specified")
-        sys.exit(1)
+        log_failure_and_exit("No customer entry point specified")
     return s3_uri, entry_point, compression_type
 
 
@@ -257,25 +249,30 @@ def run_customer_code_as_subprocess(entry_point : str) -> int:
         int: The exit code of the customer code run.
     """
     print("Running Code As Subprocess")
-    result = subprocess.run(["python", "-m", entry_point], cwd=EXTRACTED_CUSTOMER_CODE_PATH)
+    try:
+        result = subprocess.run(["python", "-m", entry_point], cwd=EXTRACTED_CUSTOMER_CODE_PATH)
+    except Exception as e:
+        log_failure_and_exit(f"Unable to run job at entry point {entry_point}\nException: {e}")
     print("Code Run Finished")
     return_code = result.returncode
     return return_code
 
 
-def run_customer_code() -> int:
+def run_customer_code() -> None:
     """
-    Downloads and runs the customer code.
-
-    Returns:
-        int: The exit code of the customer code run.
+    Downloads and runs the customer code. If the customer code exists
+    with a non-zero exit code, this function will log a failure and
+    exit.
     """
     s3_uri, entry_point, compression_type = get_code_setup_parameters()
     local_s3_file = download_customer_code(s3_uri)
     unpack_code_and_add_to_path(local_s3_file, compression_type)
     if entry_point.find(":") >= 0:
-        return run_customer_code_as_process(entry_point)
-    return run_customer_code_as_subprocess(entry_point)
+        exit_code = run_customer_code_as_process(entry_point)
+    else:
+        exit_code = run_customer_code_as_subprocess(entry_point)
+    if exit_code != 0:
+        log_failure_and_exit(f"Job at {entry_point} exited with exit code: {exit_code}")
 
 
 def setup_and_run():
@@ -286,8 +283,7 @@ def setup_and_run():
     create_symlink()
     create_paths()
     perform_additional_setup()
-    exit_code = run_customer_code()
-    sys.exit(exit_code)
+    run_customer_code()
 
 
 if __name__ == "__main__":

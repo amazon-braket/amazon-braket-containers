@@ -9,7 +9,7 @@ from src.braket_container import (
     create_symlink,
     perform_additional_setup,
     download_customer_code,
-    log_failure,
+    log_failure_and_exit,
     unpack_code_and_add_to_path,
     get_code_setup_parameters,
     setup_and_run
@@ -17,15 +17,17 @@ from src.braket_container import (
 
 
 @mock.patch('pathlib._normal_accessor.mkdir')
-def test_log_failure_logging(mock_mkdir):
+@mock.patch('src.braket_container.sys')
+def test_log_failure_logging(mock_sys, mock_mkdir):
     with mock.patch('builtins.open', mock.mock_open()) as file_open:
-        log_failure("my test data")
+        log_failure_and_exit("my test data")
         # Open with append in case someone (eg. the customer) wrote something to the file already
         file_open.assert_called_with('/opt/ml/output/failure', 'a')
         file_write = file_open()
         file_write.write.assert_called_with("my test data")
     # We use the /opt/ml/output directory in case there is an error during symlink
     mock_mkdir.assert_called_with(Path('/opt/ml/output'), 511)
+    mock_sys.exit.assert_called_with(0)
 
 
 @mock.patch('src.braket_container.os')
@@ -35,11 +37,12 @@ def test_create_symlink(mock_os):
 
 
 @pytest.mark.xfail(raises=PermissionError)
-@mock.patch('src.braket_container.log_failure')
+@mock.patch('src.braket_container.log_failure_and_exit')
 @mock.patch('src.braket_container.os.symlink')
 def test_create_symlink_error(mock_symlink, mock_log_failure):
     mock_symlink.side_effect = PermissionError
     create_symlink()
+    mock_log_failure.assert_called()
 
 
 @mock.patch('pathlib._normal_accessor.mkdir')
@@ -144,7 +147,7 @@ def test_unpack_code_and_add_to_path_zipped(mock_shutil, compression_type):
         },
     ]
 )
-@mock.patch('src.braket_container.log_failure')
+@mock.patch('src.braket_container.log_failure_and_exit')
 @mock.patch('src.braket_container.sys')
 def test_get_code_setup_parameters(mock_sys, mock_log_failure, environment, monkeypatch):
     set_vars = environment.setdefault("set_vars", {})
@@ -159,9 +162,12 @@ def test_get_code_setup_parameters(mock_sys, mock_log_failure, environment, monk
         assert compression_type == expected[2]
     else:
         mock_log_failure.assert_called()
-        mock_sys.exit.assert_called_with(1)
 
 
+@pytest.mark.parametrize(
+    "expected_return_value", [0, 1]
+)
+@mock.patch('src.braket_container.log_failure_and_exit')
 @mock.patch('src.braket_container.subprocess')
 @mock.patch('src.braket_container.get_code_setup_parameters')
 @mock.patch('src.braket_container.shutil')
@@ -169,9 +175,18 @@ def test_get_code_setup_parameters(mock_sys, mock_log_failure, environment, monk
 @mock.patch('pathlib._normal_accessor.mkdir')
 @mock.patch('src.braket_container.os')
 @mock.patch('src.braket_container.sys')
-def test_setup_and_run_as_subprocess(mock_sys, mock_os, mock_mkdir, mock_boto, mock_shutil, mock_get_code_setup, mock_subprocess):
+def test_setup_and_run_as_subprocess(
+        mock_sys,
+        mock_os,
+        mock_mkdir,
+        mock_boto,
+        mock_shutil,
+        mock_get_code_setup,
+        mock_subprocess,
+        mock_log_failure,
+        expected_return_value
+):
     # Setup
-    expected_return_value = 3
     mock_os.getenv.return_value = ""
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_entry_point", None
     run_result_object = mock.MagicMock()
@@ -185,9 +200,15 @@ def test_setup_and_run_as_subprocess(mock_sys, mock_os, mock_mkdir, mock_boto, m
     mock_subprocess.run.assert_called_with(
         ["python", "-m", "test_entry_point"], cwd='/opt/braket/code/customer_code/extracted',
     )
-    mock_sys.exit.assert_called_with(expected_return_value)
+    if expected_return_value != 0:
+        mock_log_failure.assert_called()
 
 
+
+@pytest.mark.parametrize(
+    "expected_return_value", [0, 1]
+)
+@mock.patch('src.braket_container.log_failure_and_exit')
 @mock.patch('src.braket_container.multiprocessing')
 @mock.patch('src.braket_container.importlib')
 @mock.patch('src.braket_container.get_code_setup_parameters')
@@ -196,9 +217,19 @@ def test_setup_and_run_as_subprocess(mock_sys, mock_os, mock_mkdir, mock_boto, m
 @mock.patch('pathlib._normal_accessor.mkdir')
 @mock.patch('src.braket_container.os')
 @mock.patch('src.braket_container.sys')
-def test_setup_and_run_as_process(mock_sys, mock_os, mock_mkdir, mock_boto, mock_shutil, mock_get_code_setup, mock_importlib, mock_process):
+def test_setup_and_run_as_process(
+        mock_sys,
+        mock_os,
+        mock_mkdir,
+        mock_boto,
+        mock_shutil,
+        mock_get_code_setup,
+        mock_importlib,
+        mock_process,
+        mock_log_failure,
+        expected_return_value
+):
     # Setup
-    expected_return_value = 3
     mock_os.getenv.return_value = ""
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_module:test_function", None
     mock_process_object = mock.MagicMock()
@@ -211,4 +242,5 @@ def test_setup_and_run_as_process(mock_sys, mock_os, mock_mkdir, mock_boto, mock
     # Assert
     mock_process_object.start.assert_called()
     mock_process_object.join.assert_called()
-    mock_sys.exit.assert_called_with(expected_return_value)
+    if expected_return_value != 0:
+        mock_log_failure.assert_called()
