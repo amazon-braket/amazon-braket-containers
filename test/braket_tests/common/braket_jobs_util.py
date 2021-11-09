@@ -39,7 +39,7 @@ def create_job(account, role, s3_bucket, image_path, job_type, **kwargs):
     AwsQuantumJob.create(
         aws_session=aws_session,
         job_name=job_name,
-        device_arn="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
+        device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
         role_arn=f"arn:aws:iam::{account}:role/{role}",
         image_uri=image_path,
         wait_until_complete=True,
