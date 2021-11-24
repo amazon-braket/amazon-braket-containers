@@ -7,7 +7,6 @@ import pytest
 from src.braket_container import (
     create_paths,
     create_symlink,
-    perform_additional_setup,
     download_customer_code,
     log_failure_and_exit,
     unpack_code_and_add_to_path,
@@ -53,21 +52,6 @@ def test_create_paths(mock_mkdir):
     mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code/extracted'), 511)
     mock_mkdir.assert_any_call(Path('/opt/braket/additional_setup'), 511)
     assert mock_mkdir.call_count == 4
-
-
-@mock.patch('src.braket_container.subprocess')
-@mock.patch('src.braket_container.boto3')
-def test_perform_additional_setup(mock_boto, subprocess, monkeypatch):
-    mock_s3 = mock_boto.client.return_value = mock.MagicMock()
-    monkeypatch.setenv("AMZN_BRAKET_IMAGE_SETUP_SCRIPT", "s3://test_bucket/test_location/myscript.sh")
-    perform_additional_setup()
-    mock_s3.download_file.assert_called_with("test_bucket", "test_location/myscript.sh",
-                                             "/opt/braket/additional_setup/myscript.sh")
-    subprocess.run.assert_any_call(["chmod",
-                                       "+x",
-                                       "/opt/braket/additional_setup/myscript.sh"])
-    subprocess.run.assert_any_call("/opt/braket/additional_setup/myscript.sh")
-    assert subprocess.run.call_count == 2
 
 
 @mock.patch('src.braket_container.boto3')

@@ -96,22 +96,6 @@ def download_s3_file(s3_uri : str, local_path : str) -> str:
     return local_s3_file
 
 
-def perform_additional_setup() -> None:
-    """
-    Downloads and runs the setup script for additional libraries, if any, as defined in the
-    AMZN_BRAKET_IMAGE_SETUP_SCRIPT env variable.
-    """
-    lib_s3_uri = os.getenv('AMZN_BRAKET_IMAGE_SETUP_SCRIPT')
-    if lib_s3_uri:
-        try:
-            print("Getting setup script from ", lib_s3_uri)
-            script_to_run = download_s3_file(lib_s3_uri, SETUP_SCRIPT_PATH)
-            subprocess.run(["chmod", "+x", script_to_run])
-            subprocess.run(script_to_run)
-        except Exception as e:
-            log_failure_and_exit(f"Unable to install additional libraries.\nException: {e}")
-
-
 def download_customer_code(s3_uri : str) -> str:
     """
     Downloads the customer code to the original customer path. The code is assumed to be a single
@@ -282,7 +266,6 @@ def setup_and_run():
     print("Beginning Setup")
     create_symlink()
     create_paths()
-    perform_additional_setup()
     run_customer_code()
 
 
