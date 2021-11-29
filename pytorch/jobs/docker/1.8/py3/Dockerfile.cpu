@@ -106,17 +106,17 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        amazon-braket-default-simulator==1.2.1 \
-        amazon-braket-ocean-plugin==1.0.4 \
-        amazon-braket-schemas==1.2.2 \
-        amazon-braket-sdk==1.7.1 \
-        amazon-braket-pennylane-plugin==1.3.0 \
-        awscli==1.20.33 \
-        botocore==1.21.33 \
-        boto3==1.18.33 \
+        amazon-braket-default-simulator==1.3.0 \
+        amazon-braket-ocean-plugin==1.0.6 \
+        amazon-braket-schemas==1.5.0 \
+        amazon-braket-sdk==1.10.0 \
+        amazon-braket-pennylane-plugin==1.5.2 \
+        awscli==1.22.15 \
+        botocore==1.23.15 \
+        boto3==1.20.15 \
         decorator==4.4.0 \
         dask==2.30.0 \
-        dwave-ocean-sdk==3.3.0 \
+        dwave-ocean-sdk==4.2.0 \
         h5py==3.2.1 \
         ipykernel==5.3.4 \
         jinja2==2.11.3 \
@@ -124,18 +124,18 @@ RUN ${PIP} install --no-cache --upgrade \
         matplotlib==3.2.2 \
         markupsafe==1.1.1 \
         networkx==2.4 \
-        numpy==1.19.2 \
+        numpy==1.21.4 \
         openfermion==1.0.0 \
         pandas==1.1.4 \
-        PennyLane==0.16.0 \
-        PennyLane-Qchem==0.16.0 \
+        PennyLane==0.19.0 \
+        PennyLane-Qchem==0.19.0 \
         protobuf==3.12.4 \
-        pydantic==1.7 \
+        pydantic==1.8.2 \
         requests==2.26.0 \
         rsa==4.4.1 \
         scikit-learn==0.20.3 \
         six==1.15.0 \
-        scipy==1.5.2 \
+        scipy==1.7.3 \
         torch==1.6.0 \
         typing_extensions==3.7.4.3
 
