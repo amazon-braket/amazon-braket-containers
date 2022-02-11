@@ -63,7 +63,7 @@ Similar to building locally, to test locally, you’ll need access to a personal
    AWS role that should be used by tests, and the S3 location where a test file can be uploaded. Create this bucket in
    S3 before you run the test.
     ```shell script
-    pytest test/sagemaker_tests --role Admin --tag 1.0-cpu-py37-ubuntu18.04-2021-06-18-20-09-42 -s3-bucket amazon-braket-123456
+    pytest test/sagemaker_tests --role Admin --tag 1.0-cpu-py37-ubuntu18.04-2021-06-18-20-09-42 --s3-bucket amazon-braket-123456
     ```
 
 6. To run the Braket integration tests, at minimum you'll need to specify the tag of the image you want to test, the AWS
