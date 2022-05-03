@@ -15,7 +15,7 @@ import os
 
 # Environment settings
 FRAMEWORKS = {"base", "tensorflow"}
-DEVICE_TYPES = {"cpu"}
+DEVICE_TYPES = {"cpu", "gpu"}
 IMAGE_TYPES = {"jobs"}
 PYTHON_VERSIONS = {"py3"}
 ALL = "all"

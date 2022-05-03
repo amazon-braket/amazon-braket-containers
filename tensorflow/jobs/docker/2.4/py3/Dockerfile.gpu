@@ -1,19 +1,22 @@
 # Start with AWS Deep Learning Container. See
 # https://github.com/aws/deep-learning-containers/blob/master/available_images.md
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-gpu-py37-cu110-ubuntu18.04
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
 
 ARG PIP=pip3
 
+RUN apt-get clean
+
+RUN ${PIP} install --no-cache git+https://github.com/aws/amazon-braket-sdk-python.git@local-sim-jobs
+
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
         amazon-braket-default-simulator==1.3.0 \
         amazon-braket-ocean-plugin==1.0.6 \
         amazon-braket-schemas==1.8.0 \
-        amazon-braket-sdk==1.18.0 \
-        amazon-braket-pennylane-plugin==1.5.6 \
+        amazon-braket-pennylane-plugin==1.6.5 \
         awscli==1.22.15 \
         botocore==1.23.15 \
         boto3==1.20.15 \
@@ -30,8 +33,8 @@ RUN ${PIP} install --no-cache --upgrade \
         numpy==1.21.4 \
         openfermion==1.0.0 \
         pandas==1.1.4 \
-        PennyLane==0.20.0 \
-        PennyLane-Qchem==0.19.0 \
+        PennyLane==0.22.0 \
+        PennyLane-Qchem==0.21.0 \
         protobuf==3.12.4 \
         pydantic==1.8.2 \
         requests==2.26.0 \
@@ -46,12 +49,7 @@ RUN ${PIP} install --no-cache --upgrade sagemaker-training
 # Some packages can not be installed using pip (because they are not
 # python managed packages) - install them using apt get
 
-RUN apt-get update && apt-get install -y \
-        python-openbabel \
-        psi4
-
 # Setup our entry point
-
 COPY braket_container.py /opt/ml/code/braket_container.py
 
 ENV SAGEMAKER_PROGRAM braket_container.py
