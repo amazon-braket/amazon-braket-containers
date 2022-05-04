@@ -78,10 +78,10 @@ RUN ${PIP} install --no-cache --upgrade \
         amazon-braket-default-simulator==1.6.2 \
         amazon-braket-ocean-plugin==1.0.9 \
         amazon-braket-schemas==1.8.0 \
-        amazon-braket-pennylane-plugin==1.6.2 \
-        awscli==1.22.15 \
-        botocore==1.23.15 \
-        boto3==1.20.15 \
+        amazon-braket-pennylane-plugin==1.6.5 \
+        awscli==1.23.3 \
+        botocore==1.25.3 \
+        boto3==1.22.3 \
         cuquantum-python \
         decorator==4.4.0 \
         dask==2.30.0 \
