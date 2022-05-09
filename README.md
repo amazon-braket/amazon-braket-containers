@@ -34,6 +34,8 @@ Create an ECR repository in your AWS account. In this example, we'll assume it's
    The above step should take a while to complete the first time you run it since it will have to download all base
    layers and create intermediate layers for the first time. Subsequent runs should be much faster.
 
+   To build other frameworks change the framework flag to one of the other supported frameworks: {pytorch, tensorflow}.
+
 ### Running tests locally
 
 As part of your iteration with your PR, sometimes it is helpful to run your tests locally to avoid using too many
