@@ -14,10 +14,20 @@
 from ..common.braket_jobs_util import job_test
 
 
-def test_bell_circuit(account, region, role, s3_bucket, s3_location, image_list):
+def test_qaoa_circuit(account, role, s3_bucket, image_list):
     assert len(image_list) > 0, "Unable to find images for testing"
     create_job_args = {
-        "source_module": "./test/resources/bell_circuit.py",
+        "source_module": "./test/resources/",
+        "entry_point": "resources.qaoa_entry_point",
+        "hyperparameters": {
+            "p": "2",
+            "seed": "1967",
+            "max_parallel": "10",
+            "num_iterations": "5",
+            "stepsize": "0.1",
+            "shots": "100",
+            "interface": "autograd",
+        }
     }
     for image_path in image_list:
-        job_test(account, role, s3_bucket, image_path, "bell", **create_job_args)
+        job_test(account, role, s3_bucket, image_path, "base-qaoa", **create_job_args)

@@ -14,7 +14,7 @@
 from ..common.braket_jobs_util import job_test
 
 
-def test_qaoa_circuit(account, region, role, s3_bucket, image_list):
+def test_qaoa_circuit(account, role, s3_bucket, image_list):
     assert len(image_list) > 0, "Unable to find images for testing"
     create_job_args = {
         "source_module": "./test/resources/",

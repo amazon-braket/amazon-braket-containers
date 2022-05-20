@@ -16,7 +16,7 @@ import os
 import time
 
 import networkx as nx
-import numpy as np
+from pennylane import numpy as np
 import pennylane as qml
 
 from braket.jobs import save_job_checkpoint, save_job_result
