@@ -67,7 +67,7 @@ def test_download_customer_code(mock_boto):
 def test_unpack_code_and_add_to_path_non_zipped(mock_shutil):
     file_path = urlparse('file://test_s3_bucket/test_s3_loc')
     unpack_code_and_add_to_path(file_path, "")
-    mock_shutil.move.assert_called_with(file_path, '/opt/braket/code/customer_code/extracted')
+    mock_shutil.copy.assert_called_with(file_path, '/opt/braket/code/customer_code/extracted')
 
 
 @pytest.mark.parametrize(
