@@ -92,7 +92,8 @@ def download_s3_file(s3_uri : str, local_path : str) -> str:
     s3_bucket = parsed_url.netloc
     s3_key = parsed_url.path.lstrip("/")
     local_s3_file = os.path.join(local_path, os.path.basename(s3_key))
-    s3_client.download_file(s3_bucket, s3_key, local_s3_file)
+    if not os.path.exists(local_s3_file):
+        s3_client.download_file(s3_bucket, s3_key, local_s3_file)
     return local_s3_file
 
 
@@ -130,7 +131,7 @@ def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
                 f"{compression_type}.\nException: {e}"
             )
     else:
-        shutil.move(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
+        shutil.copy(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
     sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
 
 
