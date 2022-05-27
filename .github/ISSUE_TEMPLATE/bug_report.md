@@ -21,7 +21,6 @@ If applicable, add screenshots or logs to help explain your problem.
 
 **System information**
 A description of your system. Please provide:
-- **Amazon Braket Python QCVV version**:
 - **Amazon Braket Python SDK version**:
 - **Python version**:
 
