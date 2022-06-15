@@ -105,8 +105,9 @@ RUN ${PIP} install --no-cache --upgrade \
         scikit-learn==0.20.3 \
         six==1.15.0 \
         scipy==1.7.3 \
-        typing_extensions==3.7.4.3 \
-        sagemaker-training==4.1.3
+        typing_extensions==3.7.4.3
+
+RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.1.3
 
 # install cuQuantum
 RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-22.03.0.40-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-22.03.0.40-archive.tar.xz
