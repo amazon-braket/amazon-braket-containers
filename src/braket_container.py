@@ -159,7 +159,11 @@ def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
 
         try:
             inspect.signature(customer_method).bind(**hyperparams)
-            process_kwargs["kwargs"] = hyperparams
+            process_kwargs["kwargs"] = dict(
+                (kwarg, arg_type(hyperparams[kwarg]))
+                for kwarg, arg_type
+                in inspect.getfullargspec(customer_method).annotations.items()
+            )
         except TypeError:
             pass
 
