@@ -35,7 +35,6 @@ RUN ${PIP} install --no-cache --upgrade \
         PennyLane==0.23.1 \
         PennyLane-Qchem==0.23.0 \
         PennyLane-Lightning==0.23.0 \
-        PennyLane-Lightning-gpu==0.23.0 \
         protobuf==3.12.4 \
         pydantic==1.8.2 \
         requests==2.26.0 \
