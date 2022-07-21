@@ -16,6 +16,9 @@ import pytest
 import json
 
 
+pytest_plugins = "pytester"
+
+
 def pytest_addoption(parser):
     parser.addoption('--region', default=os.getenv("REGION"))
     parser.addoption('--account', default=os.getenv("ACCOUNT_ID"))
@@ -64,3 +67,13 @@ def image_list(request, account, region):
             build_results = json.load(build_file)
         return [image["ecr_url"] for image in build_results]
     raise Exception("No images specified for testing")
+
+
+@pytest.fixture
+def hyperparameters(pytester):
+    pytester.makefile(
+        ".json",
+        hyperparameters="""
+        {}
+        """
+    )

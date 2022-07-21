@@ -1,3 +1,5 @@
+import io
+import os
 from pathlib import Path
 from unittest import mock
 from urllib.parse import urlparse
@@ -188,7 +190,6 @@ def test_setup_and_run_as_subprocess(
         mock_log_failure.assert_called()
 
 
-
 @pytest.mark.parametrize(
     "expected_return_value", [0, 1]
 )
@@ -211,15 +212,17 @@ def test_setup_and_run_as_process(
         mock_importlib,
         mock_process,
         mock_log_failure,
-        expected_return_value
+        expected_return_value,
+        hyperparameters,
 ):
     # Setup
-    mock_os.getenv.return_value = ""
+    mock_os.getenv = lambda x: "hyperparameters.json" if x == "AMZN_BRAKET_HP_FILE" else ""
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_module:test_function", None
     mock_process_object = mock.MagicMock()
     mock_process.Process.return_value = mock_process_object
     mock_process_object.exitcode = expected_return_value
 
+    # with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": "hyperparameters.json"}):
     # Act
     setup_and_run()
 

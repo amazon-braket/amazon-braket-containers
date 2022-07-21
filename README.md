@@ -8,9 +8,9 @@ Create an ECR repository in your AWS account. In this example, we'll assume it's
 
 1. Clone the repo and set the following environment variables:
     ```shell script
-    export ACCOUNT_ID=<YOUR_ACCOUNT_ID>
     export REGION=us-west-2
     export REPOSITORY_NAME=braket-base-jobs
+    export ACCOUNT_ID=<YOUR_ACCOUNT_ID>
     ```
    Make sure you set the repository name to the name you created in your AWS account.
 

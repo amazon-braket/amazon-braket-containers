@@ -153,7 +153,7 @@ def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
 
         process_kwargs = {"target": customer_method}
 
-        hp_file = os.environ["AMZN_BRAKET_HP_FILE"]
+        hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
         with open(hp_file) as f:
             hyperparams = json.load(f)
 
