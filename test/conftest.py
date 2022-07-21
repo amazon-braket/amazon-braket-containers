@@ -16,9 +16,6 @@ import pytest
 import json
 
 
-pytest_plugins = "pytester"
-
-
 def pytest_addoption(parser):
     parser.addoption('--region', default=os.getenv("REGION"))
     parser.addoption('--account', default=os.getenv("ACCOUNT_ID"))
