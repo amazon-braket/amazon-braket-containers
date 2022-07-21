@@ -70,7 +70,7 @@ def image_list(request, account, region):
 
 
 @pytest.fixture
-def hyperparameters(pytester):
+def hyperparameters_json(pytester):
     pytester.makefile(
         ".json",
         hyperparameters="""

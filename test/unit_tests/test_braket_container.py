@@ -1,5 +1,5 @@
-import io
-import os
+import json
+import re
 from pathlib import Path
 from unittest import mock
 from urllib.parse import urlparse
@@ -15,6 +15,7 @@ from src.braket_container import (
     get_code_setup_parameters,
     setup_and_run
 )
+from src.utils import try_bind_hyperparameters_to_customer_method
 
 
 @mock.patch('pathlib._normal_accessor.mkdir')
@@ -200,11 +201,13 @@ def test_setup_and_run_as_subprocess(
 @mock.patch('src.braket_container.shutil')
 @mock.patch('src.braket_container.boto3')
 @mock.patch('pathlib._normal_accessor.mkdir')
+@mock.patch('src.utils.os')
 @mock.patch('src.braket_container.os')
 @mock.patch('src.braket_container.sys')
 def test_setup_and_run_as_process(
         mock_sys,
         mock_os,
+        mock_os_utils,
         mock_mkdir,
         mock_boto,
         mock_shutil,
@@ -213,10 +216,11 @@ def test_setup_and_run_as_process(
         mock_process,
         mock_log_failure,
         expected_return_value,
-        hyperparameters,
+        hyperparameters_json,
 ):
     # Setup
-    mock_os.getenv = lambda x: "hyperparameters.json" if x == "AMZN_BRAKET_HP_FILE" else ""
+    mock_os.getenv.return_value = ""
+    mock_os_utils.getenv.return_value = "hyperparameters.json"
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_module:test_function", None
     mock_process_object = mock.MagicMock()
     mock_process.Process.return_value = mock_process_object
@@ -231,3 +235,90 @@ def test_setup_and_run_as_process(
     mock_process_object.join.assert_called()
     if expected_return_value != 0:
         mock_log_failure.assert_called()
+
+
+def customer_method_no_args():
+    return
+
+
+def customer_method_no_annotations(some_float_arg, some_string_arg):
+    return
+
+
+def customer_method_match(some_float_arg: float, some_string_arg: str):
+    return
+
+
+def customer_method_flipped(some_string_arg, some_float_arg):
+    return
+
+def customer_method_defaults(
+    some_float_arg: float = 0.1,
+    some_string_arg: str = "",
+    some_other_arg=None,
+):
+    return
+
+
+def customer_method_wrong_type(some_float_arg: int, some_string_arg: str):
+    return
+
+
+@pytest.fixture
+def hyperparameters(pytester):
+    # these are already converted to strings by sagemaker
+    hp_map = {
+        "no_hps": {},
+        "hps": {
+            "some_float_arg": "3.14",
+            "some_string_arg": "my_string",
+        },
+    }
+    pytester.makefile(
+        ".json",
+        no_hps=json.dumps(hp_map["no_hps"])
+    )
+    pytester.makefile(
+        ".json",
+        hps=json.dumps(hp_map["hps"])
+    )
+
+
+@pytest.mark.parametrize(
+    "hp_file, customer_method",
+    (
+        ("no_hps.json", customer_method_no_args),
+        ("no_hps.json", customer_method_defaults),
+        ("hps.json", customer_method_no_annotations),
+        ("hps.json", customer_method_match),
+        ("hps.json", customer_method_flipped),
+        ("hps.json", customer_method_defaults),
+    )
+)
+def test_bind_hyperparameters_successful(customer_method, hp_file, hyperparameters):
+    with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": hp_file}):
+        binding = try_bind_hyperparameters_to_customer_method(customer_method)
+    customer_method(**binding)
+
+
+@pytest.mark.parametrize(
+    "hp_file, customer_method",
+    (
+        ("no_hps.json", customer_method_no_annotations),
+        ("no_hps.json", customer_method_match),
+        ("no_hps.json", customer_method_flipped),
+        ("hps.json", customer_method_no_args),
+    )
+)
+def test_bind_hyperparameters_skipped(customer_method, hp_file, hyperparameters):
+    with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": hp_file}):
+        binding = try_bind_hyperparameters_to_customer_method(customer_method)
+    assert binding is None
+
+
+def test_bind_hyperparameters_type_error(hyperparameters):
+    hp_file = "hps.json"
+    invalid_literal = re.escape("invalid literal for int() with base 10: '3.14'")
+    with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": hp_file}):
+        with pytest.raises(ValueError, match=invalid_literal):
+            try_bind_hyperparameters_to_customer_method(customer_method_wrong_type)

@@ -11,6 +11,8 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+from .utils import try_bind_hyperparameters_to_customer_method
+
 import errno
 import importlib
 import inspect
@@ -153,21 +155,9 @@ def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
 
         process_kwargs = {"target": customer_method}
 
-        hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
-        with open(hp_file) as f:
-            hyperparams = json.load(f)
-
-        try:
-            inspect.signature(customer_method).bind(**hyperparams)
-            annotations = inspect.getfullargspec(customer_method).annotations
-            function_args = {}
-            for param in hyperparams:
-                function_args[param] = annotations.get(param, str)(
-                    hyperparams[param]
-                )
+        function_args = try_bind_hyperparameters_to_customer_method(customer_method)
+        if function_args is not None:
             process_kwargs["kwargs"] = function_args
-        except TypeError:
-            pass
 
         customer_code_process = multiprocessing.Process(**process_kwargs)
         customer_code_process.start()
