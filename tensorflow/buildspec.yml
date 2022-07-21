@@ -24,7 +24,7 @@ images:
   BuildTensorflowGPUJobsPy3DockerImage:
     <<: *JOBS_REPOSITORY
     build: &TENSORFLOW_GPU_JOBS_PY3 false
-    image_size_baseline: 8014
+    image_size_baseline: 8800
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
