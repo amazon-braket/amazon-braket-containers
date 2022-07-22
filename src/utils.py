@@ -10,16 +10,14 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-import inspect
 import os
 import re
 import json
 import logging
 import sys
-from typing import Callable
 
 import boto3
-from . import constants
+import constants
 import datetime
 
 from invoke.context import Context
@@ -521,20 +519,3 @@ def get_codebuild_project_name():
     """
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
 
-
-def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
-    hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
-    with open(hp_file) as f:
-        hyperparameters = json.load(f)
-
-    try:
-        inspect.signature(customer_method).bind(**hyperparameters)
-        annotations = inspect.getfullargspec(customer_method).annotations
-        function_args = {}
-        for param in hyperparameters:
-            function_args[param] = annotations.get(param, str)(
-                hyperparameters[param]
-            )
-        return function_args
-    except TypeError:
-        pass

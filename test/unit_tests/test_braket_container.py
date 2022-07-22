@@ -13,9 +13,9 @@ from src.braket_container import (
     log_failure_and_exit,
     unpack_code_and_add_to_path,
     get_code_setup_parameters,
-    setup_and_run
+    setup_and_run,
+    try_bind_hyperparameters_to_customer_method,
 )
-from src.utils import try_bind_hyperparameters_to_customer_method
 
 
 @mock.patch('pathlib._normal_accessor.mkdir')
@@ -201,13 +201,11 @@ def test_setup_and_run_as_subprocess(
 @mock.patch('src.braket_container.shutil')
 @mock.patch('src.braket_container.boto3')
 @mock.patch('pathlib._normal_accessor.mkdir')
-@mock.patch('src.utils.os')
 @mock.patch('src.braket_container.os')
 @mock.patch('src.braket_container.sys')
 def test_setup_and_run_as_process(
         mock_sys,
         mock_os,
-        mock_os_utils,
         mock_mkdir,
         mock_boto,
         mock_shutil,
@@ -219,8 +217,7 @@ def test_setup_and_run_as_process(
         hyperparameters_json,
 ):
     # Setup
-    mock_os.getenv.return_value = ""
-    mock_os_utils.getenv.return_value = "hyperparameters.json"
+    mock_os.getenv = lambda x: "hyperparameters.json" if x == "AMZN_BRAKET_HP_FILE" else ""
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_module:test_function", None
     mock_process_object = mock.MagicMock()
     mock_process.Process.return_value = mock_process_object

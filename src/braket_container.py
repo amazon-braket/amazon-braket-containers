@@ -10,9 +10,6 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-
-from .utils import try_bind_hyperparameters_to_customer_method
-
 import errno
 import importlib
 import inspect
@@ -24,7 +21,7 @@ import sys
 import multiprocessing
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Tuple
+from typing import Tuple, Callable
 
 import boto3
 
@@ -164,6 +161,24 @@ def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
     except Exception as e:
         log_failure_and_exit(f"Unable to run job at entry point {entry_point}\nException: {e}")
     return customer_code_process
+
+
+def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
+    hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
+    with open(hp_file) as f:
+        hyperparameters = json.load(f)
+
+    try:
+        inspect.signature(customer_method).bind(**hyperparameters)
+        annotations = inspect.getfullargspec(customer_method).annotations
+        function_args = {}
+        for param in hyperparameters:
+            function_args[param] = annotations.get(param, str)(
+                hyperparameters[param]
+            )
+        return function_args
+    except TypeError:
+        pass
 
 
 def join_customer_script(customer_code_process: multiprocessing.Process):
