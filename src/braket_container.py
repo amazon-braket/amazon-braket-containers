@@ -171,15 +171,16 @@ def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
 
     try:
         inspect.signature(customer_method).bind(**hyperparameters)
-        annotations = inspect.getfullargspec(customer_method).annotations
-        function_args = {}
-        for param in hyperparameters:
-            function_args[param] = annotations.get(param, str)(
-                hyperparameters[param]
-            )
-        return function_args
     except TypeError:
-        pass
+        return
+
+    annotations = inspect.getfullargspec(customer_method).annotations
+    function_args = {}
+    for param in hyperparameters:
+        function_args[param] = annotations.get(param, str)(
+            hyperparameters[param]
+        )
+    return function_args
 
 
 def join_customer_script(customer_code_process: multiprocessing.Process):
