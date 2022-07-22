@@ -227,7 +227,6 @@ def test_setup_and_run_as_process(
     mock_process.Process.return_value = mock_process_object
     mock_process_object.exitcode = expected_return_value
 
-    # with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": "hyperparameters.json"}):
     # Act
     setup_and_run()
 

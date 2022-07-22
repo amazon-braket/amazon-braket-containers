@@ -10,7 +10,7 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-import boto3
+
 import errno
 import importlib
 import inspect
@@ -20,10 +20,11 @@ import shutil
 import subprocess
 import sys
 import multiprocessing
-
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Tuple, Callable
+
+import boto3
 
 OPT_ML = os.path.join("/opt", "ml")
 OPT_BRAKET = os.path.join("/opt", "braket")
