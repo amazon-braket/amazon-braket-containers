@@ -15,7 +15,6 @@ import re
 import json
 import logging
 import sys
-
 import boto3
 import constants
 import datetime

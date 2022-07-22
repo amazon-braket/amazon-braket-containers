@@ -217,7 +217,11 @@ def test_setup_and_run_as_process(
         hyperparameters_json,
 ):
     # Setup
-    mock_os.getenv = lambda x: "hyperparameters.json" if x == "AMZN_BRAKET_HP_FILE" else ""
+    mock_os.getenv = lambda x: (
+        "hyperparameters.json"
+        if x == "AMZN_BRAKET_HP_FILE"
+        else ""
+    )
     mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_module:test_function", None
     mock_process_object = mock.MagicMock()
     mock_process.Process.return_value = mock_process_object
