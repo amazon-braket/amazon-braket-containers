@@ -2,7 +2,8 @@ amazon-braket-schemas
 amazon-braket-sdk
 boto3==1.22.7
 docker-compose
+invoke==1.6.0
 mock
-pytest==5.4.3
+pytest==6.2.5
 pytest-xdist
 sagemaker

@@ -64,3 +64,13 @@ def image_list(request, account, region):
             build_results = json.load(build_file)
         return [image["ecr_url"] for image in build_results]
     raise Exception("No images specified for testing")
+
+
+@pytest.fixture
+def hyperparameters_json(pytester):
+    pytester.makefile(
+        ".json",
+        hyperparameters="""
+        {}
+        """
+    )

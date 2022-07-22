@@ -13,6 +13,7 @@
 
 import errno
 import importlib
+import inspect
 import os
 import json
 import shutil
@@ -21,7 +22,7 @@ import sys
 import multiprocessing
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Tuple
+from typing import Tuple, Callable
 
 import boto3
 
@@ -77,7 +78,7 @@ def create_symlink():
             log_failure_and_exit(f"Symlink failure.\n Exception: {e}")
 
 
-def download_s3_file(s3_uri : str, local_path : str) -> str:
+def download_s3_file(s3_uri: str, local_path: str) -> str:
     """
     Downloads a file to a local path.
 
@@ -97,7 +98,7 @@ def download_s3_file(s3_uri : str, local_path : str) -> str:
     return local_s3_file
 
 
-def download_customer_code(s3_uri : str) -> str:
+def download_customer_code(s3_uri: str) -> str:
     """
     Downloads the customer code to the original customer path. The code is assumed to be a single
     file in S3. The file may be a compressed archive containing all the customer code.
@@ -113,7 +114,7 @@ def download_customer_code(s3_uri : str) -> str:
         log_failure_and_exit(f"Unable to download code.\nException: {e}")
 
 
-def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
+def unpack_code_and_add_to_path(local_s3_file: str, compression_type: str):
     """
     Unpack the customer code, if necessary. Add the customer code to the system path.
 
@@ -135,7 +136,7 @@ def unpack_code_and_add_to_path(local_s3_file : str, compression_type : str):
     sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
 
 
-def kick_off_customer_script(entry_point : str) -> multiprocessing.Process:
+def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
     """
     Runs the customer script as a separate process.
 
@@ -149,14 +150,43 @@ def kick_off_customer_script(entry_point : str) -> multiprocessing.Process:
         str_module, _, str_method = entry_point.partition(":")
         customer_module = importlib.import_module(str_module)
         customer_method = getattr(customer_module, str_method)
-        customer_code_process = multiprocessing.Process(target=customer_method)
+
+        process_kwargs = {"target": customer_method}
+
+        function_args = try_bind_hyperparameters_to_customer_method(customer_method)
+        if function_args is not None:
+            process_kwargs["kwargs"] = function_args
+
+        customer_code_process = multiprocessing.Process(**process_kwargs)
         customer_code_process.start()
     except Exception as e:
         log_failure_and_exit(f"Unable to run job at entry point {entry_point}\nException: {e}")
     return customer_code_process
 
 
-def join_customer_script(customer_code_process : multiprocessing.Process):
+def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
+    hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
+    if hp_file is None:
+        return
+
+    with open(hp_file) as f:
+        hyperparameters = json.load(f)
+
+    try:
+        inspect.signature(customer_method).bind(**hyperparameters)
+    except TypeError:
+        return
+
+    annotations = inspect.getfullargspec(customer_method).annotations
+    function_args = {}
+    for param in hyperparameters:
+        function_args[param] = annotations.get(param, str)(
+            hyperparameters[param]
+        )
+    return function_args
+
+
+def join_customer_script(customer_code_process: multiprocessing.Process):
     """
     Joins the process running the customer code.
 
@@ -206,7 +236,7 @@ def get_code_setup_parameters() -> Tuple[str, str, str]:
     return s3_uri, entry_point, compression_type
 
 
-def run_customer_code_as_process(entry_point : str) -> int:
+def run_customer_code_as_process(entry_point: str) -> int:
     """
     When provided the name of the package and the method to run, we run them as a process.
 
@@ -223,7 +253,7 @@ def run_customer_code_as_process(entry_point : str) -> int:
     return customer_code_process.exitcode
 
 
-def run_customer_code_as_subprocess(entry_point : str) -> int:
+def run_customer_code_as_subprocess(entry_point: str) -> int:
     """
     When provided just the name of the module to run, we run it as a subprocess.
 
