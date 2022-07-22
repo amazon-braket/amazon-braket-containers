@@ -166,6 +166,9 @@ def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
 
 def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
     hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
+    if hp_file is None:
+        return
+
     with open(hp_file) as f:
         hyperparameters = json.load(f)
 
