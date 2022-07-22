@@ -66,8 +66,6 @@ def image_list(request, account, region):
     raise Exception("No images specified for testing")
 
 
-pytest_plugins = "pytester"
-
 @pytest.fixture
 def hyperparameters_json(pytester):
     pytester.makefile(
