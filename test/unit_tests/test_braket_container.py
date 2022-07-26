@@ -15,6 +15,7 @@ from src.braket_container import (
     get_code_setup_parameters,
     setup_and_run,
     try_bind_hyperparameters_to_customer_method,
+    install_additional_requirements,
 )
 
 
@@ -149,6 +150,19 @@ def test_get_code_setup_parameters(mock_sys, mock_log_failure, environment, monk
         assert compression_type == expected[2]
     else:
         mock_log_failure.assert_called()
+
+
+@mock.patch('src.braket_container.subprocess')
+@mock.patch('src.braket_container.os')
+def test_install_additional_requirements(mock_os, mock_subprocess):
+    mock_os.walk.return_value = [("empty_root", [], []), ("my_root", [], ["requirements.txt"])]
+    mock_os.path.join.return_value = "joined_path"
+    install_additional_requirements()
+    mock_os.path.join.assert_called_with("my_root", "requirements.txt")
+    mock_subprocess.run.assert_called_with(
+        ["python", "-m", "pip", "install", "-r", "joined_path"],
+        cwd='/opt/braket/code/customer_code/extracted',
+    )
 
 
 @pytest.mark.parametrize(

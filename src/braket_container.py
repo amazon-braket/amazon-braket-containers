@@ -236,6 +236,24 @@ def get_code_setup_parameters() -> Tuple[str, str, str]:
     return s3_uri, entry_point, compression_type
 
 
+def install_additional_requirements() -> None:
+    """
+    Search for requirements and install them.
+    """
+    try:
+        print("Checking for Additional Requirements")
+        for root, _, files in os.walk(EXTRACTED_CUSTOMER_CODE_PATH):
+            if "requirements.txt" in files:
+                requirements_file_path = os.path.join(root, "requirements.txt")
+                subprocess.run(
+                    ["python", "-m", "pip", "install", "-r", requirements_file_path],
+                    cwd=EXTRACTED_CUSTOMER_CODE_PATH
+                )
+        print("Additional Requirements Check Finished")
+    except Exception as e:
+        log_failure_and_exit(f"Unable to install requirements.\nException: {e}")
+
+
 def run_customer_code_as_process(entry_point: str) -> int:
     """
     When provided the name of the package and the method to run, we run them as a process.
@@ -282,6 +300,7 @@ def run_customer_code() -> None:
     s3_uri, entry_point, compression_type = get_code_setup_parameters()
     local_s3_file = download_customer_code(s3_uri)
     unpack_code_and_add_to_path(local_s3_file, compression_type)
+    install_additional_requirements()
     if entry_point.find(":") >= 0:
         exit_code = run_customer_code_as_process(entry_point)
     else:
