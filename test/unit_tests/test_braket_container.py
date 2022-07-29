@@ -152,10 +152,18 @@ def test_get_code_setup_parameters(mock_sys, mock_log_failure, environment, monk
         mock_log_failure.assert_called()
 
 
+@pytest.mark.parametrize(
+    "file_walk_results", [
+        [("my_root", [], ["requirements.txt"])],
+        [("my_root", [], ["devrequirements.txt", "requirements.txt", "requirements.txt.bak"])],
+        [("empty_root", [], []), ("my_root", [], ["requirements.txt"])],
+        [("my_root", [], ["requirements.txt"]), ("my_root", [], ["devrequirements.txt"])],
+    ]
+)
 @mock.patch('src.braket_container.subprocess')
 @mock.patch('src.braket_container.os')
-def test_install_additional_requirements(mock_os, mock_subprocess):
-    mock_os.walk.return_value = [("empty_root", [], []), ("my_root", [], ["requirements.txt"])]
+def test_install_additional_requirements(mock_os, mock_subprocess, file_walk_results):
+    mock_os.walk.return_value = file_walk_results
     mock_os.path.join.return_value = "joined_path"
     install_additional_requirements()
     mock_os.path.join.assert_called_with("my_root", "requirements.txt")
@@ -163,6 +171,7 @@ def test_install_additional_requirements(mock_os, mock_subprocess):
         ["python", "-m", "pip", "install", "-r", "joined_path"],
         cwd='/opt/braket/code/customer_code/extracted',
     )
+    assert mock_subprocess.run.call_count == 1
 
 
 @pytest.mark.parametrize(

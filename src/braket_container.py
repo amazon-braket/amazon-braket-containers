@@ -238,7 +238,7 @@ def get_code_setup_parameters() -> Tuple[str, str, str]:
 
 def install_additional_requirements() -> None:
     """
-    Search for requirements and install them.
+    Search for requirements from requirements.txt and install them.
     """
     try:
         print("Checking for Additional Requirements")
