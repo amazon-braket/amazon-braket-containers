@@ -119,7 +119,7 @@ RUN ${PIP} install --no-cache --upgrade \
         dask==2.30.0 \
         dwave-ocean-sdk==4.2.0 \
         matplotlib==3.2.2 \
-        numpy==1.21.4 \
+        numpy==1.21.6 \
         pandas==1.1.4 \
         pennylane==0.25.1 \
         PennyLane-Lightning==0.25.0 \

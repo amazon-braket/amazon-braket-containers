@@ -29,7 +29,7 @@ RUN ${PIP} install --no-cache --upgrade \
         matplotlib==3.2.2 \
         markupsafe==1.1.1 \
         networkx==2.4 \
-        numpy==1.21.4 \
+        numpy==1.21.6 \
         openfermion==1.0.0 \
         pandas==1.1.4 \
         PennyLane==0.25.1 \
