@@ -35,7 +35,7 @@ RUN ${PIP} install --no-cache --upgrade \
         PennyLane==0.25.1 \
         PennyLane-Lightning==0.25.1 \
         protobuf==3.12.4 \
-        pydantic==1.8.2 \
+        pydantic==1.9.0 \
         requests==2.26.0 \
         rsa==4.4.1 \
         scikit-learn==0.20.3 \
