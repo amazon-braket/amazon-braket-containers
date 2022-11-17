@@ -86,7 +86,7 @@ RUN ${PIP} install --no-cache --upgrade \
         h5py==3.2.1 \
         ipykernel==5.3.4 \
         jinja2==2.11.3 \
-        keras==2.4.3 \
+        keras==2.7.0 \
         matplotlib==3.2.2 \
         markupsafe==1.1.1 \
         networkx==2.4 \
