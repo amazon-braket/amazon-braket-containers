@@ -107,22 +107,20 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        amazon-braket-default-simulator==1.10.0 \
-        amazon-braket-ocean-plugin==1.0.9 \
-        amazon-braket-schemas==1.12.0 \
-        amazon-braket-pennylane-plugin==1.8.0 \
-        amazon-braket-sdk==1.33.0 \
+        amazon-braket-default-simulator==1.10.1 \
+        amazon-braket-schemas==1.13.1 \
+        amazon-braket-pennylane-plugin==1.9.0 \
+        amazon-braket-sdk==1.34.3 \
         awscli==1.23.7 \
         botocore==1.25.7 \
         boto3==1.22.7 \
         decorator==4.4.0 \
         dask==2.30.0 \
-        dwave-ocean-sdk==4.2.0 \
         matplotlib==3.2.2 \
         numpy==1.21.6 \
         pandas==1.1.4 \
-        pennylane==0.25.1 \
-        PennyLane-Lightning==0.25.0 \
+        pennylane==0.27.0 \
+        PennyLane-Lightning==0.27.0 \
         rsa==4.4.1 \
         scikit-learn==0.20.3 \
         requests==2.26.0 \
