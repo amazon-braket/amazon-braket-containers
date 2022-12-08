@@ -73,7 +73,11 @@ def start_function():
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
-    cost_function = qml.ExpvalCost(circuit, cost_h, dev, optimize=True, interface=pl_interface)
+    
+    @qml.qnode(dev, interface=pl_interface)
+    def cost_function(params):
+        circuit(params)
+        return qml.expval(cost_h)
 
     params = interface.initialize_params(0.01 * np.random.uniform(size=[2, p]))
 
