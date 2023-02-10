@@ -1,5 +1,7 @@
 ### Getting started
 
+[![Python package](https://github.com/aws/amazon-braket-containers/actions/workflows/python-package.yml/badge.svg)](https://github.com/aws/amazon-braket-containers/actions/workflows/python-package.yml)
+
 This documentation uses the **base** container for provided examples.
 
 Ensure you have [docker](https://docs.docker.com/get-docker/) client set-up on your system - osx/ec2
