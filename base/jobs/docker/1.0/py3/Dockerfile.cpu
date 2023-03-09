@@ -121,7 +121,6 @@ RUN ${PIP} install --no-cache --upgrade \
         pandas==1.1.4 \
         pennylane==0.27.0 \
         PennyLane-Lightning==0.27.0 \
-        rsa==4.4.1 \
         scikit-learn==0.20.3 \
         requests==2.26.0 \
         scipy==1.7.3
