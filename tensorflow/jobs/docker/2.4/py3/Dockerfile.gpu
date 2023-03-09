@@ -35,7 +35,6 @@ RUN ${PIP} install --no-cache --upgrade \
         protobuf==3.12.4 \
         pydantic==1.9.0 \
         requests==2.26.0 \
-        rsa==4.4.1 \
         scikit-learn==0.20.3 \
         six==1.15.0 \
         scipy==1.7.3 \
