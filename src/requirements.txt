@@ -1,5 +1,5 @@
 wheel==0.38.1
-docker==4.2.0
+docker==6.0.1
 fabric==2.5.0
 invoke==1.6.0
 pyfiglet==0.8.post1
