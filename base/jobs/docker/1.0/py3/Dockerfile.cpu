@@ -16,10 +16,10 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-ARG PYTHON=python3.9
+ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.9.10
+ARG PYTHON_VERSION=3.10.11
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -106,17 +106,17 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        amazon-braket-default-simulator==1.12.0 \
+        amazon-braket-default-simulator==1.12.1 \
         amazon-braket-schemas==1.15.0 \
         amazon-braket-pennylane-plugin==1.13.0 \
-        amazon-braket-sdk==1.36.1 \
+        amazon-braket-sdk==1.37.0 \
         awscli==1.27.65 \
         botocore==1.29.65 \
         boto3==1.26.64 \
         dask==2023.1.1 \
         matplotlib==3.6.3 \
         numpy==1.23.5 \
-        pandas==1.5.2 \
+        pandas==2.0.0 \
         pennylane==0.29.1 \
         PennyLane-Lightning==0.29.0 \
         scikit-learn==1.2.2 \
