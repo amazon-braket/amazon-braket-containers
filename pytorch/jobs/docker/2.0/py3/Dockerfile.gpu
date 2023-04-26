@@ -88,7 +88,7 @@ RUN ${PIP} install --no-cache --upgrade \
         markupsafe==2.1.2 \
         matplotlib==3.6.3 \
         numpy==1.23.5 \
-        openfermion==1.0.0 \
+        openfermion==1.5.1 \
         pandas==2.0.0 \
         PennyLane==0.29.1 \
         PennyLane-Lightning[gpu]==0.29.0 \
