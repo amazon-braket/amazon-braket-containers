@@ -1,6 +1,6 @@
 # Start with AWS Deep Learning Container. See
 # https://github.com/aws/deep-learning-containers/blob/master/available_images.md
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.11.0-gpu-py39-cu112-ubuntu20.04-ec2
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.12.0-gpu-py310-cu118-ubuntu20.04-ec2
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
@@ -11,23 +11,23 @@ RUN apt-get clean
 
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        amazon-braket-default-simulator==1.12.0 \
+        amazon-braket-default-simulator==1.12.1 \
         amazon-braket-schemas==1.15.0 \
         amazon-braket-pennylane-plugin==1.13.0 \
-        amazon-braket-sdk==1.36.1 \        
+        amazon-braket-sdk==1.37.0 \        
         awscli==1.27.65 \
         botocore==1.29.65 \
         boto3==1.26.64 \
         dask==2023.1.1 \        
-        h5py==3.2.1 \
+        h5py==3.8.0 \
         ipykernel==5.3.4 \
         jinja2==3.1.2 \
-        keras==2.11.0 \
+        keras==2.12.0 \
         markupsafe==2.1.2 \
         matplotlib==3.6.3 \
         numpy==1.23.5 \
         openfermion==1.0.0 \
-        pandas==1.5.2 \
+        pandas==2.0.0 \
         PennyLane==0.29.1 \
         PennyLane-Lightning==0.29.0 \
         pydantic==1.10.6 \
