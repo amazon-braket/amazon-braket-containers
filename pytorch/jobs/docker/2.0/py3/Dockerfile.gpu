@@ -34,6 +34,7 @@ RUN apt-get update \
     libssl1.1 \
     openssl \
     unzip \
+    vim \
     wget \
     zlib1g-dev \
     # Install dependent library for OpenCV
@@ -92,7 +93,6 @@ RUN ${PIP} install --no-cache --upgrade \
         pandas==2.0.0 \
         PennyLane==0.29.1 \
         PennyLane-Lightning[gpu]==0.29.0 \
-        protobuf==3.12.4 \
         pydantic==1.10.6 \
         requests==2.26.0 \
         scikit-learn==1.2.2 \
