@@ -6,12 +6,12 @@ This documentation uses the **base** container for provided examples.
 
 Ensure you have [docker](https://docs.docker.com/get-docker/) client set-up on your system - osx/ec2
 
-Create an ECR repository in your AWS account. In this example, we'll assume it's called "braket-base-jobs"
+Create an ECR repository in your AWS account. In this example, we'll assume it's called "amazon-braket-base-jobs"
 
 1. Clone the repo and set the following environment variables:
     ```shell script
     export REGION=us-west-2
-    export REPOSITORY_NAME=braket-base-jobs
+    export REPOSITORY_NAME=amazon-braket-base-jobs
     export ACCOUNT_ID=<YOUR_ACCOUNT_ID>
     ```
    Make sure you set the repository name to the name you created in your AWS account.
@@ -73,7 +73,7 @@ Similar to building locally, to test locally, you’ll need access to a personal
 6. To run the Braket integration tests, at minimum you'll need to specify the tag of the image you want to test, the AWS
    role that should be used by tests. The framework to test should be included in the test path.
     ```shell script
-    pytest test/braket_tests/base --role Admin --tag 1.0-cpu-py37-ubuntu18.04-2021-06-18-20-09-42
+    pytest test/braket_tests/base --role service-role/AmazonBraketJobsExecutionRole --tag 1.0-cpu-py37-ubuntu18.04-2021-06-18-20-09-42
     ```
 
 ### Structural Overview
