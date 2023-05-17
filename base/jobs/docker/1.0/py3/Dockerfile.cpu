@@ -108,9 +108,9 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
         amazon-braket-default-simulator==1.12.1 \
-        amazon-braket-schemas==1.15.0 \
+        amazon-braket-schemas==1.17.0 \
         amazon-braket-pennylane-plugin==1.15.0.post0 \
-        amazon-braket-sdk==1.37.0 \
+        amazon-braket-sdk==1.39.0 \
         awscli==1.27.65 \
         botocore==1.29.65 \
         boto3==1.26.64 \
