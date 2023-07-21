@@ -1,7 +1,7 @@
 amazon-braket-schemas
 amazon-braket-sdk
 boto3==1.28.3
-docker-compose @ git+https://github.com/docker/compose@2.20.2
+docker-compose @ git+https://github.com/docker/compose@v2.20.2
 invoke==2.2.0
 mock
 pytest==7.2.2
