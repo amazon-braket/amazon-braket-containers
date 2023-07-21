@@ -1,6 +1,6 @@
 amazon-braket-schemas
 amazon-braket-sdk
-boto3==1.26.64
+boto3==1.31.4
 docker-compose
 invoke==1.6.0
 mock
