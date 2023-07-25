@@ -15,13 +15,13 @@ RUN apt-get update \
 
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        amazon-braket-default-simulator==1.14.0 \
-        amazon-braket-schemas==1.17.0 \
-        amazon-braket-pennylane-plugin==1.15.2 \
-        amazon-braket-sdk==1.39.0 \        
-        awscli==1.27.65 \
-        botocore==1.29.65 \
-        boto3==1.26.64 \
+        amazon-braket-default-simulator==1.18.1 \
+        amazon-braket-schemas==1.18.0 \
+        amazon-braket-pennylane-plugin==1.18.0 \
+        amazon-braket-sdk==1.50.0 \
+        awscli==1.29.4 \
+        botocore==1.31.4 \
+        boto3==1.28.3 \
         dask==2023.1.1 \        
         h5py==3.8.0 \
         ipykernel==5.3.4 \
