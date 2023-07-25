@@ -1,8 +1,7 @@
 amazon-braket-schemas
 amazon-braket-sdk
-boto3==1.26.64
-docker-compose
-invoke==1.6.0
+boto3==1.28.3
+invoke==2.2.0
 mock
 pytest==7.2.2
 pytest-xdist
