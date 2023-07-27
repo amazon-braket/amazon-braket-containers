@@ -1,0 +1,12 @@
+decorator==4.4.0
+h5py==3.8.0
+ipykernel==5.3.4
+jinja2==2.11.3
+keras==2.12.0
+markupsafe==2.1.2
+openfermion==1.5.1
+pydantic==1.10.6
+six==1.16.0
+typing_extensions==4.3.0
+
+-r requirements_common.txt
