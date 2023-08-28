@@ -105,10 +105,10 @@ WORKDIR /
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # Copy the dependencies file
-COPY requirements/requirements_common.txt /
+COPY docker/1.0/py3/requirements_common.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        -r requirements/requirements_common.txt
+        -r requirements_common.txt
 
 RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
 
