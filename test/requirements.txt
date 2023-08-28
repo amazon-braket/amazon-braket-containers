@@ -1,7 +1,7 @@
 amazon-braket-schemas
 amazon-braket-sdk
 boto3==1.28.3
-certifi==2023.7.22
+certifi>=2023.7.22
 invoke==2.2.0
 mock
 pytest==7.2.2
