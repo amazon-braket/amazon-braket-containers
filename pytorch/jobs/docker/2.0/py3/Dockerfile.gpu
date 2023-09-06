@@ -34,7 +34,6 @@ RUN apt-get update \
     libssl1.1 \
     openssl \
     unzip \
-    vim \
     wget \
     zlib1g-dev \
     # Install dependent library for OpenCV
