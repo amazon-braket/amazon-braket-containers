@@ -9,7 +9,6 @@ ARG PIP=pip3
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-    vim\
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -18,7 +17,7 @@ RUN ${PIP} install --no-cache --upgrade \
         amazon-braket-default-simulator==1.20.0 \
         amazon-braket-schemas==1.19.1 \
         amazon-braket-pennylane-plugin==1.20.1 \
-        amazon-braket-sdk==1.54.2 \
+        amazon-braket-sdk==1.55.0 \
         awscli==1.29.4 \
         botocore==1.31.4 \
         boto3==1.28.3 \
