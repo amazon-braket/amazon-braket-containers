@@ -12,12 +12,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Ensure below libraries are updated to mitigate vulnerability
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    openssh-client \
-    vim
-
 # Ensure below libraries are pinned to mitigate vulnerability
 RUN ${PIP} install --no-cache --upgrade \
         certifi>=2023.7.22  
