@@ -84,7 +84,6 @@ RUN apt-get update \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
-    vim \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -109,6 +108,7 @@ COPY requirements.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
+
 
 RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
 
