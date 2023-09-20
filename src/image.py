@@ -133,7 +133,7 @@ class DockerImage:
 
             for line in self.client.build(
                 fileobj=context_file,
-                path="self.dockerfile",
+                path=self.dockerfile,
                 custom_context=True,
                 rm=True,
                 decode=True,
