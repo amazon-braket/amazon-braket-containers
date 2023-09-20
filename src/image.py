@@ -131,48 +131,9 @@ class DockerImage:
                 cache_from = [f"{self.repository}:{self.cache_tag}"]
                 response.append(f"Setting cache to: {cache_from}")
 
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print(self.dockerfile)
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-            print("/n")
-
-
             for line in self.client.build(
                 fileobj=context_file,
-                path="base/jobs/docker/1.0/py3/Dockerfile.cpu",
+                path="self.dockerfile",
                 custom_context=True,
                 rm=True,
                 decode=True,
