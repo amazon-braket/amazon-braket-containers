@@ -69,7 +69,6 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
-
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
         amazon-braket-default-simulator==1.20.0 \
@@ -98,6 +97,11 @@ RUN ${PIP} install --no-cache --upgrade \
         six==1.16.0 \
         scipy==1.9.3 \
         typing_extensions==4.3.0
+
+# Ensure below libraries are updated to mitigate vulnerability
+RUN ${PIP} install --no-cache --upgrade \
+# https://nvd.nist.gov/vuln/detail/CVE-2023-37920
+        certifi>=2023.7.22  
 
 RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
 
