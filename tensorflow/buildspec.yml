@@ -19,6 +19,9 @@ context:
     braket_container:
       source: ../../src/braket_container.py
       target: braket_container.py
+    requirements:
+      source: ../../tensorflow/jobs/docker/2.12/py3/requirements.txt
+      target: requirements.txt
 
 images:
   BuildTensorflowGPUJobsPy3DockerImage:
