@@ -18,6 +18,9 @@ context:
     braket_container:
       source: ../../src/braket_container.py
       target: braket_container.py
+    requirements:
+      source: ../../base/jobs/docker/1.0/py3/requirements.txt
+      target: requirements.txt
 
 images:
   BuildBaseCPUJobsPy3DockerImage:

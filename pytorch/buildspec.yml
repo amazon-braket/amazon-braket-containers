@@ -19,6 +19,9 @@ context:
     braket_container:
       source: ../../src/braket_container.py
       target: braket_container.py
+    requirements:
+      source: ../../pytorch/jobs/docker/2.0/py3/requirements.txt
+      target: requirements.txt
 
 images:
   BuildPytorchGPUJobsPy3DockerImage:
