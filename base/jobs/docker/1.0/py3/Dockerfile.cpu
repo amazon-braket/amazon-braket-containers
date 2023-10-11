@@ -121,8 +121,9 @@ RUN ${PIP} install --no-cache --upgrade \
         PennyLane-Lightning==0.31.0 \
         scikit-learn==1.2.2 \
         requests==2.26.0 \
-        scipy==1.9.3
-
+        scipy==1.9.3 \
+        qiskit-braket-provider==0.0.4
+        
 RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
 
 RUN HOME_DIR=/root \
