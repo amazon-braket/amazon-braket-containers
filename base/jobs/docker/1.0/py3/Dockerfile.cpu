@@ -109,7 +109,6 @@ COPY requirements.txt /
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
 
-
 RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
 
 RUN HOME_DIR=/root \

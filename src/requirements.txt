@@ -5,6 +5,6 @@ invoke==1.6.0
 pyfiglet==0.8.post1
 reprint==0.5.2
 ruamel.yaml==0.16.7
-boto3==1.22.7
+boto3==1.28.53
 black==19.10b0
 junit-xml==1.9
