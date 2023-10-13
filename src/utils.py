@@ -390,7 +390,7 @@ def build_setup(
         "py_versions": constants.PYTHON_VERSIONS,
     }
     build_context = os.environ.get("BUILD_CONTEXT")
-    
+
     if build_context == "PR":
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
         LOGGER.info(f"pr number: {pr_number}")
