@@ -118,7 +118,7 @@ RUN ${PIP} install --no-cache --upgrade \
         numpy==1.23.5 \
         pandas==2.0.0 \
         pennylane==0.32.0 \
-        PennyLane-Lightning==0.31.0 \
+        PennyLane-Lightning==0.32.0 \
         scikit-learn==1.2.2 \
         requests==2.26.0 \
         scipy==1.9.3 \
