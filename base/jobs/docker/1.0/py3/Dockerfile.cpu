@@ -108,6 +108,7 @@ COPY requirements.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
+
         
 RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
 

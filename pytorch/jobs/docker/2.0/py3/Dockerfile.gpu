@@ -74,6 +74,7 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 COPY requirements.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
+
         -r requirements.txt
 
 # Ensure below libraries are updated to mitigate vulnerability
