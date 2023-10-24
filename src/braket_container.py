@@ -66,6 +66,7 @@ def log_failure_and_exit(*args):
     _log_failure(*args)
     sys.exit(0)
 
+
 def create_paths():
     """
     These paths are created early on so that the rest of the code can assume that the directories
@@ -235,14 +236,26 @@ def extract_customer_method(entry_point: str) -> Callable:
         customer_method = getattr(customer_module, str_method)
     else:
         def customer_method():
+            # equivalent to `python -m entry_point`
             return runpy.run_module(entry_point, run_name="__main__")
     return customer_method
+
+
+@contextlib.contextmanager
+def in_extracted_code_dir():
+    current_dir = os.getcwd()
+    try:
+        os.chdir(EXTRACTED_CUSTOMER_CODE_PATH)
+        yield
+    finally:
+        os.chdir(current_dir)
 
 
 def wrap_customer_method(customer_method: Callable) -> Callable:
     def wrapped_customer_method(**kwargs):
         try:
-            return customer_method(**kwargs)
+            with in_extracted_code_dir():
+                return customer_method(**kwargs)
         except Exception as e:
             exception_type = type(e).__name__
             exception_string = (
@@ -273,6 +286,12 @@ def kick_off_customer_script(customer_method: Callable) -> multiprocessing.Proce
     if function_args is not None:
         process_kwargs["kwargs"] = function_args
 
+    # default on Unix, setting explicitly for consistency in local testing
+    try:
+        multiprocessing.set_start_method('fork')
+    # pass if already set
+    except RuntimeError:
+        pass
     customer_code_process = multiprocessing.Process(**process_kwargs)
     customer_code_process.start()
     return customer_code_process
