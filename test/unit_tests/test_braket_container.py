@@ -1,3 +1,4 @@
+import importlib
 import json
 import re
 from pathlib import Path
@@ -16,6 +17,7 @@ from src.braket_container import (
     setup_and_run,
     try_bind_hyperparameters_to_customer_method,
     install_additional_requirements,
+    run_customer_code_as_process,
 )
 
 
@@ -345,3 +347,17 @@ def test_bind_hyperparameters_type_error(hyperparameters):
     with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": hp_file}):
         with pytest.raises(ValueError, match=invalid_literal):
             try_bind_hyperparameters_to_customer_method(customer_method_wrong_type)
+
+
+@mock.patch("src.braket_container.multiprocessing.Queue")
+@mock.patch("src.braket_container.multiprocessing.Process")
+@mock.patch("src.braket_container.importlib.import_module")
+@mock.patch('src.braket_container.log_failure_and_exit')
+def test_process_exception(mock_log_failure, mock_import, mock_process, mock_queue):
+    mock_queue.return_value.empty.return_value = False
+    mock_queue.return_value.get.return_value = NameError("name 'unnamed_variable' is not defined")
+
+    run_customer_code_as_process("fake_module:entry_point")
+    mock_log_failure.assert_called_with(
+        "NameError: name 'unnamed_variable' is not defined"
+    )
