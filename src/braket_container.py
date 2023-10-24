@@ -10,12 +10,13 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-
+import contextlib
 import errno
 import importlib
 import inspect
 import os
 import json
+import runpy
 import shutil
 import subprocess
 import sys
@@ -38,10 +39,10 @@ SETUP_SCRIPT_PATH = os.path.join(OPT_BRAKET, "additional_setup")
 print("Boto3 Version: ", boto3.__version__)
 
 
-def log_failure_and_exit(*args):
+def _log_failure(*args, display=True):
     """
     Log failures to a file so that it can be parsed by the backend service and included in
-    failure messages for a job. Exists with code 0.
+    failure messages for a job.
 
     Args:
         args: variable list of text to write to the file.
@@ -50,9 +51,20 @@ def log_failure_and_exit(*args):
     with open(ERROR_LOG_FILE, 'a') as error_log:
         for text in args:
             error_log.write(text)
-            print(text)
-    sys.exit(0)
+            if display:
+                print(text)
 
+
+def log_failure_and_exit(*args):
+    """
+    Log failures to a file so that it can be parsed by the backend service and included in
+    failure messages for a job. Exists with code 0.
+
+    Args:
+        args: variable list of text to write to the file.
+    """
+    _log_failure(*args)
+    sys.exit(0)
 
 def create_paths():
     """
@@ -136,40 +148,6 @@ def unpack_code_and_add_to_path(local_s3_file: str, compression_type: str):
     sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
 
 
-def kick_off_customer_script(entry_point: str, queue: multiprocessing.Queue) -> multiprocessing.Process:
-    """
-    Runs the customer script as a separate process.
-
-    Args:
-        entry_point (str): the entry point to the customer code, represented as <module>:<method>.
-
-    Returns:
-        Process: the process handle to the running process.
-    """
-    try:
-        str_module, _, str_method = entry_point.partition(":")
-        customer_module = importlib.import_module(str_module)
-        customer_method = getattr(customer_module, str_method)
-
-        def wrapped_customer_method(queue, **kwargs):
-            try:
-                customer_method(**kwargs)
-            except Exception as exc:
-                queue.put(exc)
-
-        process_kwargs = {"target": wrapped_customer_method, "args": (queue,)}
-
-        function_args = try_bind_hyperparameters_to_customer_method(customer_method)
-        if function_args is not None:
-            process_kwargs["kwargs"] = function_args
-
-        customer_code_process = multiprocessing.Process(**process_kwargs)
-        customer_code_process.start()
-    except Exception as e:
-        log_failure_and_exit(f"Unable to run job at entry point {entry_point}\nException: {e}")
-    return customer_code_process
-
-
 def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
     hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
     if hp_file is None:
@@ -190,23 +168,6 @@ def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
             hyperparameters[param]
         )
     return function_args
-
-
-def join_customer_script(customer_code_process: multiprocessing.Process, queue: multiprocessing.Queue):
-    """
-    Joins the process running the customer code.
-
-    Args:
-        customer_code_process (Process): the process running the customer code.
-    """
-    try:
-        customer_code_process.join()
-
-        if not queue.empty():
-            exception = queue.get()
-            log_failure_and_exit(f"{type(exception).__name__}: {exception}")
-    except Exception as e:
-        log_failure_and_exit(f"Job did not exit gracefully.\nException: {e}")
 
 
 def get_code_setup_parameters() -> Tuple[str, str, str]:
@@ -264,42 +225,74 @@ def install_additional_requirements() -> None:
         log_failure_and_exit(f"Unable to install requirements.\nException: {e}")
 
 
-def run_customer_code_as_process(entry_point: str) -> int:
+def extract_customer_method(entry_point: str) -> Callable:
     """
-    When provided the name of the package and the method to run, we run them as a process.
+    Converts entry point to a runnable function.
+    """
+    if entry_point.find(":") >= 0:
+        str_module, _, str_method = entry_point.partition(":")
+        customer_module = importlib.import_module(str_module)
+        customer_method = getattr(customer_module, str_method)
+    else:
+        def customer_method():
+            return runpy.run_module(entry_point, run_name="__main__")
+    return customer_method
+
+
+def wrap_customer_method(customer_method: Callable) -> Callable:
+    def wrapped_customer_method(**kwargs):
+        try:
+            return customer_method(**kwargs)
+        except Exception as e:
+            exception_type = type(e).__name__
+            exception_string = (
+                exception_type
+                if not e.args
+                else f"{exception_type}: {e}"
+            )
+            _log_failure(exception_string, display=False)
+            raise e
+    return wrapped_customer_method
+
+
+def kick_off_customer_script(customer_method: Callable) -> multiprocessing.Process:
+    """
+    Runs the customer script as a separate process.
 
     Args:
-        entry_point (str): the code to run in the format <package>:<method>.
+        customer_method (Callable): The customer method to be run.
 
     Returns:
-        int: The exit code of the customer code run.
+        Process: the process handle to the running process.
     """
     print("Running Code As Process")
-    queue = multiprocessing.Queue()
-    customer_code_process = kick_off_customer_script(entry_point, queue)
-    join_customer_script(customer_code_process, queue)
-    print("Code Run Finished")
-    return customer_code_process.exitcode
+    wrapped_customer_method = wrap_customer_method(customer_method)
+    process_kwargs = {"target": wrapped_customer_method}
+
+    function_args = try_bind_hyperparameters_to_customer_method(customer_method)
+    if function_args is not None:
+        process_kwargs["kwargs"] = function_args
+
+    customer_code_process = multiprocessing.Process(**process_kwargs)
+    customer_code_process.start()
+    return customer_code_process
 
 
-def run_customer_code_as_subprocess(entry_point: str) -> int:
+def join_customer_script(customer_code_process: multiprocessing.Process):
     """
-    When provided just the name of the module to run, we run it as a subprocess.
+    Joins the process running the customer code.
 
     Args:
-        entry_point (str): the name of the module to run.
-
-    Returns:
-        int: The exit code of the customer code run.
+        customer_code_process (Process): the process running the customer code.
     """
-    print("Running Code As Subprocess")
     try:
-        result = subprocess.run(["python", "-m", entry_point], cwd=EXTRACTED_CUSTOMER_CODE_PATH)
+        customer_code_process.join()
     except Exception as e:
-        log_failure_and_exit(f"Unable to run job at entry point {entry_point}\nException: {e}")
+        log_failure_and_exit(f"Job did not exit gracefully.\nException: {e}")
+
+    customer_code_process.join()
     print("Code Run Finished")
-    return_code = result.returncode
-    return return_code
+    return customer_code_process.exitcode
 
 
 def run_customer_code() -> None:
@@ -312,12 +305,10 @@ def run_customer_code() -> None:
     local_s3_file = download_customer_code(s3_uri)
     unpack_code_and_add_to_path(local_s3_file, compression_type)
     install_additional_requirements()
-    if entry_point.find(":") >= 0:
-        exit_code = run_customer_code_as_process(entry_point)
-    else:
-        exit_code = run_customer_code_as_subprocess(entry_point)
-    if exit_code != 0:
-        log_failure_and_exit(f"Job at {entry_point} exited with exit code: {exit_code}")
+    customer_method = extract_customer_method(entry_point)
+    customer_method_process = kick_off_customer_script(customer_method)
+    join_customer_script(customer_method_process)
+    sys.exit(customer_method_process.exitcode)
 
 
 def setup_and_run():
