@@ -136,7 +136,7 @@ def unpack_code_and_add_to_path(local_s3_file: str, compression_type: str):
     sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
 
 
-def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
+def kick_off_customer_script(entry_point: str, queue: multiprocessing.Queue) -> multiprocessing.Process:
     """
     Runs the customer script as a separate process.
 
@@ -151,7 +151,13 @@ def kick_off_customer_script(entry_point: str) -> multiprocessing.Process:
         customer_module = importlib.import_module(str_module)
         customer_method = getattr(customer_module, str_method)
 
-        process_kwargs = {"target": customer_method}
+        def wrapped_customer_method(queue, **kwargs):
+            try:
+                customer_method(**kwargs)
+            except Exception as exc:
+                queue.put(exc)
+
+        process_kwargs = {"target": wrapped_customer_method, "args": (queue,)}
 
         function_args = try_bind_hyperparameters_to_customer_method(customer_method)
         if function_args is not None:
@@ -186,7 +192,7 @@ def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
     return function_args
 
 
-def join_customer_script(customer_code_process: multiprocessing.Process):
+def join_customer_script(customer_code_process: multiprocessing.Process, queue: multiprocessing.Queue):
     """
     Joins the process running the customer code.
 
@@ -195,6 +201,10 @@ def join_customer_script(customer_code_process: multiprocessing.Process):
     """
     try:
         customer_code_process.join()
+
+        if not queue.empty():
+            exception = queue.get()
+            log_failure_and_exit(f"{type(exception).__name__}: {exception}")
     except Exception as e:
         log_failure_and_exit(f"Job did not exit gracefully.\nException: {e}")
 
@@ -265,8 +275,9 @@ def run_customer_code_as_process(entry_point: str) -> int:
         int: The exit code of the customer code run.
     """
     print("Running Code As Process")
-    customer_code_process = kick_off_customer_script(entry_point)
-    join_customer_script(customer_code_process)
+    queue = multiprocessing.Queue()
+    customer_code_process = kick_off_customer_script(entry_point, queue)
+    join_customer_script(customer_code_process, queue)
     print("Code Run Finished")
     return customer_code_process.exitcode
 
