@@ -286,12 +286,6 @@ def kick_off_customer_script(customer_code: Callable) -> multiprocessing.Process
     if function_args is not None:
         process_kwargs["kwargs"] = function_args
 
-    # default on Unix, setting explicitly for consistency in local testing
-    try:
-        multiprocessing.set_start_method('fork')
-    # pass if already set
-    except RuntimeError:
-        pass
     customer_code_process = multiprocessing.Process(**process_kwargs)
     customer_code_process.start()
     return customer_code_process

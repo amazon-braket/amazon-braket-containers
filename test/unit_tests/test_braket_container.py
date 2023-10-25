@@ -1,4 +1,6 @@
+import importlib
 import json
+import os
 import re
 import tempfile
 from pathlib import Path
@@ -18,6 +20,8 @@ from src.braket_container import (
     try_bind_hyperparameters_to_customer_method,
     install_additional_requirements,
     run_customer_code,
+    wrap_customer_code,
+    EXTRACTED_CUSTOMER_CODE_PATH,
 )
 
 
@@ -181,44 +185,8 @@ def customer_function():
     return 0
 
 
-@mock.patch("src.braket_container._log_failure")
-@mock.patch('src.braket_container.importlib')
-@mock.patch('src.braket_container.get_code_setup_parameters')
-@mock.patch('src.braket_container.shutil')
-@mock.patch('src.braket_container.boto3')
-@mock.patch('pathlib._normal_accessor.mkdir')
-@mock.patch('src.braket_container.os')
-@mock.patch('src.braket_container.sys')
-def test_run_customer_code_function(
-    mock_sys,
-    mock_os,
-    mock_mkdir,
-    mock_boto,
-    mock_shutil,
-    mock_get_code_setup,
-    mock_importlib,
-    mock_log_failure,
-    hyperparameters_json
-):
-    mock_os.getenv = lambda x: (
-        "hyperparameters.json"
-        if x == "AMZN_BRAKET_HP_FILE"
-        else ""
-    )
-    mock_get_code_setup.return_value = (
-        "s3://test_bucket/test_location",
-        "test_module:customer_function",
-        None,
-    )
-    mock_importlib.import_module.return_value.customer_function = customer_function
-
-    run_customer_code()
-
-
-def customer_function_fails():
-    open("fake_file")
-
-
+@mock.patch('src.braket_container.wrap_customer_code')
+@mock.patch('src.braket_container.multiprocessing')
 @mock.patch('src.braket_container.importlib')
 @mock.patch('src.braket_container.get_code_setup_parameters')
 @mock.patch('src.braket_container.shutil')
@@ -226,7 +194,7 @@ def customer_function_fails():
 @mock.patch('pathlib._normal_accessor.mkdir')
 @mock.patch('src.braket_container.os.getenv')
 @mock.patch('src.braket_container.sys')
-def test_run_customer_code_function_fails(
+def test_run_customer_code_function(
     mock_sys,
     mock_getenv,
     mock_mkdir,
@@ -234,6 +202,8 @@ def test_run_customer_code_function_fails(
     mock_shutil,
     mock_get_code_setup,
     mock_importlib,
+    mock_mp,
+    mock_wrap_code,
     hyperparameters_json,
 ):
     mock_getenv.side_effect = lambda x, y = None: (
@@ -243,28 +213,40 @@ def test_run_customer_code_function_fails(
     )
     mock_get_code_setup.return_value = (
         "s3://test_bucket/test_location",
-        "test_module:customer_function_fails",
+        "test_module:customer_function",
         None,
     )
-    mock_importlib.import_module.return_value.customer_function_fails = customer_function_fails
+    mock_process = mock.MagicMock()
+    mock_mp.Process.return_value = mock_process
 
-    with tempfile.TemporaryDirectory() as tempdir:
-        import src
-        extracted_code_path = src.braket_container.EXTRACTED_CUSTOMER_CODE_PATH
-        log_file_name = src.braket_container.ERROR_LOG_FILE
-        mock_log_file_name = Path(tempdir, "failure")
-        try:
-            src.braket_container.EXTRACTED_CUSTOMER_CODE_PATH = tempdir
-            src.braket_container.ERROR_LOG_FILE = mock_log_file_name
+    run_customer_code()
 
-            run_customer_code()
+    mock_wrap_code.assert_called_with(mock_importlib.import_module.return_value.customer_function)
+    mock_mp.Process.assert_called_with(target=mock_wrap_code.return_value, kwargs={})
+    mock_process.start.assert_called_with()
+    mock_process.join.assert_called_with()
 
-            mock_sys.exit.assert_called_with(1)
-            with open(mock_log_file_name, "r") as f:
-                assert f.read() == "FileNotFoundError: [Errno 2] No such file or directory: 'fake_file'"
-        finally:
-            src.braket_container.EXTRACTED_CUSTOMER_CODE_PATH = extracted_code_path
-            src.braket_container.ERROR_LOG_FILE = log_file_name
+
+def customer_function_fails():
+    open("fake_file")
+
+
+@mock.patch('src.braket_container._log_failure')
+@mock.patch('os.chdir')
+def test_wrapped_function_logs_failure(mock_cd, mock_log):
+    wrapped = wrap_customer_code(customer_function_fails)
+
+    file_not_found = re.escape("[Errno 2] No such file or directory: 'fake_file'")
+    with pytest.raises(FileNotFoundError, match=file_not_found):
+        wrapped()
+
+    mock_cd.called_with(EXTRACTED_CUSTOMER_CODE_PATH)
+    mock_cd.called_with(os.getcwd())
+    mock_log.assert_called_with(
+        "FileNotFoundError: [Errno 2] No such file or directory: 'fake_file'",
+        display=False,
+    )
+
 
 
 
