@@ -226,19 +226,19 @@ def install_additional_requirements() -> None:
         log_failure_and_exit(f"Unable to install requirements.\nException: {e}")
 
 
-def extract_customer_method(entry_point: str) -> Callable:
+def extract_customer_code(entry_point: str) -> Callable:
     """
     Converts entry point to a runnable function.
     """
     if entry_point.find(":") >= 0:
         str_module, _, str_method = entry_point.partition(":")
         customer_module = importlib.import_module(str_module)
-        customer_method = getattr(customer_module, str_method)
+        customer_code = getattr(customer_module, str_method)
     else:
-        def customer_method():
+        def customer_code():
             # equivalent to `python -m entry_point`
             return runpy.run_module(entry_point, run_name="__main__")
-    return customer_method
+    return customer_code
 
 
 @contextlib.contextmanager
@@ -251,8 +251,8 @@ def in_extracted_code_dir():
         os.chdir(current_dir)
 
 
-def wrap_customer_method(customer_method: Callable) -> Callable:
-    def wrapped_customer_method(**kwargs):
+def wrap_customer_code(customer_method: Callable) -> Callable:
+    def wrapped_customer_code(**kwargs):
         try:
             with in_extracted_code_dir():
                 return customer_method(**kwargs)
@@ -265,24 +265,24 @@ def wrap_customer_method(customer_method: Callable) -> Callable:
             )
             _log_failure(exception_string, display=False)
             raise e
-    return wrapped_customer_method
+    return wrapped_customer_code
 
 
-def kick_off_customer_script(customer_method: Callable) -> multiprocessing.Process:
+def kick_off_customer_script(customer_code: Callable) -> multiprocessing.Process:
     """
     Runs the customer script as a separate process.
 
     Args:
-        customer_method (Callable): The customer method to be run.
+        customer_code (Callable): The customer method to be run.
 
     Returns:
         Process: the process handle to the running process.
     """
     print("Running Code As Process")
-    wrapped_customer_method = wrap_customer_method(customer_method)
-    process_kwargs = {"target": wrapped_customer_method}
+    wrapped_customer_code = wrap_customer_code(customer_code)
+    process_kwargs = {"target": wrapped_customer_code}
 
-    function_args = try_bind_hyperparameters_to_customer_method(customer_method)
+    function_args = try_bind_hyperparameters_to_customer_method(customer_code)
     if function_args is not None:
         process_kwargs["kwargs"] = function_args
 
@@ -308,8 +308,6 @@ def join_customer_script(customer_code_process: multiprocessing.Process):
         customer_code_process.join()
     except Exception as e:
         log_failure_and_exit(f"Job did not exit gracefully.\nException: {e}")
-
-    customer_code_process.join()
     print("Code Run Finished")
     return customer_code_process.exitcode
 
@@ -324,10 +322,10 @@ def run_customer_code() -> None:
     local_s3_file = download_customer_code(s3_uri)
     unpack_code_and_add_to_path(local_s3_file, compression_type)
     install_additional_requirements()
-    customer_method = extract_customer_method(entry_point)
-    customer_method_process = kick_off_customer_script(customer_method)
-    join_customer_script(customer_method_process)
-    if customer_method_process.exitcode != 0:
+    customer_executable = extract_customer_code(entry_point)
+    customer_process = kick_off_customer_script(customer_executable)
+    join_customer_script(customer_process)
+    if customer_process.exitcode != 0:
         sys.exit(0)
 
 
