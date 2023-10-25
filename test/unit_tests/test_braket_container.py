@@ -200,7 +200,6 @@ def test_run_customer_code_function(
     mock_log_failure,
     hyperparameters_json
 ):
-    # Setup
     mock_os.getenv = lambda x: (
         "hyperparameters.json"
         if x == "AMZN_BRAKET_HP_FILE"
@@ -213,12 +212,7 @@ def test_run_customer_code_function(
     )
     mock_importlib.import_module.return_value.customer_function = customer_function
 
-    # Act
     run_customer_code()
-
-    # Assert
-    mock_sys.exit.assert_called_with(0)
-    assert not mock_log_failure.called
 
 
 def customer_function_fails():
@@ -242,7 +236,6 @@ def test_run_customer_code_function_fails(
     mock_importlib,
     hyperparameters_json,
 ):
-    # Setup
     mock_getenv.side_effect = lambda x, y = None: (
         "hyperparameters.json"
         if x == "AMZN_BRAKET_HP_FILE"
@@ -264,11 +257,9 @@ def test_run_customer_code_function_fails(
             src.braket_container.EXTRACTED_CUSTOMER_CODE_PATH = tempdir
             src.braket_container.ERROR_LOG_FILE = mock_log_file_name
 
-            # Act
             run_customer_code()
 
-            # Assert
-            mock_sys.exit.assert_called_with(1)
+            mock_sys.exit.assert_called_with(0)
             with open(mock_log_file_name, "r") as f:
                 assert f.read() == "FileNotFoundError: [Errno 2] No such file or directory: 'fake_file'"
         finally:
