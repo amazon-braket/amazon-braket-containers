@@ -327,6 +327,8 @@ def run_customer_code() -> None:
     customer_method = extract_customer_method(entry_point)
     customer_method_process = kick_off_customer_script(customer_method)
     join_customer_script(customer_method_process)
+    if customer_method_process.exitcode != 0:
+        sys.exit(0)
 
 
 def setup_and_run():
