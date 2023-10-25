@@ -260,7 +260,7 @@ def wrap_customer_code(customer_method: Callable) -> Callable:
             exception_type = type(e).__name__
             exception_string = (
                 exception_type
-                if not e.args
+                if not str(e)
                 else f"{exception_type}: {e}"
             )
             _log_failure(exception_string, display=False)
@@ -326,7 +326,7 @@ def run_customer_code() -> None:
     customer_process = kick_off_customer_script(customer_executable)
     join_customer_script(customer_process)
     if customer_process.exitcode != 0:
-        sys.exit(1)
+        sys.exit(customer_process.exitcode)
 
 
 def setup_and_run():
