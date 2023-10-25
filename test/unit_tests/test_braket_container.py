@@ -259,7 +259,7 @@ def test_run_customer_code_function_fails(
 
             run_customer_code()
 
-            mock_sys.exit.assert_called_with(0)
+            mock_sys.exit.assert_called_with(1)
             with open(mock_log_file_name, "r") as f:
                 assert f.read() == "FileNotFoundError: [Errno 2] No such file or directory: 'fake_file'"
         finally:
