@@ -318,9 +318,8 @@ def run_customer_code() -> None:
     install_additional_requirements()
     customer_executable = extract_customer_code(entry_point)
     customer_process = kick_off_customer_script(customer_executable)
-    join_customer_script(customer_process)
-    if customer_process.exitcode != 0:
-        sys.exit(customer_process.exitcode)
+    if (exit_code := join_customer_script(customer_process)) != 0:
+        sys.exit(exit_code)
 
 
 def setup_and_run():
