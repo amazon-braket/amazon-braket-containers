@@ -1,5 +1,8 @@
+import importlib
 import json
+import os
 import re
+import tempfile
 from pathlib import Path
 from unittest import mock
 from urllib.parse import urlparse
@@ -16,6 +19,9 @@ from src.braket_container import (
     setup_and_run,
     try_bind_hyperparameters_to_customer_method,
     install_additional_requirements,
+    run_customer_code,
+    wrap_customer_code,
+    EXTRACTED_CUSTOMER_CODE_PATH,
 )
 
 
@@ -174,90 +180,74 @@ def test_install_additional_requirements(mock_os, mock_subprocess, file_walk_res
     assert mock_subprocess.run.call_count == 1
 
 
-@pytest.mark.parametrize(
-    "expected_return_value", [0, 1]
-)
-@mock.patch('src.braket_container.log_failure_and_exit')
-@mock.patch('src.braket_container.subprocess')
-@mock.patch('src.braket_container.get_code_setup_parameters')
-@mock.patch('src.braket_container.shutil')
-@mock.patch('src.braket_container.boto3')
-@mock.patch('pathlib._normal_accessor.mkdir')
-@mock.patch('src.braket_container.os')
-@mock.patch('src.braket_container.sys')
-def test_setup_and_run_as_subprocess(
-        mock_sys,
-        mock_os,
-        mock_mkdir,
-        mock_boto,
-        mock_shutil,
-        mock_get_code_setup,
-        mock_subprocess,
-        mock_log_failure,
-        expected_return_value
-):
-    # Setup
-    mock_os.getenv.return_value = ""
-    mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_entry_point", None
-    run_result_object = mock.MagicMock()
-    run_result_object.returncode = expected_return_value
-    mock_subprocess.run.return_value = run_result_object
-
-    # Act
-    setup_and_run()
-
-    # Assert
-    mock_subprocess.run.assert_called_with(
-        ["python", "-m", "test_entry_point"], cwd='/opt/braket/code/customer_code/extracted',
-    )
-    if expected_return_value != 0:
-        mock_log_failure.assert_called()
+def customer_function():
+    print("Hello")
+    return 0
 
 
-@pytest.mark.parametrize(
-    "expected_return_value", [0, 1]
-)
-@mock.patch('src.braket_container.log_failure_and_exit')
+@mock.patch('src.braket_container.wrap_customer_code')
 @mock.patch('src.braket_container.multiprocessing')
 @mock.patch('src.braket_container.importlib')
 @mock.patch('src.braket_container.get_code_setup_parameters')
 @mock.patch('src.braket_container.shutil')
 @mock.patch('src.braket_container.boto3')
 @mock.patch('pathlib._normal_accessor.mkdir')
-@mock.patch('src.braket_container.os')
+@mock.patch('src.braket_container.os.getenv')
 @mock.patch('src.braket_container.sys')
-def test_setup_and_run_as_process(
-        mock_sys,
-        mock_os,
-        mock_mkdir,
-        mock_boto,
-        mock_shutil,
-        mock_get_code_setup,
-        mock_importlib,
-        mock_process,
-        mock_log_failure,
-        expected_return_value,
-        hyperparameters_json,
+def test_run_customer_code_function(
+    mock_sys,
+    mock_getenv,
+    mock_mkdir,
+    mock_boto,
+    mock_shutil,
+    mock_get_code_setup,
+    mock_importlib,
+    mock_mp,
+    mock_wrap_code,
+    hyperparameters_json,
 ):
-    # Setup
-    mock_os.getenv = lambda x: (
+    mock_getenv.side_effect = lambda x, y = None: (
         "hyperparameters.json"
         if x == "AMZN_BRAKET_HP_FILE"
-        else ""
+        else y or ""
     )
-    mock_get_code_setup.return_value = "s3://test_bucket/test_location", "test_module:test_function", None
-    mock_process_object = mock.MagicMock()
-    mock_process.Process.return_value = mock_process_object
-    mock_process_object.exitcode = expected_return_value
+    mock_get_code_setup.return_value = (
+        "s3://test_bucket/test_location",
+        "test_module:customer_function",
+        None,
+    )
+    mock_process = mock.MagicMock()
+    mock_mp.Process.return_value = mock_process
 
-    # Act
-    setup_and_run()
+    run_customer_code()
 
-    # Assert
-    mock_process_object.start.assert_called()
-    mock_process_object.join.assert_called()
-    if expected_return_value != 0:
-        mock_log_failure.assert_called()
+    mock_wrap_code.assert_called_with(mock_importlib.import_module.return_value.customer_function)
+    mock_mp.Process.assert_called_with(target=mock_wrap_code.return_value, kwargs={})
+    mock_process.start.assert_called_with()
+    mock_process.join.assert_called_with()
+
+
+def customer_function_fails():
+    open("fake_file")
+
+
+@mock.patch('src.braket_container._log_failure')
+@mock.patch('os.chdir')
+def test_wrapped_function_logs_failure(mock_cd, mock_log):
+    wrapped = wrap_customer_code(customer_function_fails)
+
+    file_not_found = re.escape("[Errno 2] No such file or directory: 'fake_file'")
+    with pytest.raises(FileNotFoundError, match=file_not_found):
+        wrapped()
+
+    mock_cd.called_with(EXTRACTED_CUSTOMER_CODE_PATH)
+    mock_cd.called_with(os.getcwd())
+    mock_log.assert_called_with(
+        "FileNotFoundError: [Errno 2] No such file or directory: 'fake_file'",
+        display=False,
+    )
+
+
 
 
 def customer_method_no_args():
