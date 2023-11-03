@@ -14,6 +14,7 @@
 import json
 import os
 import time
+import boto3
 
 import networkx as nx
 from pennylane import numpy as np
@@ -23,6 +24,28 @@ from braket.jobs import save_job_checkpoint, save_job_result
 from braket.jobs.metrics import log_metric
 
 from . import qaoa_utils
+
+
+def record_test_metrics(metric, start_time, interface):
+    cw_client = boto3.client("cloudwatch")
+    cw_client.put_metric_data(
+        MetricData=[{
+            'MetricName': metric,
+            'Dimensions': [
+                {
+                    'Name': 'TYPE',
+                    'Value': 'braket_tests'
+                },
+                {
+                    'Name': 'INTERFACE',
+                    'Value': interface
+                }
+            ],
+            'Unit': 'Seconds',
+            'Value': time.time() - start_time
+        }],
+        Namespace='braket-container-metrics'
+    )
 
 
 def init_pl_device(device_arn, num_nodes, shots, max_parallel):
@@ -51,6 +74,9 @@ def start_function():
     stepsize = float(hyperparams["stepsize"])
     shots = int(hyperparams["shots"])
     pl_interface = hyperparams["interface"]
+    start_time = float(hyperparams["start_time"])
+
+    record_test_metrics('Startup', start_time, pl_interface)
 
     interface = qaoa_utils.QAOAInterface.get_interface(pl_interface)
 
@@ -73,7 +99,7 @@ def start_function():
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
-    
+
     @qml.qnode(dev, interface=pl_interface)
     def cost_function(params):
         circuit(params)
@@ -130,6 +156,7 @@ def start_function():
 
     save_job_result({"params": np_params.tolist(), "cost": final_cost})
 
+    record_test_metrics('Total', start_time, pl_interface)
     print("Braket Container Run Success")
 
 

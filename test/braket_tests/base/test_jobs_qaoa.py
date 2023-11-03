@@ -11,6 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import time
 from ..common.braket_jobs_util import job_test
 
 
@@ -27,6 +28,7 @@ def test_qaoa_circuit(account, role, s3_bucket, image_list):
             "stepsize": "0.1",
             "shots": "100",
             "interface": "autograd",
+            "start_time": time.time(),
         }
     }
     for image_path in image_list:
