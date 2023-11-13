@@ -12,10 +12,13 @@
 # language governing permissions and limitations under the License.
 
 import time
+import pytest
+
 from ..common.braket_jobs_util import job_test
 
 
-def test_qaoa_circuit(account, role, s3_bucket, image_list):
+@pytest.mark.parametrize("decorator", (False, True))
+def test_qaoa_circuit(account, role, s3_bucket, image_list, decorator):
     assert len(image_list) > 0, "Unable to find images for testing"
     create_job_args = {
         "source_module": "./test/resources/",
@@ -32,4 +35,4 @@ def test_qaoa_circuit(account, role, s3_bucket, image_list):
         }
     }
     for image_path in image_list:
-        job_test(account, role, s3_bucket, image_path, "base-qaoa", **create_job_args)
+        job_test(account, role, s3_bucket, image_path, "base-qaoa", decorator=decorator, **create_job_args)

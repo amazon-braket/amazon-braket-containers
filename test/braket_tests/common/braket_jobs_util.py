@@ -12,16 +12,17 @@
 # language governing permissions and limitations under the License.
 
 import io
-import os
 import time
 from contextlib import redirect_stdout
 
-import boto3
 
 from braket.aws import AwsQuantumJob, AwsSession
+from braket.jobs import hybrid_job
+
+from ...resources.qaoa_entry_point import start_function
 
 
-def job_test(account, role, s3_bucket, image_path, job_type, **kwargs):
+def job_test(account, role, s3_bucket, image_path, job_type, decorator=False, **kwargs):
     job_output = io.StringIO()
     with redirect_stdout(job_output):
         try:
@@ -33,15 +34,39 @@ def job_test(account, role, s3_bucket, image_path, job_type, **kwargs):
     assert output.find("Braket Container Run Success") > 0, "Container did not run successfully"
 
 
-def create_job(account, role, s3_bucket, image_path, job_type, **kwargs):
+def create_job(account, role, s3_bucket, image_path, job_type, decorator=False, **kwargs):
     aws_session = AwsSession(default_bucket=s3_bucket)
     job_name = f"ContainerTest-{job_type}-{int(time.time())}"
-    AwsQuantumJob.create(
-        aws_session=aws_session,
-        job_name=job_name,
-        device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
-        role_arn=f"arn:aws:iam::{account}:role/{role}",
-        image_uri=image_path,
-        wait_until_complete=True,
-        **kwargs
-    )
+
+    if not decorator:
+        AwsQuantumJob.create(
+            aws_session=aws_session,
+            job_name=job_name,
+            device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
+            role_arn=f"arn:aws:iam::{account}:role/{role}",
+            image_uri=image_path,
+            wait_until_complete=True,
+            **kwargs,
+        )
+    else:
+        @hybrid_job(
+            aws_session=aws_session,
+            job_name=job_name,
+            device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
+            role_arn=f"arn:aws:iam::{account}:role/{role}",
+            image_uri=image_path,
+            wait_until_complete=True,
+        )
+        def decorator_job(
+            p,
+            seed,
+            max_parallel,
+            num_iterations,
+            stepsize,
+            shots,
+            interface,
+            start_size,
+        ):
+            return start_function()
+
+        decorator_job(**kwargs["hyperparameters"])
