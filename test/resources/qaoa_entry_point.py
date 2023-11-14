@@ -44,7 +44,7 @@ def record_test_metrics(metric, start_time, interface):
             'Unit': 'Seconds',
             'Value': time.time() - start_time
         }],
-        Namespace='braket-container-metrics'
+        Namespace='/aws/braket'
     )
 
 
