@@ -39,10 +39,6 @@ def create_job(account, role, s3_bucket, image_path, job_type, job_args):
     aws_session = AwsSession(default_bucket=s3_bucket)
     job_name = f"ContainerTest-{job_type}-{int(time.time())}"
 
-    # test_module = None
-    # print(sys.modules)
-    # assert 0
-
     @hybrid_job(
         aws_session=aws_session,
         job_name=job_name,
@@ -50,7 +46,7 @@ def create_job(account, role, s3_bucket, image_path, job_type, job_args):
         role_arn=f"arn:aws:iam::{account}:role/{role}",
         image_uri=image_path,
         wait_until_complete=True,
-        include_modules="test.resources",#sys.modules[entry_point.__module__]
+        include_modules="test.resources",
     )
     def decorator_job(*args, **kwargs):
         return entry_point(*args, **kwargs)
