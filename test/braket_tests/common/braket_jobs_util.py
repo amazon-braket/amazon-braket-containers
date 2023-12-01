@@ -12,21 +12,22 @@
 # language governing permissions and limitations under the License.
 
 import io
+import sys
 import time
 from contextlib import redirect_stdout
 
-
-from braket.aws import AwsQuantumJob, AwsSession
+from braket.aws import AwsSession
 from braket.jobs import hybrid_job
+from braket.devices import Devices
 
-from ...resources.qaoa_entry_point import start_function
+from ...resources.qaoa_entry_point import entry_point
 
 
-def job_test(account, role, s3_bucket, image_path, job_type, decorator=False, **kwargs):
+def job_test(account, role, s3_bucket, image_path, job_type, job_args):
     job_output = io.StringIO()
     with redirect_stdout(job_output):
         try:
-            create_job(account, role, s3_bucket, image_path, job_type, **kwargs)
+            create_job(account, role, s3_bucket, image_path, job_type, job_args)
         except Exception as e:
             print(e)
     output = job_output.getvalue()
@@ -34,39 +35,20 @@ def job_test(account, role, s3_bucket, image_path, job_type, decorator=False, **
     assert output.find("Braket Container Run Success") > 0, "Container did not run successfully"
 
 
-def create_job(account, role, s3_bucket, image_path, job_type, decorator=False, **kwargs):
+def create_job(account, role, s3_bucket, image_path, job_type, job_args):
     aws_session = AwsSession(default_bucket=s3_bucket)
     job_name = f"ContainerTest-{job_type}-{int(time.time())}"
 
-    if not decorator:
-        AwsQuantumJob.create(
-            aws_session=aws_session,
-            job_name=job_name,
-            device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
-            role_arn=f"arn:aws:iam::{account}:role/{role}",
-            image_uri=image_path,
-            wait_until_complete=True,
-            **kwargs,
-        )
-    else:
-        @hybrid_job(
-            aws_session=aws_session,
-            job_name=job_name,
-            device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
-            role_arn=f"arn:aws:iam::{account}:role/{role}",
-            image_uri=image_path,
-            wait_until_complete=True,
-        )
-        def decorator_job(
-            p,
-            seed,
-            max_parallel,
-            num_iterations,
-            stepsize,
-            shots,
-            interface,
-            start_size,
-        ):
-            return start_function()
+    @hybrid_job(
+        aws_session=aws_session,
+        job_name=job_name,
+        device=Devices.Amazon.SV1,
+        role_arn=f"arn:aws:iam::{account}:role/{role}",
+        image_uri=image_path,
+        wait_until_complete=True,
+        include_modules=sys.modules[entry_point.__module__]
+    )
+    def decorator_job(*args, **kwargs):
+        return entry_point(*args, **kwargs)
 
-        decorator_job(**kwargs["hyperparameters"])
+    decorator_job(**job_args)
