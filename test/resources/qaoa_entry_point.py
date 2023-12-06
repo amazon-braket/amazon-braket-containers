@@ -11,8 +11,6 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import json
-import os
 import time
 import boto3
 
@@ -20,7 +18,7 @@ import networkx as nx
 from pennylane import numpy as np
 import pennylane as qml
 
-from braket.jobs import save_job_checkpoint, save_job_result
+from braket.jobs import get_job_device_arn, save_job_checkpoint, save_job_result
 from braket.jobs.metrics import log_metric
 
 from . import qaoa_utils
@@ -34,7 +32,7 @@ def record_test_metrics(metric, start_time, interface):
             'Dimensions': [
                 {
                     'Name': 'TYPE',
-                    'Value': 'braket_tests'
+                    'Value': 'braket_container_tests'
                 },
                 {
                     'Name': 'INTERFACE',
@@ -44,7 +42,7 @@ def record_test_metrics(metric, start_time, interface):
             'Unit': 'Seconds',
             'Value': time.time() - start_time
         }],
-        Namespace='braket-container-metrics'
+        Namespace='/aws/braket'
     )
 
 
@@ -60,22 +58,16 @@ def init_pl_device(device_arn, num_nodes, shots, max_parallel):
     )
 
 
-def start_function():
-    # Read the hyperparameters
-    hp_file = os.environ["AMZN_BRAKET_HP_FILE"]
-    with open(hp_file, "r") as f:
-        hyperparams = json.load(f)
-    print(hyperparams)
-
-    p = int(hyperparams["p"])
-    seed = int(hyperparams["seed"])
-    max_parallel = int(hyperparams["max_parallel"])
-    num_iterations = int(hyperparams["num_iterations"])
-    stepsize = float(hyperparams["stepsize"])
-    shots = int(hyperparams["shots"])
-    pl_interface = hyperparams["interface"]
-    start_time = float(hyperparams["start_time"])
-
+def entry_point(
+    p: int,
+    seed: int,
+    max_parallel: int,
+    num_iterations: int,
+    stepsize: float,
+    shots: int,
+    pl_interface: str,
+    start_time: float,
+):
     record_test_metrics('Startup', start_time, pl_interface)
 
     interface = qaoa_utils.QAOAInterface.get_interface(pl_interface)
@@ -95,7 +87,7 @@ def start_function():
             qml.Hadamard(wires=i)
         qml.layer(qaoa_layer, p, params[0], params[1])
 
-    device_arn = os.environ["AMZN_BRAKET_DEVICE_ARN"]
+    device_arn = get_job_device_arn()
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
@@ -158,7 +150,3 @@ def start_function():
 
     record_test_metrics('Total', start_time, pl_interface)
     print("Braket Container Run Success")
-
-
-if __name__ == "__main__":
-    start_function()
