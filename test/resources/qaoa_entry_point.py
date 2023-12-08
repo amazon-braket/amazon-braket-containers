@@ -86,8 +86,9 @@ def entry_point(
     def my_circuit(params, **kwargs):
         print(f"circuit {params}")
         for i in range(num_nodes):
-            print(f"wire {i}")
+            print(f"wire {i} of {num_nodes}")
             qml.Hadamard(wires=i)
+            print(f"done wire {i} of {num_nodes}")
         print(f"calling layer")
         qml.layer(qaoa_layer, p, params[0], params[1])
 
