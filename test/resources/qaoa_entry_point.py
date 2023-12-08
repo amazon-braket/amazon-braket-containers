@@ -21,7 +21,7 @@ import pennylane as qml
 from braket.jobs import get_job_device_arn, save_job_checkpoint, save_job_result
 from braket.jobs.metrics import log_metric
 
-from . import qaoa_utils
+import qaoa_utils
 
 
 def record_test_metrics(metric, start_time, interface):
@@ -79,21 +79,24 @@ def entry_point(
     cost_h, mixer_h = qml.qaoa.maxcut(g)
 
     def qaoa_layer(gamma, alpha):
+        print(f"cost layer {gamma}, {alpha}")
         qml.qaoa.cost_layer(gamma, cost_h)
         qml.qaoa.mixer_layer(alpha, mixer_h)
 
     def circuit(params, **kwargs):
+        print(f"circuit {params}")
         for i in range(num_nodes):
             qml.Hadamard(wires=i)
         qml.layer(qaoa_layer, p, params[0], params[1])
 
-    device_arn = get_job_device_arn()
+    device_arn = "arn:aws:braket:::device/quantum-simulator/amazon/sv1" # get_job_device_arn()
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
 
     @qml.qnode(dev, interface=pl_interface)
     def cost_function(params):
+        print(f"cost func {params}")
         circuit(params)
         return qml.expval(cost_h)
 
@@ -150,3 +153,7 @@ def entry_point(
 
     record_test_metrics('Total', start_time, pl_interface)
     print("Braket Container Run Success")
+
+
+if __name__ == "__main__":
+    entry_point(2, 1967, 10, 5, 2, 1000, "autograd", time.time())
