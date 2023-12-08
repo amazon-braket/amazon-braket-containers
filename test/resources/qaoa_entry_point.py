@@ -21,7 +21,7 @@ import pennylane as qml
 from braket.jobs import get_job_device_arn, save_job_checkpoint, save_job_result
 from braket.jobs.metrics import log_metric
 
-import qaoa_utils
+from . import qaoa_utils
 
 
 def record_test_metrics(metric, start_time, interface):
