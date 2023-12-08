@@ -83,13 +83,13 @@ def entry_point(
         qml.qaoa.cost_layer(gamma, cost_h)
         qml.qaoa.mixer_layer(alpha, mixer_h)
 
-    def circuit(params, **kwargs):
+    def my_circuit(params, **kwargs):
         print(f"circuit {params}")
         for i in range(num_nodes):
             qml.Hadamard(wires=i)
         qml.layer(qaoa_layer, p, params[0], params[1])
 
-    device_arn = "arn:aws:braket:::device/quantum-simulator/amazon/sv1" # get_job_device_arn()
+    device_arn = get_job_device_arn()
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
@@ -97,7 +97,7 @@ def entry_point(
     @qml.qnode(dev, interface=pl_interface)
     def cost_function(params):
         print(f"cost func {params}")
-        circuit(params)
+        my_circuit(params)
         return qml.expval(cost_h)
 
     params = interface.initialize_params(0.01 * np.random.uniform(size=[2, p]))
