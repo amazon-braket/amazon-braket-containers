@@ -84,6 +84,7 @@ def entry_point(
         qml.qaoa.mixer_layer(alpha, mixer_h)
 
     def my_circuit(params, **kwargs):
+        p = params.shape[1]
         print(f"circuit {params}")
         for i in range(num_nodes):
             print(f"wire {i} of {num_nodes}")
