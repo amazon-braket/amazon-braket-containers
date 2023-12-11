@@ -12,22 +12,20 @@
 # language governing permissions and limitations under the License.
 
 import io
-import sys
+import os
 import time
 from contextlib import redirect_stdout
 
-from braket.aws import AwsSession
-from braket.jobs import hybrid_job
-from braket.devices import Devices
+import boto3
 
-from ...resources.qaoa_entry_point import entry_point
+from braket.aws import AwsQuantumJob, AwsSession
 
 
-def job_test(account, role, s3_bucket, image_path, job_type, job_args):
+def job_test(account, role, s3_bucket, image_path, job_type, **kwargs):
     job_output = io.StringIO()
     with redirect_stdout(job_output):
         try:
-            create_job(account, role, s3_bucket, image_path, job_type, job_args)
+            create_job(account, role, s3_bucket, image_path, job_type, **kwargs)
         except Exception as e:
             print(e)
     output = job_output.getvalue()
@@ -35,20 +33,15 @@ def job_test(account, role, s3_bucket, image_path, job_type, job_args):
     assert output.find("Braket Container Run Success") > 0, "Container did not run successfully"
 
 
-def create_job(account, role, s3_bucket, image_path, job_type, job_args):
+def create_job(account, role, s3_bucket, image_path, job_type, **kwargs):
     aws_session = AwsSession(default_bucket=s3_bucket)
     job_name = f"ContainerTest-{job_type}-{int(time.time())}"
-
-    @hybrid_job(
+    AwsQuantumJob.create(
         aws_session=aws_session,
         job_name=job_name,
-        device=Devices.Amazon.SV1,
+        device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
         role_arn=f"arn:aws:iam::{account}:role/{role}",
         image_uri=image_path,
         wait_until_complete=True,
-        include_modules="test.resources",
+        **kwargs
     )
-    def decorator_job(*args, **kwargs):
-        return entry_point(*args, **kwargs)
-
-    decorator_job(**job_args)
