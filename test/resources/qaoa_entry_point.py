@@ -11,6 +11,8 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import json
+import os
 import time
 import boto3
 
@@ -18,7 +20,7 @@ import networkx as nx
 from pennylane import numpy as np
 import pennylane as qml
 
-from braket.jobs import get_job_device_arn, save_job_checkpoint, save_job_result
+from braket.jobs import save_job_checkpoint, save_job_result
 from braket.jobs.metrics import log_metric
 
 from . import qaoa_utils
@@ -58,16 +60,22 @@ def init_pl_device(device_arn, num_nodes, shots, max_parallel):
     )
 
 
-def entry_point(
-    p: int,
-    seed: int,
-    max_parallel: int,
-    num_iterations: int,
-    stepsize: float,
-    shots: int,
-    pl_interface: str,
-    start_time: float,
-):
+def start_function():
+    # Read the hyperparameters
+    hp_file = os.environ["AMZN_BRAKET_HP_FILE"]
+    with open(hp_file, "r") as f:
+        hyperparams = json.load(f)
+    print(hyperparams)
+
+    p = int(hyperparams["p"])
+    seed = int(hyperparams["seed"])
+    max_parallel = int(hyperparams["max_parallel"])
+    num_iterations = int(hyperparams["num_iterations"])
+    stepsize = float(hyperparams["stepsize"])
+    shots = int(hyperparams["shots"])
+    pl_interface = hyperparams["interface"]
+    start_time = float(hyperparams["start_time"])
+
     record_test_metrics('Startup', start_time, pl_interface)
 
     interface = qaoa_utils.QAOAInterface.get_interface(pl_interface)
@@ -87,7 +95,7 @@ def entry_point(
             qml.Hadamard(wires=i)
         qml.layer(qaoa_layer, p, params[0], params[1])
 
-    device_arn = get_job_device_arn()
+    device_arn = os.environ["AMZN_BRAKET_DEVICE_ARN"]
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
@@ -153,5 +161,4 @@ def entry_point(
 
 
 if __name__ == "__main__":
-    entry_point(2, 1967, 10, 5, 2, 1000, "autograd", time.time())
-    
+    start_function()
