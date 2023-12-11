@@ -11,6 +11,8 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import json
+import os
 import time
 import boto3
 
@@ -18,7 +20,7 @@ import networkx as nx
 from pennylane import numpy as np
 import pennylane as qml
 
-from braket.jobs import get_job_device_arn, save_job_checkpoint, save_job_result
+from braket.jobs import save_job_checkpoint, save_job_result
 from braket.jobs.metrics import log_metric
 
 from . import qaoa_utils
@@ -32,7 +34,7 @@ def record_test_metrics(metric, start_time, interface):
             'Dimensions': [
                 {
                     'Name': 'TYPE',
-                    'Value': 'braket_container_tests'
+                    'Value': 'braket_tests'
                 },
                 {
                     'Name': 'INTERFACE',
@@ -42,7 +44,7 @@ def record_test_metrics(metric, start_time, interface):
             'Unit': 'Seconds',
             'Value': time.time() - start_time
         }],
-        Namespace='/aws/braket'
+        Namespace='braket-container-metrics'
     )
 
 
@@ -58,16 +60,22 @@ def init_pl_device(device_arn, num_nodes, shots, max_parallel):
     )
 
 
-def entry_point(
-    p: int,
-    seed: int,
-    max_parallel: int,
-    num_iterations: int,
-    stepsize: float,
-    shots: int,
-    pl_interface: str,
-    start_time: float,
-):
+def start_function():
+    # Read the hyperparameters
+    hp_file = os.environ["AMZN_BRAKET_HP_FILE"]
+    with open(hp_file, "r") as f:
+        hyperparams = json.load(f)
+    print(hyperparams)
+
+    p = int(hyperparams["p"])
+    seed = int(hyperparams["seed"])
+    max_parallel = int(hyperparams["max_parallel"])
+    num_iterations = int(hyperparams["num_iterations"])
+    stepsize = float(hyperparams["stepsize"])
+    shots = int(hyperparams["shots"])
+    pl_interface = hyperparams["interface"]
+    start_time = float(hyperparams["start_time"])
+
     record_test_metrics('Startup', start_time, pl_interface)
 
     interface = qaoa_utils.QAOAInterface.get_interface(pl_interface)
@@ -79,29 +87,22 @@ def entry_point(
     cost_h, mixer_h = qml.qaoa.maxcut(g)
 
     def qaoa_layer(gamma, alpha):
-        print(f"cost layer {gamma}, {alpha}")
         qml.qaoa.cost_layer(gamma, cost_h)
         qml.qaoa.mixer_layer(alpha, mixer_h)
 
-    def my_circuit(params, **kwargs):
-        p = params.shape[1]
-        print(f"circuit {params}")
+    def circuit(params, **kwargs):
         for i in range(num_nodes):
-            print(f"wire {i} of {num_nodes}")
             qml.Hadamard(wires=i)
-            print(f"done wire {i} of {num_nodes}")
-        print(f"calling layer")
         qml.layer(qaoa_layer, p, params[0], params[1])
 
-    device_arn = get_job_device_arn()
+    device_arn = os.environ["AMZN_BRAKET_DEVICE_ARN"]
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
 
     @qml.qnode(dev, interface=pl_interface)
     def cost_function(params):
-        print(f"cost func {params}")
-        my_circuit(params)
+        circuit(params)
         return qml.expval(cost_h)
 
     params = interface.initialize_params(0.01 * np.random.uniform(size=[2, p]))
@@ -160,4 +161,4 @@ def entry_point(
 
 
 if __name__ == "__main__":
-    entry_point(2, 1967, 10, 5, 2, 1000, "autograd", time.time())
+    start_function()
