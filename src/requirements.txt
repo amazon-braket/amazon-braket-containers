@@ -1,5 +1,5 @@
 wheel==0.38.1
-docker==6.0.1
+docker==7.0.0
 fabric==2.5.0
 invoke==1.6.0
 pyfiglet==0.8.post1
@@ -8,4 +8,4 @@ ruamel.yaml==0.16.7
 boto3==1.28.53
 black==19.10b0
 junit-xml==1.9
-requests<2.2.29
+urllib3>=2.1.0
