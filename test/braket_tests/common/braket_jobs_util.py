@@ -12,20 +12,32 @@
 # language governing permissions and limitations under the License.
 
 import io
-import os
+import sys
 import time
 from contextlib import redirect_stdout
 
-import boto3
+from braket.aws import AwsSession
+from braket.jobs import hybrid_job
+from braket.devices import Devices
 
-from braket.aws import AwsQuantumJob, AwsSession
+from ...resources.qaoa_entry_point import entry_point
 
 
-def job_test(account, role, s3_bucket, image_path, job_type, **kwargs):
+def job_test(account, role, s3_bucket, image_path, job_type, interface):
     job_output = io.StringIO()
     with redirect_stdout(job_output):
         try:
-            create_job(account, role, s3_bucket, image_path, job_type, **kwargs)
+            job_args = {
+                "p": 2,
+                "seed": 1967,
+                "max_parallel": 10,
+                "num_iterations": 5,
+                "stepsize": 0.1,
+                "shots": 100,
+                "pl_interface": interface,
+                "start_time": time.time(),
+            }
+            create_job(account, role, s3_bucket, image_path, job_type, job_args)
         except Exception as e:
             print(e)
     output = job_output.getvalue()
@@ -33,15 +45,20 @@ def job_test(account, role, s3_bucket, image_path, job_type, **kwargs):
     assert output.find("Braket Container Run Success") > 0, "Container did not run successfully"
 
 
-def create_job(account, role, s3_bucket, image_path, job_type, **kwargs):
+def create_job(account, role, s3_bucket, image_path, job_type, job_args):
     aws_session = AwsSession(default_bucket=s3_bucket)
     job_name = f"ContainerTest-{job_type}-{int(time.time())}"
-    AwsQuantumJob.create(
+
+    @hybrid_job(
         aws_session=aws_session,
         job_name=job_name,
-        device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
+        device=Devices.Amazon.SV1,
         role_arn=f"arn:aws:iam::{account}:role/{role}",
         image_uri=image_path,
         wait_until_complete=True,
-        **kwargs
+        include_modules="test.resources",
     )
+    def decorator_job(*args, **kwargs):
+        return entry_point(*args, **kwargs)
+
+    decorator_job(**job_args)
