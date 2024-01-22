@@ -19,7 +19,7 @@ jobs:
       matrix:
         path: ["base/jobs/docker/1.0/py3/requirements.txt", "pytorch/jobs/docker/2.0/py3/requirements.txt", "tensorflow/jobs/docker/2.13/py3/requirements.txt"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup python
         uses: actions/setup-python@v4
         with:
