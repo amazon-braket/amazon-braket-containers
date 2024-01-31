@@ -61,7 +61,8 @@ Similar to building locally, to test locally, you’ll need access to a personal
 4. To run the unit tests:
     ```shell script
     pytest test/unit_tests
-    ```    
+    ```
+    Note, you may need to set `--role <JOBS_ROLE> --tag <IMAGE_TAG> --repository <PUBLISHED_REPO> --account <YOUR_ACCOUNT> ` 
 
 5. To run the SageMaker integration tests, at minimum you'll need to specify the tag of the image you want to test, the
    AWS role that should be used by tests, and the S3 location where a test file can be uploaded. Create this bucket in
