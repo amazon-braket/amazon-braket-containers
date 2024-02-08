@@ -1,7 +1,7 @@
 # This is based loosely on :
 # https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
 
-FROM public.ecr.aws/lts/ubuntu:22.04
+FROM python:3.10-slim
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
@@ -15,29 +15,6 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
-
-ARG PYTHON=python3.10
-ARG PYTHON_PIP=python3-pip
-ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.11
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    build-essential \
-    openssh-client \
-    openssh-server \
-    ca-certificates \
-    curl \
-    git \
-    libtemplate-perl \
-    libssl3 \
-    openssl \
-    unzip \
-    wget \
-    zlib1g-dev \
-    # Install dependent library for OpenCV
-    libgtk2.0-dev \
- && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
@@ -72,32 +49,6 @@ RUN mkdir -p /root/.ssh/ \
  && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    libbz2-dev \
-    libc6-dev \
-    libffi-dev \
-    libgdbm-dev \
-    liblzma-dev \
-    libncursesw5-dev \
-    libsqlite3-dev \
-    libssl-dev \
-    tk-dev \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Installing Python3
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
-
-# Upgrading pip and creating symbolic link for python3
-RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
 
 WORKDIR /
 
