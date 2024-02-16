@@ -1,5 +1,5 @@
 # Builder stage for compiling and installing dependencies
-FROM public.ecr.aws/docker/library/python:3.10-slim as builder
+FROM public.ecr.aws/lts/ubuntu:22.04 as builder
 
 # Set environment variables to minimize interactions and cleanup
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     openssh-server \
     ca-certificates \
-    gcc \
     curl \
     wget \
     libssl-dev \
@@ -49,7 +48,6 @@ ENV LANG=C.UTF-8 \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     ca-certificates \
-    gcc \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -63,8 +61,7 @@ COPY requirements.txt ./
 COPY braket_container.py /opt/ml/code/
 
 # Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir sagemaker-training==4.7.4 
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Set default command or entry point
 ENV SAGEMAKER_PROGRAM braket_container.py
