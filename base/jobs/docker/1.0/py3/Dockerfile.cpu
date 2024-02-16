@@ -1,128 +1,76 @@
-# This is based loosely on :
-# https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
+# Builder stage for compiling and installing dependencies
+FROM public.ecr.aws/docker/library/python:3.10-slim as builder
 
-FROM public.ecr.aws/lts/ubuntu:22.04
+# Set environment variables to minimize interactions and cleanup
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NONINTERACTIVE_SEEN=true \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-LABEL maintainer="Amazon Braket"
-LABEL major_version="1"
-
-# prevent stopping by user interaction
-ENV DEBIAN_FRONTEND noninteractive
-ENV DEBCONF_NONINTERACTIVE_SEEN true
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONIOENCODING=UTF-8
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
-
-ARG PYTHON=python3.10
-ARG PYTHON_PIP=python3-pip
-ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.11
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
     openssh-server \
     ca-certificates \
+    gcc \
     curl \
-    git \
-    libtemplate-perl \
-    libssl3 \
-    openssl \
-    unzip \
     wget \
+    libssl-dev \
+    libffi-dev \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
- && rm -rf /var/lib/apt/lists/*
-
-# Install Open MPI
-RUN mkdir /tmp/openmpi \
- && cd /tmp/openmpi \
- && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
- && tar zxf openmpi-4.0.4.tar.gz \
- && cd openmpi-4.0.4 \
- && ./configure --enable-orterun-prefix-by-default \
- && make -j $(nproc) all \
- && make install \
- && ldconfig \
- && rm -rf /tmp/openmpi
-
-# Create a wrapper for OpenMPI to allow running as root by default
-RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
- && echo '#!/bin/bash' > /usr/local/bin/mpirun \
- && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
- && chmod a+x /usr/local/bin/mpirun
-
-RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
-
-ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH
-ENV PATH /usr/local/openmpi/bin/:$PATH
-
-# SSH login fix. Otherwise user is kicked off after login
-RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-# Create SSH key.
-RUN mkdir -p /root/.ssh/ \
- && mkdir -p /var/run/sshd \
- && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
- && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    libbz2-dev \
-    libc6-dev \
-    libffi-dev \
-    libgdbm-dev \
-    liblzma-dev \
-    libncursesw5-dev \
-    libsqlite3-dev \
-    libssl-dev \
     tk-dev \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+    && rm -rf /var/lib/apt/lists/*
 
-# Installing Python3
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
+# Download and install OpenMPI
+RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
+    && wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
+    && tar zxf openmpi-4.0.4.tar.gz && cd openmpi-4.0.4 \
+    && ./configure --enable-orterun-prefix-by-default \
+    && make -j $(nproc) all \
+    && make install \
+    && ldconfig \
+    && rm -rf /tmp/openmpi
 
-# Upgrading pip and creating symbolic link for python3
-RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
+# Runtime stage
+FROM public.ecr.aws/docker/library/python:3.10
 
-WORKDIR /
+# Copy installed Python and OpenMPI from the builder stage
+COPY --from=builder /usr/local /usr/local
 
-RUN apt-get update && apt-get -y install cmake protobuf-compiler
+# Set environment variables
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PATH=/usr/local/bin:$PATH
 
-# Copy the dependencies file
-COPY requirements.txt /
-# Installing our custom python libraries
-RUN ${PIP} install --no-cache --upgrade \
-        -r requirements.txt
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl-dev \
+    ca-certificates \
+    gcc \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-        
-RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
+# Prepare environment for OpenMPI and Python application
+COPY --from=builder /usr/local/bin/mpirun /usr/local/bin/mpirun
+COPY --from=builder /usr/local/etc/openmpi-mca-params.conf /usr/local/etc/openmpi-mca-params.conf
 
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance*
+# Set working directory and copy necessary files for the application
+WORKDIR /app
+COPY requirements.txt ./
+COPY braket_container.py /opt/ml/code/
 
-# Setup our entry point
+# Install Python packages
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir sagemaker-training==4.7.4 
 
-COPY braket_container.py /opt/ml/code/braket_container.py
-
+# Set default command or entry point
 ENV SAGEMAKER_PROGRAM braket_container.py
+
+# Clean up
+RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+CMD ["python3", "/opt/ml/code/braket_container.py"]
