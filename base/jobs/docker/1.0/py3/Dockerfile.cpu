@@ -26,12 +26,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     musl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Prepare virtual environment to isolate builds
-RUN apt-get update && apt-get install -y --no-install-recommends python3-venv \
-    && python3 -m venv /opt/venv
-
-# Activate virtual environment for subsequent commands
-ENV PATH="/opt/venv/bin:$PATH"
 
 # Download and install OpenMPI
 RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
@@ -42,6 +36,13 @@ RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
     && make install \
     && ldconfig \
     && rm -rf /tmp/openmpi
+
+# Prepare virtual environment to isolate builds
+RUN apt-get update && apt-get install -y --no-install-recommends python3-venv \
+    && python3 -m venv /opt/venv
+
+# Activate virtual environment for subsequent commands
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python packages in virtual environment
 # Copy only the requirements file first to leverage Docker cache
@@ -72,7 +73,7 @@ COPY --from=builder /usr/local/etc/openmpi-mca-params.conf /usr/local/etc/openmp
 
 # Set working directory and copy necessary files for the application
 WORKDIR /app
-COPY braket_container.py /opt/ml/code/
+COPY braket_container.py /opt/ml/code/braket_container.py
 
 # Copy virtual environment from builder stage
 COPY --from=builder /opt/venv /opt/venv
@@ -83,5 +84,7 @@ ENV SAGEMAKER_PROGRAM braket_container.py
 # Clean up
 RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ENV PATH="/opt/venv/bin:$PATH"
 
 CMD ["python3", "/opt/ml/code/braket_container.py"]
