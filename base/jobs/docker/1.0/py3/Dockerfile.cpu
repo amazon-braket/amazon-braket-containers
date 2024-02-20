@@ -24,8 +24,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Python install tools
     gcc \
     musl-dev \
-    linux-headers \
     && rm -rf /var/lib/apt/lists/*
+
+# Prepare virtual environment to isolate builds
+RUN apt-get update && apt-get install -y --no-install-recommends python3-venv \
+    && python3 -m venv /opt/venv
+
+# Activate virtual environment for subsequent commands
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Download and install OpenMPI
 RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
@@ -37,10 +43,13 @@ RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
     && ldconfig \
     && rm -rf /tmp/openmpi
 
-RUN pip install wheel && pip wheel
+# Install Python packages in virtual environment
+# Copy only the requirements file first to leverage Docker cache
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Runtime stage
-FROM public.ecr.aws/docker/library/python:3.10
+FROM public.ecr.aws/docker/library/python:3.10-slim
 
 # Copy installed Python and OpenMPI from the builder stage
 COPY --from=builder /usr/local /usr/local
@@ -63,11 +72,10 @@ COPY --from=builder /usr/local/etc/openmpi-mca-params.conf /usr/local/etc/openmp
 
 # Set working directory and copy necessary files for the application
 WORKDIR /app
-COPY requirements.txt ./
 COPY braket_container.py /opt/ml/code/
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
 
 # Set default command or entry point
 ENV SAGEMAKER_PROGRAM braket_container.py
