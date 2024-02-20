@@ -19,6 +19,7 @@ PennyLane==0.34.0
 PennyLane-Lightning==0.34.0
 pydantic==1.10.14
 requests==2.31.0
+sagemaker-training==4.7.4
 scikit-learn==1.4.0
 six==1.16.0
 scipy==1.12.0
