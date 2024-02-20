@@ -1,6 +1,10 @@
 # Builder stage for compiling and installing dependencies
 FROM public.ecr.aws/docker/library/python:3.10-slim as builder
 
+# Set labels
+LABEL maintainer="Amazon Braket" \
+    major_version="1"
+
 # Set environment variables to minimize interactions and cleanup
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
