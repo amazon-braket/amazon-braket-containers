@@ -9,8 +9,8 @@ dask==2024.2.1
 matplotlib==3.8.3
 numpy==1.26.4
 pandas==2.2.1
-pennylane==0.34.0
-PennyLane-Lightning==0.34.0
+pennylane==0.35.0
+PennyLane-Lightning==0.35.0
 qiskit-braket-provider==0.1.1
 requests==2.31.0
 sagemaker-training==4.7.4
