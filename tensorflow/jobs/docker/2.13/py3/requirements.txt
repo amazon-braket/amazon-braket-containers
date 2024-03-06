@@ -15,8 +15,8 @@ matplotlib==3.8.2
 numpy==1.26.3
 openfermion==1.5.1
 pandas==2.2.0
-PennyLane==0.34.0
-PennyLane-Lightning==0.34.0
+PennyLane==0.35.0
+PennyLane-Lightning==0.35.0
 pydantic==1.10.14
 requests==2.31.0
 sagemaker-training==4.7.4
