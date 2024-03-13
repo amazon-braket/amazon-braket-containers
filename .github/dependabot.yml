@@ -47,7 +47,7 @@ updates:
 
   - package-ecosystem: "pip"
     # Files stored in repository for the tensorflow image
-    directory: "/tensorflow/jobs/docker/2.13/py3/"
+    directory: "/tensorflow/jobs/docker/2.14/py3/"
     schedule:
       interval: "weekly"
     commit-message:
@@ -64,7 +64,7 @@ updates:
 
   - package-ecosystem: "pip"
     # Files stored in repository for the pytorch image
-    directory: "/pytorch/jobs/docker/2.0/py3/"
+    directory: "/pytorch/jobs/docker/2.2/py3/"
     schedule:
       interval: "weekly"
     commit-message:
