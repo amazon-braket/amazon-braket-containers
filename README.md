@@ -97,7 +97,7 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 
 - **Source Code:** https://github.com/aws/amazon-braket-containers
 - **Issue Tracker:** https://github.com/aws/amazon-braket-containers/issues
-- **General Questions:** https://quantumcomputing.stackexchange.com/questions/ask (add the tag amazon-braket)
+- **General Questions:** https://quantumcomputing.stackexchange.com/questions/ask?Tags=amazon-braket
 
 If you are having issues, please let us know by posting the issue on our Github issue tracker, or
 by asking a question in the forum.
