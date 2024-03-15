@@ -109,9 +109,6 @@ COPY requirements.txt /
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
 
-        
-RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
-
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \

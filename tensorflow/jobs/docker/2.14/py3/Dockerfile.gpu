@@ -1,6 +1,6 @@
 # Start with AWS Deep Learning Container. See
 # https://github.com/aws/deep-learning-containers/blob/master/available_images.md
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.13.0-gpu-py310-cu118-ubuntu20.04-ec2
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.14.1-gpu-py310-cu118-ubuntu20.04-ec2
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
@@ -17,8 +17,6 @@ COPY requirements.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
-
-RUN ${PIP} install --no-cache --upgrade sagemaker-training==4.4.10
 
 # install cuQuantum
 RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz
