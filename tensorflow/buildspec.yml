@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.13.0
-short_version: &SHORT_VERSION 2.13
+version: &VERSION 2.14.1
+short_version: &SHORT_VERSION 2.14
 
 repository_info:
   jobs_repository: &JOBS_REPOSITORY
@@ -20,7 +20,7 @@ context:
       source: ../../src/braket_container.py
       target: braket_container.py
     requirements:
-      source: ../../tensorflow/jobs/docker/2.13/py3/requirements.txt
+      source: ../../tensorflow/jobs/docker/2.14/py3/requirements.txt
       target: requirements.txt
 
 images:
