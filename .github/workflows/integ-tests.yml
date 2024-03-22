@@ -30,9 +30,9 @@ jobs:
     - name: configure aws credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }:role/GitHubIntegTestRole
+        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestRole
         role-session-name: github_role_session
-        aws-region: ${{ env.AWS_REGION }
+        aws-region: ${{ env.AWS_REGION }}
     - name: Install dependencies
       run: |
         pip install --upgrade pip
