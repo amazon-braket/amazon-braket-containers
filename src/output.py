@@ -122,7 +122,7 @@ class OutputFormatter:
                         )
                         done[image] = True
                     else:
-                        output[i] += "." * (num_iterations % 10)
+                        output[i] += "." * (num_iterations % 100)
                         done[image] = False
                     i += 1
 
