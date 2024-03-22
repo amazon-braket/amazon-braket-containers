@@ -42,6 +42,10 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -r test/requirements.txt
-    - name: Run unit tests
+    - name: ECR Login
       run: |
-        aws s3 ls s3://${{ env.BUCKET_NAME }}/
+        aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
+    - name: Run integ tests
+      run: |
+        python src/main.py --framework ${{ matrix.container-type }}
