@@ -38,10 +38,10 @@ jobs:
         role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestRole
         role-session-name: github_role_session
         aws-region: ${{ env.AWS_REGION }}
-    - name: Install dependencies
+    - name: Install Build dependencies
       run: |
         pip install --upgrade pip
-        pip install -r test/requirements.txt
+        pip install -r src/requirements.txt
     - name: ECR Login
       run: |
         aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
@@ -49,3 +49,6 @@ jobs:
     - name: Build the container
       run: |
         python src/main.py --framework ${{ matrix.container-type }}
+    - name: Install Test dependencies
+      run: |
+        pip install -r test/requirements.txt
