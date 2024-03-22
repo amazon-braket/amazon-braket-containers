@@ -7,6 +7,7 @@ on:
     branches: [ main ]
 
 env:
+  AWS_REGION : "us-west-2"
   REGION : "us-west-2"
   REPOSITORY_NAME : ${{ secrets.repository_name }}
   ACCOUNT_ID : ${{ secrets.account_id }}
