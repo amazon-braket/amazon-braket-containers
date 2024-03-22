@@ -1,0 +1,42 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGION : "us-west-2"
+  REPOSITORY_NAME : ${{ secrets.repository_name }}
+  ACCOUNT_ID : ${{ secrets.account_id }}
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+        python-version: ["3.10"]
+        container-type: ["base"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }:role/GitHubIntegTestRole
+        role-session-name: github_role_session
+        aws-region: ${{ env.AWS_REGION }
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r test/requirements.txt
+    - name: Run unit tests
+      run: |
+        aws s3 ls s3://${{ env.BUCKET_NAME }}/
