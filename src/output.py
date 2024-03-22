@@ -122,13 +122,13 @@ class OutputFormatter:
                         )
                         done[image] = True
                     else:
-                        output[i] += "." * (num_iterations % 100)
+                        output[i] += "." * (num_iterations % 50)
                         done[image] = False
                     i += 1
 
                 if all(done.values()):
                     break
-                time.sleep(1)
+                time.sleep(60)
 
         self.print_lines(output)
 
