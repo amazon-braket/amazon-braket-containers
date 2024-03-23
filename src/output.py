@@ -128,7 +128,7 @@ class OutputFormatter:
 
                 if all(done.values()):
                     break
-                time.sleep(60)
+                time.sleep(30)
 
         self.print_lines(output)
 
