@@ -106,6 +106,7 @@ class OutputFormatter:
 
         isatty = sys.stdout.isatty()
 
+        sleep_time = 2
         with reprint.output(
             output_type="list", initial_len=len(futures.items()), interval=0
         ) as output:
@@ -128,7 +129,9 @@ class OutputFormatter:
 
                 if all(done.values()):
                     break
-                time.sleep(30)
+                time.sleep(sleep_time)
+                if sleep_time < 30:
+                    sleep_time += 2
 
         self.print_lines(output)
 

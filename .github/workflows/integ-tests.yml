@@ -11,6 +11,7 @@ env:
   REGION : "us-west-2"
   REPOSITORY_NAME : ${{ secrets.repository_name }}
   ACCOUNT_ID : ${{ secrets.account_id }}
+  BUILD_RESULTS_PATH : "build_results.txt"
 
 permissions:
   id-token: write   # This is required for requesting the JWT
@@ -47,8 +48,6 @@ jobs:
         aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
     - name: Build the container
-      env:
-        BUILD_RESULTS_PATH : ${{ matrix.container-type }}_results.txt
       run: |
         python src/main.py --framework ${{ matrix.container-type }}
     - name: Install Test dependencies
