@@ -55,4 +55,4 @@ jobs:
         pip install -r test/requirements.txt
     - name: Run Integration Tests
       run: |
-        pytest test/braket_tests/$FRAMEWORK -vv --role arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestRole --from-build-results ${{ env.BUILD_RESULTS_PATH }}
+        pytest test/braket_tests/$FRAMEWORK -vv --role GitHubIntegTestRole --from-build-results ${{ env.BUILD_RESULTS_PATH }}
