@@ -25,7 +25,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.10"]
-        container-type: ["base", "pycharm", "tensorflow"]
+        container-type: ["base", "pytorch", "tensorflow"]
 
     steps:
     - uses: actions/checkout@v4
