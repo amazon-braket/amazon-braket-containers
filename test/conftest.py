@@ -25,6 +25,7 @@ def pytest_addoption(parser):
     parser.addoption('--s3-location', default=os.getenv("S3_LOCATION"))
     parser.addoption('--role', default=os.getenv("ROLE_NAME"))
     parser.addoption('--tag', default=os.getenv("IMAGE_TAG"))
+    parser.addoption('--use-local-jobs', default=os.getenv("USE_LOCAL_JOBS"))
 
 
 @pytest.fixture(scope='session')
@@ -64,6 +65,11 @@ def image_list(request, account, region):
             build_results = json.load(build_file)
         return [image["ecr_url"] for image in build_results]
     raise Exception("No images specified for testing")
+
+
+@pytest.fixture(scope='session')
+def use_local_jobs(request):
+    return request.config.getoption('--use-local-jobs')
 
 
 @pytest.fixture

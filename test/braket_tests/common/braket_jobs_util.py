@@ -23,7 +23,7 @@ from braket.devices import Devices
 from ...resources.qaoa_entry_point import entry_point
 
 
-def job_test(account, role, s3_bucket, image_path, job_type, interface):
+def job_test(account, role, s3_bucket, image_path, use_local_jobs, job_type, interface):
     job_output = io.StringIO()
     with redirect_stdout(job_output):
         try:
@@ -37,7 +37,7 @@ def job_test(account, role, s3_bucket, image_path, job_type, interface):
                 "pl_interface": interface,
                 "start_time": time.time(),
             }
-            create_job(account, role, s3_bucket, image_path, job_type, job_args)
+            create_job(account, role, s3_bucket, image_path, use_local_jobs, job_type, job_args)
         except Exception as e:
             print(e)
     output = job_output.getvalue()
@@ -45,7 +45,7 @@ def job_test(account, role, s3_bucket, image_path, job_type, interface):
     assert output.find("Braket Container Run Success") > 0, "Container did not run successfully"
 
 
-def create_job(account, role, s3_bucket, image_path, job_type, job_args):
+def create_job(account, role, s3_bucket, image_path, use_local_jobs, job_type, job_args):
     aws_session = AwsSession(default_bucket=s3_bucket)
     job_name = f"ContainerTest-{job_type}-{int(time.time())}"
 
@@ -56,6 +56,7 @@ def create_job(account, role, s3_bucket, image_path, job_type, job_args):
         role_arn=f"arn:aws:iam::{account}:role/{role}",
         image_uri=image_path,
         wait_until_complete=True,
+        local=use_local_jobs,
         include_modules="test.resources",
     )
     def decorator_job(*args, **kwargs):
