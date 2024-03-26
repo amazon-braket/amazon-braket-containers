@@ -16,8 +16,8 @@ import time
 from ..common.braket_jobs_util import job_test
 
 
-def test_qaoa_circuit(account, role, s3_bucket, image_list, use_local_jobs):
+def test_qaoa_circuit(account, role, s3_bucket, image_list, use_local_jobs, use_local_sim):
     assert len(image_list) > 0, "Unable to find images for testing"
 
     for image_path in image_list:
-        job_test(account, role, s3_bucket, image_path, use_local_jobs, "base-qaoa", "autograd")
+        job_test(account, role, s3_bucket, image_path, use_local_jobs, use_local_sim, "base-qaoa", "autograd")

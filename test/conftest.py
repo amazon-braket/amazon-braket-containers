@@ -26,6 +26,7 @@ def pytest_addoption(parser):
     parser.addoption('--role', default=os.getenv("ROLE_NAME"))
     parser.addoption('--tag', default=os.getenv("IMAGE_TAG"))
     parser.addoption('--use-local-jobs', default=os.getenv("USE_LOCAL_JOBS"))
+    parser.addoption('--use-local-sim', default=os.getenv("USE_LOCAL_SIM"))
 
 
 @pytest.fixture(scope='session')
@@ -70,6 +71,11 @@ def image_list(request, account, region):
 @pytest.fixture(scope='session')
 def use_local_jobs(request):
     return request.config.getoption('--use-local-jobs')
+
+
+@pytest.fixture(scope='session')
+def use_local_sim(request):
+    return request.config.getoption('--use-local-sim')
 
 
 @pytest.fixture

@@ -56,4 +56,4 @@ jobs:
         pip install -r test/requirements.txt
     - name: Run Integration Tests
       run: |
-        pytest test/braket_tests/${{ matrix.container-type }} -vv --role GitHubIntegTestBuildRole --from-build-results ${{ env.BUILD_RESULTS_PATH }} --use-local-jobs True
+        pytest test/braket_tests/${{ matrix.container-type }} -vv --role GitHubIntegTestBuildRole --from-build-results ${{ env.BUILD_RESULTS_PATH }} --use-local-jobs True --use-local-sim True
