@@ -47,6 +47,13 @@ def record_test_metrics(metric, start_time, interface):
 
 
 def init_pl_device(device_arn, num_nodes, shots, max_parallel):
+    if device_arn == "local:none/none":
+        return qml.device(
+            "braket.local.qubit",
+            wires=num_nodes,
+            shots=shots
+        )
+
     return qml.device(
         "braket.aws.qubit",
         device_arn=device_arn,
