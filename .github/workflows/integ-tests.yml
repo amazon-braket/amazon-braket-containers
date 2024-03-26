@@ -9,6 +9,7 @@ on:
 env:
   AWS_REGION : "us-west-2"
   REGION : "us-west-2"
+  AMZN_BRAKET_OUT_S3_BUCKET : ${{ secrets.bucket_name }}
   REPOSITORY_NAME : ${{ secrets.repository_name }}
   ACCOUNT_ID : ${{ secrets.account_id }}
   BUILD_RESULTS_PATH : "build_results.txt"
