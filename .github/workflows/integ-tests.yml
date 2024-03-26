@@ -36,7 +36,7 @@ jobs:
     - name: configure aws credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestRole
+        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestBuildRole
         role-session-name: github_role_session
         aws-region: ${{ env.AWS_REGION }}
     - name: Install Build dependencies
@@ -55,4 +55,4 @@ jobs:
         pip install -r test/requirements.txt
     - name: Run Integration Tests
       run: |
-        pytest test/braket_tests/${{ matrix.container-type }} -vv --role GitHubIntegTestRole --from-build-results ${{ env.BUILD_RESULTS_PATH }} --use-local-jobs True
+        pytest test/braket_tests/${{ matrix.container-type }} -vv --role GitHubIntegTestBuildRole --from-build-results ${{ env.BUILD_RESULTS_PATH }} --use-local-jobs True
