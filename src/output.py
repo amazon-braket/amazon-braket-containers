@@ -106,6 +106,7 @@ class OutputFormatter:
 
         isatty = sys.stdout.isatty()
 
+        sleep_time = 2
         with reprint.output(
             output_type="list", initial_len=len(futures.items()), interval=0
         ) as output:
@@ -122,13 +123,15 @@ class OutputFormatter:
                         )
                         done[image] = True
                     else:
-                        output[i] += "." * (num_iterations % 10)
+                        output[i] += "." * (num_iterations % 50)
                         done[image] = False
                     i += 1
 
                 if all(done.values()):
                     break
-                time.sleep(1)
+                time.sleep(sleep_time)
+                if sleep_time < 30:
+                    sleep_time += 2
 
         self.print_lines(output)
 
