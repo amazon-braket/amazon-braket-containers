@@ -133,7 +133,7 @@ class DockerImage:
             else:
                 response.append(f"Trying to find cache tag")
                 image_list = self.client.images(name=self.repository, filters={"reference":"*/*/*"+self.ecr_url[:-19]})
-                lastest_image = None
+                latest_image = None
                 latest_created_time = 0
                 for image in image_list:
                     if image['Created'] > latest_created_time and image['RepoTags']:
