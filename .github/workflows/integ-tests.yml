@@ -13,7 +13,6 @@ env:
   REPOSITORY_NAME : ${{ secrets.repository_name }}
   ACCOUNT_ID : ${{ secrets.account_id }}
   BUILD_RESULTS_PATH : "build_results.txt"
-  PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag
 
 permissions:
   id-token: write   # This is required for requesting the JWT
@@ -27,6 +26,8 @@ jobs:
         python-version: ["3.10"]
         container-type: ["base", "pytorch", "tensorflow"]
     runs-on: ${{ matrix.os }}
+    env:
+      PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
