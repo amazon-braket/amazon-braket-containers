@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 env:
-  AWS_REGION : "us-west-2"
-  REGION : "us-west-2"
+  AWS_REGION : "us-east-1"
+  REGION : "us-east-1"
   AMZN_BRAKET_OUT_S3_BUCKET : ${{ secrets.bucket_name }}
   REPOSITORY_NAME : ${{ secrets.repository_name }}
   ACCOUNT_ID : ${{ secrets.account_id }}
