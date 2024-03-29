@@ -24,7 +24,7 @@ from braket.jobs.metrics import log_metric
 from . import qaoa_utils
 
 
-def record_test_metrics(metric, start_time, interface):
+def record_test_metrics(metric, start_time, device_arn, interface):
     cw_client = boto3.client("cloudwatch")
     cw_client.put_metric_data(
         MetricData=[{
@@ -37,6 +37,10 @@ def record_test_metrics(metric, start_time, interface):
                 {
                     'Name': 'INTERFACE',
                     'Value': interface
+                },
+                {
+                    'Name': 'DEVICE',
+                    'Value': device_arn
                 }
             ],
             'Unit': 'Seconds',
@@ -47,6 +51,13 @@ def record_test_metrics(metric, start_time, interface):
 
 
 def init_pl_device(device_arn, num_nodes, shots, max_parallel):
+    if device_arn == "local:none/none":
+        return qml.device(
+            "braket.local.qubit",
+            wires=num_nodes,
+            shots=shots
+        )
+
     return qml.device(
         "braket.aws.qubit",
         device_arn=device_arn,
@@ -68,7 +79,8 @@ def entry_point(
     pl_interface: str,
     start_time: float,
 ):
-    record_test_metrics('Startup', start_time, pl_interface)
+    device_arn = get_job_device_arn()
+    record_test_metrics('Startup', start_time, device_arn, pl_interface)
 
     interface = qaoa_utils.QAOAInterface.get_interface(pl_interface)
 
@@ -87,7 +99,6 @@ def entry_point(
             qml.Hadamard(wires=i)
         qml.layer(qaoa_layer, p, params[0], params[1])
 
-    device_arn = get_job_device_arn()
     dev = init_pl_device(device_arn, num_nodes, shots, max_parallel)
 
     np.random.seed(seed)
@@ -148,5 +159,5 @@ def entry_point(
 
     save_job_result({"params": np_params.tolist(), "cost": final_cost})
 
-    record_test_metrics('Total', start_time, pl_interface)
+    record_test_metrics('Total', start_time, device_arn, pl_interface)
     print("Braket Container Run Success")
