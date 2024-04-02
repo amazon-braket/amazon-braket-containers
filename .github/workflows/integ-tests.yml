@@ -9,9 +9,9 @@ on:
 env:
   AWS_REGION : "us-east-1"
   REGION : "us-east-1"
-  AMZN_BRAKET_OUT_S3_BUCKET : ${{ secrets.bucket_name }}
-  REPOSITORY_NAME : ${{ secrets.repository_name }}
-  ACCOUNT_ID : ${{ secrets.account_id }}
+  AMZN_BRAKET_OUT_S3_BUCKET : ${{ secrets.BUCKET_NAME }}
+  REPOSITORY_NAME : ${{ secrets.REPOSITORY_NAME }}
+  ACCOUNT_ID : ${{ secrets.ACCOUNT_ID }}
   BUILD_RESULTS_PATH : "build_results.txt"
 
 permissions:
