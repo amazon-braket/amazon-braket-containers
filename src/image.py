@@ -126,10 +126,13 @@ class DockerImage:
 
             cache_from = None
             if self.cache_tag:
-                response.append("Pulling cached image")
-                self.client.pull(repository=self.repository, tag=self.cache_tag)
-                cache_from = [f"{self.repository}:{self.cache_tag}"]
-                response.append(f"Setting cache to: {cache_from}")
+                try:
+                    response.append("Pulling cached image")
+                    self.client.pull(repository=self.repository, tag=self.cache_tag)
+                    cache_from = [f"{self.repository}:{self.cache_tag}"]
+                    response.append(f"Setting cache to: {cache_from}")
+                except Exception as e:
+                    response.append(f"Unable to set cache: {e}")
 
             for line in self.client.build(
                 fileobj=context_file,
