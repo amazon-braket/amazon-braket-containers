@@ -96,8 +96,7 @@ COPY .dockerignore .dockerignore
 
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
-    ${PIP} --no-cache-dir install --upgrade \
+RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     requests \
     setuptools
