@@ -9,7 +9,8 @@ LABEL maintainer="Amazon Braket" \
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHON=python3.10
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -72,6 +73,7 @@ COPY --from=builder /usr/local /usr/local
 # Set environment variables
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
+    PYTHON=python3.10
     PATH=/usr/local/bin:$PATH
 
 # Install runtime dependencies
