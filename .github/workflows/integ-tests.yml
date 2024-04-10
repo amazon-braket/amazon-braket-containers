@@ -1,0 +1,62 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION : "us-east-1"
+  REGION : "us-east-1"
+  AMZN_BRAKET_OUT_S3_BUCKET : ${{ secrets.BUCKET_NAME }}
+  REPOSITORY_NAME : ${{ secrets.REPOSITORY_NAME }}
+  ACCOUNT_ID : ${{ secrets.ACCOUNT_ID }}
+  BUILD_RESULTS_PATH : "build_results.txt"
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+        container-type: ["base", "pytorch", "tensorflow"]
+    runs-on: ${{ matrix.os }}
+    env:
+      PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: configure aws credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+      with:
+        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestBuildRole
+        role-session-name: github_role_session
+        aws-region: ${{ env.AWS_REGION }}
+    - name: Install Build dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r src/requirements.txt
+    - name: ECR Login
+      run: |
+        aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
+    - name: Build the container
+      run: |
+        python src/main.py --framework ${{ matrix.container-type }}
+    - name: Install Test dependencies
+      run: |
+        pip install -r test/requirements.txt
+    - name: Run Integration Tests
+      run: |
+        pytest test/braket_tests/${{ matrix.container-type }} -vv --role GitHubIntegTestBuildRole --from-build-results ${{ env.BUILD_RESULTS_PATH }} --use-local-jobs True --use-local-sim True
+    - name: Update prebuild tag
+      run: |
+        python src/tag_image.py --build ${{ env.BUILD_RESULTS_PATH }} --tag ${{ env.PREBUILD_TAG }}
