@@ -77,7 +77,11 @@ ENV LANG=C.UTF-8 \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
+    curl \
+    git \
+    unzip \
+    wget \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && apt-get clean
 
 # Prepare environment for OpenMPI and Python application
@@ -93,10 +97,6 @@ COPY --from=builder /opt/venv /opt/venv
 
 # Set default command or entry point
 ENV SAGEMAKER_PROGRAM braket_container.py
-
-# Clean up
-RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
