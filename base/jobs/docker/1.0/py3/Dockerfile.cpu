@@ -73,7 +73,7 @@ COPY --from=builder /usr/local /usr/local
 # Set environment variables
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
-    PYTHON=python3.10
+    PYTHON=python3.10 \
     PATH=/usr/local/bin:$PATH
 
 # Install runtime dependencies
