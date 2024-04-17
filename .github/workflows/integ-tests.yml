@@ -22,7 +22,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest-large]
         python-version: ["3.10"]
         container-type: ["base", "pytorch", "tensorflow"]
     runs-on: ${{ matrix.os }}
