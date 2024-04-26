@@ -53,7 +53,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install Python packages in virtual environment
 # Copy only the requirements file first to leverage Docker cache
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
