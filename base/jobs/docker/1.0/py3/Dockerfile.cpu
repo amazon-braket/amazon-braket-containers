@@ -45,7 +45,7 @@ RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
 
 # Prepare virtual environment to isolate builds
 RUN apt-get update && apt-get install -y --no-install-recommends python3-venv \
-    && python3 -m venv /opt/venv
+    && ${PYTHON} -m venv /opt/venv
 
 # Activate virtual environment for subsequent commands
 ENV PATH="/opt/venv/bin:$PATH"
