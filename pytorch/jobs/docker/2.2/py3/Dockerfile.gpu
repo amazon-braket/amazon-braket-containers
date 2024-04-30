@@ -77,8 +77,8 @@ RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
 
 # install cuQuantum
-RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz
-RUN mv /cuquantum-linux-x86_64-23.03.0.20-archive /opt/cuquantum
+RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-24.03.0.4_cuda12-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-24.03.0.4_cuda12-archive.tar.xz
+RUN mv /cuquantum-linux-x86_64-24.03.0.4_cuda12-archive /opt/cuquantum
  
 ENV LD_LIBRARY_PATH="/opt/cuquantum/lib:${LD_LIBRARY_PATH}"
 
