@@ -2,7 +2,6 @@
 
 version: 2
 updates:
-
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -13,7 +12,11 @@ updates:
 
   - package-ecosystem: "pip"
     # Files stored in repository root
-    directory: "/"
+    directories: 
+      - "/"
+      - "/pytorch/jobs/docker/2.2/py3/"
+      - "/base/jobs/docker/1.0/py3"
+      - "/tensorflow/jobs/docker/2.14/py3/"
     schedule:
       interval: "weekly"
     commit-message:
@@ -27,55 +30,3 @@ updates:
           patterns:
             - "*"       # A wildcard that matches all dependencies in the package
                         # ecosystem. Note: using "*" may open a large pull request
-
-  - package-ecosystem: "pip"
-    # Files stored in repository for the base image
-    directory: "/base/jobs/docker/1.0/py3"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: infra
-    groups:
-       # Specify a name for the group, which will be used in pull request titles
-       # and branch names
-       dev-dependencies:
-          # Define patterns to include dependencies in the group (based on
-          # dependency name)
-          patterns:
-            - "*"       # A wildcard that matches all dependencies in the package
-                        # ecosystem. Note: using "*" may open a large pull request
-
-  - package-ecosystem: "pip"
-    # Files stored in repository for the tensorflow image
-    directory: "/tensorflow/jobs/docker/2.14/py3/"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: infra
-    groups:
-       # Specify a name for the group, which will be used in pull request titles
-       # and branch names
-       dev-dependencies:
-          # Define patterns to include dependencies in the group (based on
-          # dependency name)
-          patterns:
-            - "*"       # A wildcard that matches all dependencies in the package
-                        # ecosystem. Note: using "*" may open a large pull request
-
-  - package-ecosystem: "pip"
-    # Files stored in repository for the pytorch image
-    directory: "/pytorch/jobs/docker/2.2/py3/"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: infra
-    groups:
-       # Specify a name for the group, which will be used in pull request titles
-       # and branch names
-       dev-dependencies:
-          # Define patterns to include dependencies in the group (based on
-          # dependency name)
-          patterns:
-            - "*"       # A wildcard that matches all dependencies in the package
-                        # ecosystem. Note: using "*" may open a large pull request
-
