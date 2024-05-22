@@ -9,3 +9,4 @@ boto3
 black
 junit-xml
 urllib3
+requests<2.32
