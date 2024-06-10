@@ -5,6 +5,6 @@ certifi>=2023.7.22
 invoke==2.2.0
 mock
 pennylane>=0.35.0
-pytest==8.2.0
+pytest==8.2.2
 pytest-xdist
 sagemaker
