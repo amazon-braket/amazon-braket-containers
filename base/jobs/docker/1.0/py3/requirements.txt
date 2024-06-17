@@ -1,5 +1,5 @@
 amazon-braket-default-simulator==1.23.1
-amazon-braket-pennylane-plugin==1.26.0
+amazon-braket-pennylane-plugin==1.27.5
 amazon-braket-schemas==1.22.0
 amazon-braket-sdk==1.80.0
 awscli==1.32.96
