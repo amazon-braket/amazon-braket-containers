@@ -16,7 +16,7 @@ numpy==2.1.1
 openfermion==1.6.1
 pandas==2.2.2
 PennyLane==0.35.1
-PennyLane-Lightning==0.38.0
+PennyLane-Lightning==0.35.1
 pydantic==2.9.2
 requests==2.32.3
 sagemaker-training==4.8.1
