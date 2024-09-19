@@ -1,10 +1,10 @@
 amazon-braket-schemas
 amazon-braket-sdk
-boto3==1.34.96
+boto3==1.35.22
 certifi>=2023.7.22
 invoke==2.2.0
 mock
 pennylane>=0.35.0
-pytest==8.2.0
+pytest==8.3.3
 pytest-xdist
 sagemaker
