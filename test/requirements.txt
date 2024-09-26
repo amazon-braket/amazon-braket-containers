@@ -3,7 +3,7 @@ amazon-braket-sdk
 certifi>=2023.7.22
 invoke==2.2.0
 mock
-pennylane>=0.35.0
+pennylane==0.35.1
 pytest==8.3.3
 pytest-xdist
 pyyaml>=6.0.0
