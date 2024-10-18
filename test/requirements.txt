@@ -1,11 +1,10 @@
 amazon-braket-schemas
 amazon-braket-sdk
-boto3==1.35.22
+boto3==1.35.43
 certifi>=2023.7.22
-cython<3 # https://github.com/yaml/pyyaml/issues/736
 invoke
 mock
 pennylane>=0.35.0
 pytest
 pytest-xdist
-sagemaker
+sagemaker>=2.232.2
