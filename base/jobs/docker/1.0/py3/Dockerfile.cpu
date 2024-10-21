@@ -57,8 +57,8 @@ RUN apt-get update \
  && echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
  && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
 
-ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
-  PATH /usr/local/openmpi/bin/:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH
+ENV PATH /usr/local/openmpi/bin/:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
