@@ -90,7 +90,7 @@ class TensorFlowInterface(QAOAInterface):
             _cached_cost_before = cost_function(params)
             return _cached_cost_before
 
-        optimizer.apply(tf_cost, params)
+        optimizer.apply([tf_cost], params)
         cost_before = _cached_cost_before
 
         # Alternative:
