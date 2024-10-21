@@ -53,7 +53,7 @@ RUN apt-get update \
  && mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
  && echo '#!/bin/bash' > /usr/local/bin/mpirun \
  && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
- && chmod a+x /usr/local/bin/mpirun
+ && chmod a+x /usr/local/bin/mpirun \
  && echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
  && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
 
