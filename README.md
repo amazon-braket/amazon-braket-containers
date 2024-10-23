@@ -1,6 +1,6 @@
 ### Getting started
 
-[![Python package](https://github.com/aws/amazon-braket-containers/actions/workflows/python-package.yml/badge.svg)](https://github.com/aws/amazon-braket-containers/actions/workflows/python-package.yml)
+[![Python package](https://github.com/amazon-braket/amazon-braket-containers/actions/workflows/python-package.yml/badge.svg)](https://github.com/amazon-braket/amazon-braket-containers/actions/workflows/python-package.yml)
 
 This documentation uses the **base** container for provided examples.
 
@@ -96,8 +96,8 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 
 ## Support
 
-- **Source Code:** https://github.com/aws/amazon-braket-containers
-- **Issue Tracker:** https://github.com/aws/amazon-braket-containers/issues
+- **Source Code:** https://github.com/amazon-braket/amazon-braket-containers
+- **Issue Tracker:** https://github.com/amazon-braket/amazon-braket-containers/issues
 - **General Questions:** https://quantumcomputing.stackexchange.com/questions/ask?Tags=amazon-braket
 
 If you are having issues, please let us know by posting the issue on our Github issue tracker, or
