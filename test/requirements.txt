@@ -4,7 +4,7 @@ boto3==1.35.72
 certifi>=2023.7.22
 invoke
 mock
-pennylane>=0.35.0
+pennylane>=0.38.0
 pytest
 pytest-xdist
 sagemaker>=2.232.2

@@ -16,8 +16,8 @@ matplotlib==3.9.3
 numpy==1.26.4
 openfermion==1.6.1
 pandas==2.2.3
-PennyLane==0.35.1
-PennyLane-Lightning[gpu]==0.35.1
+PennyLane==0.38.0
+PennyLane-Lightning[gpu]==0.38.0
 pydantic==2.10.2
 requests==2.32.3
 sagemaker-training==4.8.1
