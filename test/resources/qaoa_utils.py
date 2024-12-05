@@ -77,7 +77,7 @@ class TensorFlowInterface(QAOAInterface):
 
     @classmethod
     def get_sgd_optimizer(cls, stepsize, params):
-        return tf.keras.optimizers.legacy.SGD(learning_rate=stepsize)
+        return tf.keras.optimizers.SGD(learning_rate=stepsize)
 
     @classmethod
     def convert_params_to_numpy(cls, params):
@@ -90,7 +90,7 @@ class TensorFlowInterface(QAOAInterface):
             _cached_cost_before = cost_function(params)
             return _cached_cost_before
 
-        optimizer.minimize(tf_cost, params)
+        optimizer.apply(tf_cost, [params])
         cost_before = _cached_cost_before
 
         # Alternative:

@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.14.1
-short_version: &SHORT_VERSION 2.14
+version: &VERSION 2.16.2
+short_version: &SHORT_VERSION 2.16
 
 repository_info:
   jobs_repository: &JOBS_REPOSITORY
@@ -20,7 +20,7 @@ context:
       source: ../../src/braket_container.py
       target: braket_container.py
     requirements:
-      source: ../../tensorflow/jobs/docker/2.14/py3/requirements.txt
+      source: ../../tensorflow/jobs/docker/2.16/py3/requirements.txt
       target: requirements.txt
 
 images:
@@ -32,7 +32,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
-    cuda_version: &CUDA_VERSION cu118
+    cuda_version: &CUDA_VERSION cu123
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
