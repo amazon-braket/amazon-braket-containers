@@ -37,7 +37,6 @@ RUN apt-get update \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
- && rm -rf /var/lib/apt/lists/* \
 # Install Open MPI
  && mkdir /tmp/openmpi \
  && cd /tmp/openmpi \
@@ -48,14 +47,16 @@ RUN apt-get update \
  && make -j $(nproc) all \
  && make install \
  && ldconfig \
- && rm -rf /tmp/openmpi \
 # Create a wrapper for OpenMPI to allow running as root by default
  && mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
  && echo '#!/bin/bash' > /usr/local/bin/mpirun \
  && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
  && chmod a+x /usr/local/bin/mpirun \
  && echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+ && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf \
+# Clean up
+ && rm -rf /tmp/openmpi \
+ && rm -rf /var/lib/apt/lists/* \
 
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH /usr/local/openmpi/bin/:$PATH
@@ -88,6 +89,9 @@ RUN apt-get update \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install \
+# Clean up
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean \
  && rm -rf ../Python-$PYTHON_VERSION*
 
 # Upgrading pip and creating symbolic link for python3
