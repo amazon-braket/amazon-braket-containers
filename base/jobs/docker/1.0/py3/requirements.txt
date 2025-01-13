@@ -2,9 +2,9 @@ amazon-braket-default-simulator==1.26.2
 amazon-braket-pennylane-plugin==1.31.0
 amazon-braket-schemas==1.22.4
 amazon-braket-sdk==1.88.3
-awscli==1.36.23
-botocore==1.35.82
-boto3==1.35.82
+awscli==1.36.39
+botocore==1.35.98
+boto3==1.35.98
 dask==2024.8.0
 matplotlib==3.10.0
 numpy==1.26.4
@@ -14,5 +14,5 @@ PennyLane-Lightning==0.38.0
 qiskit-braket-provider==0.4.1
 requests==2.32.3
 sagemaker-training==4.8.3
-scikit-learn==1.6.0
-scipy==1.14.1
+scikit-learn==1.6.1
+scipy==1.15.1
