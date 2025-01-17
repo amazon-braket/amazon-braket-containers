@@ -56,7 +56,7 @@ RUN mkdir /tmp/openmpi \
  && tar zxf openmpi-4.0.4.tar.gz \
  && cd openmpi-4.0.4 \
  && ./configure --enable-orterun-prefix-by-default \
- && make -j"$(nproc)" all \
+ && make -j $(nproc) all \
  && make install \
  && ldconfig \
  && rm -rf /tmp/openmpi
@@ -85,7 +85,7 @@ RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
- && ./configure && make -j"$(nproc)" && make install \
+ && ./configure && make -j $(nproc) && make install \
  && rm -rf ../Python-$PYTHON_VERSION*
 
 # Upgrading pip and creating symbolic link for python3
