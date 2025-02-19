@@ -42,9 +42,9 @@ RUN apt-get update \
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
  && cd /tmp/openmpi \
- && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
- && tar zxf openmpi-4.0.4.tar.gz \
- && cd openmpi-4.0.4 \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz \
+ && tar zxf openmpi-5.0.7.tar.gz \
+ && cd openmpi-5.0.7 \
  && ./configure --enable-orterun-prefix-by-default \
  && make -j $(nproc) all \
  && make install \
