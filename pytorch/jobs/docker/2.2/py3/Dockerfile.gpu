@@ -1,4 +1,4 @@
-﻿# This is based loosely on :
+# This is based loosely on :
 # https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
 
 FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-ec2
@@ -38,10 +38,6 @@ RUN apt-get update \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
- && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
     libbz2-dev \
     libc6-dev \
     libffi-dev \
@@ -55,17 +51,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Installing Python3
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
-
-# Upgrading pip and creating symbolic link for python3
-RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
@@ -73,7 +58,7 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 # Copy the dependencies file
 COPY requirements.txt /
 # Installing our custom python libraries
-RUN ${PIP} install --no-cache --upgrade \
+RUN ${PIP} install --no-cache-dir --upgrade \
         -r requirements.txt
 
 # install cuQuantum
