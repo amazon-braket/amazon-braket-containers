@@ -87,10 +87,9 @@ COPY --from=python-builder /usr/local /usr/local
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     openssh-server \
+    build-essential \
     ca-certificates \
     curl \
-    # Needed for Python deps builds
-    gcc \
     git \
     libtemplate-perl \
     libssl3 \
@@ -114,7 +113,7 @@ WORKDIR /
 
 # Install python dependencies from requirements.txt
 COPY requirements.txt /
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt --no-build-isolation
 
 # Run OSS compliance
 RUN HOME_DIR=/root \
