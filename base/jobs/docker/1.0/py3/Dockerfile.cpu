@@ -6,15 +6,15 @@ FROM public.ecr.aws/lts/ubuntu:22.04 AS openmpi-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG MAKEFLAGS="-j$(expr $(nproc) / 2)"
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI v5
+WORKDIR /tmp/openmpi
 RUN mkdir -p /tmp/openmpi && \
     cd /tmp/openmpi && \
     curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz && \
@@ -26,7 +26,7 @@ RUN mkdir -p /tmp/openmpi && \
                 --disable-mpi-fortran \
                 --disable-oshmem \
                 --prefix=/usr/local && \
-    make ${MAKEFLAGS} all && \
+    make -j $(nproc) all && \
     make install && \
     # Create MPI wrapper in same layer
     mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
@@ -34,16 +34,19 @@ RUN mkdir -p /tmp/openmpi && \
     echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun && \
     chmod a+x /usr/local/bin/mpirun && \
     echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
-    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
+    cd / && \
+    rm -rf /tmp/openmpi && \
+    find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true
 
 # Stage 2: Build Python
 FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSION=3.10.11
-ARG MAKEFLAGS="-j$(expr $(nproc) / 2)"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     wget \
@@ -60,6 +63,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Build Python from ENV version
+WORKDIR /tmp
 RUN wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
     tar -xf Python-${PYTHON_VERSION}.tgz && \
     cd Python-${PYTHON_VERSION} && \
@@ -67,10 +71,10 @@ RUN wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_
                 --with-lto \
                 --without-doc-strings \
                 --prefix=/usr/local && \
-    make ${MAKEFLAGS} && \
+    make -j $(nproc) && \
     make install && \
     python3 -m pip --no-cache-dir install --upgrade pip setuptools wheel && \
-    rm -rf /Python-${PYTHON_VERSION}* && \
+    rm -rf Python-${PYTHON_VERSION}* && \
     find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true && \
     find /usr/local -type f -name "*.a" -delete && \
     find /usr/local -type f -name "*.la" -delete && \
