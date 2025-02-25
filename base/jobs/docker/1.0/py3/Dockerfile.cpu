@@ -6,6 +6,8 @@ FROM public.ecr.aws/lts/ubuntu:22.04 AS openmpi-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+ARG MAKEFLAGS="-j$(expr $(nproc) / 2)"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -34,6 +36,7 @@ FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSION=3.10.11
+ARG MAKEFLAGS="-j$(expr $(nproc) / 2)"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -83,6 +86,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/usr/local/openmpi/bin/:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py
 
+ARG MAKEFLAGS="-j$(expr $(nproc) / 2)"
+
 # Copy build artifacts from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
 COPY --from=python-builder /usr/local /usr/local
@@ -109,6 +114,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
            /var/cache/debconf \
            /var/lib/dpkg/info \
            /var/log/* \
+    && rm -rf /usr/local/lib/*.a \
     # SSH setup in same layer to reduce image size
     && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
     && mkdir -p /root/.ssh/ /var/run/sshd \
