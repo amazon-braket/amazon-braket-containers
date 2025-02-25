@@ -113,7 +113,7 @@ WORKDIR /
 
 # Install python dependencies from requirements.txt
 COPY requirements.txt /
-RUN pip3 install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
+RUN pip3 install --no-cache-dir --no-index -r requirements.txt && \
     python -m compileall -q /usr/local/lib/python*
 
 # Run OSS compliance
