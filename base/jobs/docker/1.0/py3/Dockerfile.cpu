@@ -124,8 +124,7 @@ WORKDIR /
 # Install python dependencies from requirements.txt
 COPY requirements.txt /
 RUN pip3 install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
-    rm -rf /wheels && \
-    python -m compileall -q /usr/local/lib/python*
+    rm -rf /wheels
 
 # Run OSS compliance
 RUN HOME_DIR=/root \
@@ -138,4 +137,4 @@ RUN HOME_DIR=/root \
 
 # Setup entry point
 COPY braket_container.py /opt/ml/code/braket_container.py
-RUN python -m compileall -q /opt/ml/code
+RUN python -m py_compile /opt/ml/code/braket_container.py
