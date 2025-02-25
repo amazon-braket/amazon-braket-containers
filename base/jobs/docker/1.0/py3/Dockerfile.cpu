@@ -20,8 +20,13 @@ RUN mkdir -p /tmp/openmpi && \
     curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz && \
     tar zxf openmpi-5.0.7.tar.gz && \
     cd openmpi-5.0.7 && \
-    ./configure --enable-orterun-prefix-by-default && \
-    make -j $(nproc) all && \
+    ./configure --enable-orterun-prefix-by-default \
+                --disable-debug \
+                --enable-shared \
+                --disable-mpi-fortran \
+                --disable-oshmem \
+                --prefix=/usr/local && \
+    make ${MAKEFLAGS} all && \
     make install && \
     # Create MPI wrapper in same layer
     mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
@@ -58,8 +63,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
     tar -xf Python-${PYTHON_VERSION}.tgz && \
     cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-optimizations --with-lto --without-doc-strings && \
-    make -j $(nproc) && \
+    ./configure --enable-optimizations \
+                --with-lto \
+                --without-doc-strings \
+                --prefix=/usr/local && \
+    make ${MAKEFLAGS} && \
     make install && \
     python3 -m pip --no-cache-dir install --upgrade pip setuptools wheel && \
     rm -rf /Python-${PYTHON_VERSION}* && \
@@ -85,8 +93,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
     PATH=/usr/local/openmpi/bin/:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py
-
-ARG MAKEFLAGS="-j$(expr $(nproc) / 2)"
 
 # Copy build artifacts from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
