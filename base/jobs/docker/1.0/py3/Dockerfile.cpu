@@ -59,16 +59,11 @@ RUN wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_
     make -j $(nproc) && \
     make install && \
     python3 -m pip --no-cache-dir install --upgrade pip setuptools wheel && \
-    rm -rf /Python-${PYTHON_VERSION}*
-
-# Stage 3: Build Python wheels separately
-FROM python-builder AS wheel-builder
-
-WORKDIR /wheels
-COPY requirements.txt .
-
-# Build the wheels
-RUN pip3 wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt --no-build-isolation
+    rm -rf /Python-${PYTHON_VERSION}* && \
+    find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true && \
+    find /usr/local -type f -name "*.a" -delete && \
+    find /usr/local -type f -name "*.la" -delete && \
+    rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info
 
 # Final Stage
 FROM public.ecr.aws/lts/ubuntu:22.04
@@ -91,7 +86,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Copy build artifacts from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
 COPY --from=python-builder /usr/local /usr/local
-COPY --from=wheel-builder /wheels /wheels
 
 # Install apt-get dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -109,6 +103,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/* \
+           /usr/share/doc \
+           /usr/share/man \
+           /usr/share/locale \
+           /var/cache/debconf \
+           /var/lib/dpkg/info \
+           /var/log/* \
     # SSH setup in same layer to reduce image size
     && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
     && mkdir -p /root/.ssh/ /var/run/sshd \
@@ -123,8 +123,9 @@ WORKDIR /
 
 # Install python dependencies from requirements.txt
 COPY requirements.txt /
-RUN pip3 install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
-    rm -rf /wheels
+RUN pip3 install --no-cache-dir -r requirements.txt && \
+    rm -rf /root/.cache/pip && \
+    find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
 # Run OSS compliance
 RUN HOME_DIR=/root \
@@ -137,4 +138,3 @@ RUN HOME_DIR=/root \
 
 # Setup entry point
 COPY braket_container.py /opt/ml/code/braket_container.py
-RUN python -m py_compile /opt/ml/code/braket_container.py
