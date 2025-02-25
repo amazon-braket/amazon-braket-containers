@@ -16,6 +16,8 @@ from datetime import datetime
 from docker import APIClient
 from docker import DockerClient
 
+import os
+
 import constants
 
 
@@ -105,7 +107,7 @@ class DockerImage:
             returns the build status
         """
         self.summary["start_time"] = datetime.now()
-
+        os.environ['DOCKER_BUILDKIT'] = '1'
         if not self.to_build:
             self.log = ["Not built"]
             self.build_status = constants.NOT_BUILT
