@@ -6,8 +6,7 @@ FROM public.ecr.aws/lts/ubuntu:22.04 AS openmpi-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     curl \
@@ -45,8 +44,7 @@ FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 ENV DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VERSION=3.10.11
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     wget \
