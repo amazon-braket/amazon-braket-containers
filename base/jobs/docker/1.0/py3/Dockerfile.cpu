@@ -40,6 +40,8 @@ FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHON_VERSION=3.10.11
 
+ARG HOME_DIR=/root
+
 # Install build dependencies and Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -119,10 +121,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
               /var/log/* \
     && rm -rf /usr/local/lib/*.a \
     && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
-    && mkdir -p /root/.ssh/ /var/run/sshd \
-    && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
-    && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
-    && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config \
+    && mkdir -p ${HOME_DIR}/.ssh/ /var/run/sshd \
+    && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
+    && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
+    && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
     && ln -sf $(which python3) /usr/local/bin/python \
     && ln -sf $(which pip3) /usr/bin/pip
 
@@ -131,16 +133,16 @@ WORKDIR /
 # Install Python dependencies
 COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt \
-    && rm -rf /root/.cache/pip \
+    && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
 # Run compliance script
-RUN curl -o /root/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
-    && unzip /root/oss_compliance.zip -d /root/ \
-    && cp /root/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
-    && chmod +x /usr/local/bin/testOSSCompliance /root/oss_compliance/generate_oss_compliance.sh \
-    && /root/oss_compliance/generate_oss_compliance.sh /root python3 \
-    && rm -rf /root/oss_compliance*
+RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+    && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+    && chmod +x /usr/local/bin/testOSSCompliance ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 \
+    && rm -rf ${HOME_DIR}/oss_compliance*
 
 # Entry script
 COPY braket_container.py /opt/ml/code/braket_container.py
