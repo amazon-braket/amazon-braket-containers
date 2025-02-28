@@ -40,7 +40,6 @@ FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHON_VERSION=3.10.11
 
-ARG HOME_DIR=/root
 
 # Install build dependencies and Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -92,6 +91,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
     PATH=/usr/local/openmpi/bin/:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py
+
+ARG HOME_DIR=/root
 
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
