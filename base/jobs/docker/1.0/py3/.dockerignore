@@ -1,0 +1,34 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python virtual environments
+venv/
+env/
+.env
+*.pyc
+__pycache__/
+
+# Development tools
+.idea/
+.vscode/
+*.swp
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Documentation
+docs/
+*.md
+
+# Test files
+tests/
+test_*.py
+*.test.py
+
+# Local development
+*.local
+.env.local
