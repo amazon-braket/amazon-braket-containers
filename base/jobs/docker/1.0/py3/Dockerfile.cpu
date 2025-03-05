@@ -2,7 +2,7 @@
 # https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
 
 # Stage 1: Build OpenMPI
-FROM public.ecr.aws/lts/ubuntu:22.04 AS openmpi-builder
+FROM public.ecr.aws/lts/ubuntu:22.04-minimal  AS openmpi-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV OPENMPI_VERSION=5.0.7
@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true
 
 # Stage 2: Build Python
-FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
+FROM public.ecr.aws/lts/ubuntu:22.04-minimal AS python-builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHON_VERSION=3.10.11
@@ -76,7 +76,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info
 
 # Final Stage
-FROM public.ecr.aws/lts/ubuntu:22.04
+FROM public.ecr.aws/lts/ubuntu:22.04-minimal
 
 LABEL maintainer="Amazon Braket" \
       major_version="1"
