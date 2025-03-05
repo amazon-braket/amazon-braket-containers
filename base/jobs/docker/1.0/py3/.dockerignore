@@ -1,34 +1,80 @@
+# Python files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 # Version control
 .git
 .gitignore
 .gitattributes
 
-# Python virtual environments
-venv/
-env/
-.env
-*.pyc
-__pycache__/
+# Docker
+Dockerfile
+.dockerignore
 
-# Development tools
+# IDE specific files
 .idea/
 .vscode/
 *.swp
+*.swo
+*~
 
-# Build artifacts
-build/
-dist/
-*.egg-info/
+# OS specific files
+.DS_Store
+Thumbs.db
 
 # Documentation
-docs/
 *.md
+docs/
 
-# Test files
-tests/
-test_*.py
-*.test.py
+# Log files
+*.log
 
-# Local development
+# Local development files
 *.local
-.env.local
+*.dev
+*.test
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
