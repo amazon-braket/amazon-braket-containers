@@ -17,7 +17,7 @@ from docker import APIClient
 from docker import DockerClient
 
 import constants
-
+import os
 
 class DockerImage:
     """
