@@ -68,6 +68,7 @@ class DockerImage:
         self.build_status = None
         self.client = APIClient(base_url=constants.DOCKER_URL)
         os.environ['DOCKER_BUILDKIT'] = '1'
+        os.environ['COMPOSE_DOCKER_CLI_BUILD'] = '1'
         self.log = []
 
     def __getattr__(self, name):
