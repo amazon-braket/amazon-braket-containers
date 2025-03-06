@@ -75,6 +75,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && find /usr/local -type f -name "*.la" -delete \
     && rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info
 
+# Stage 3: Using Stage 2 (Python) Build the dependencies
+FROM python-builder AS reqs-builder
+COPY requirements.txt /
+RUN pip3 install --no-cache-dir -r requirements.txt
+
 # Final Stage
 FROM public.ecr.aws/lts/ubuntu:22.04
 
@@ -96,7 +101,7 @@ ARG HOME_DIR=/root
 
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
-COPY --from=python-builder /usr/local /usr/local
+COPY --from=reqs-builder /usr/local /usr/local
 
 # Install build deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -127,15 +132,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
     && ln -sf $(which python3) /usr/local/bin/python \
-    && ln -sf $(which pip3) /usr/bin/pip
+    && ln -sf $(which pip3) /usr/bin/pip \
+    && find /usr/local -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local -type f -name "*.pyc" -delete
 
 WORKDIR /
-
-# Install Python dependencies
-COPY requirements.txt /
-RUN pip3 install --no-cache-dir -r requirements.txt \
-    && rm -rf ${HOME_DIR}/.cache/pip \
-    && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
 # Run compliance script
 RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
