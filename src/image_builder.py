@@ -60,7 +60,6 @@ def image_builder(buildspec):
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
     IMAGES = []
-    os.environ["DOCKER_BUILDKIT"] = "1"
 
     for image_name, image_config in BUILDSPEC["images"].items():
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}

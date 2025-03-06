@@ -19,6 +19,7 @@ DEVICE_TYPES = {"cpu", "gpu"}
 IMAGE_TYPES = {"jobs"}
 PYTHON_VERSIONS = {"py3"}
 ALL = "all"
+DOCKER_BUILDKIT = 1
 
 # Function Status Codes
 SUCCESS = 0
