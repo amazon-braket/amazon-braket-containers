@@ -67,6 +67,7 @@ class DockerImage:
         self.to_build = to_build
         self.build_status = None
         self.client = APIClient(base_url=constants.DOCKER_URL)
+        os.environ['DOCKER_BUILDKIT'] = '1'
         self.log = []
 
     def __getattr__(self, name):
@@ -134,7 +135,6 @@ class DockerImage:
                 except Exception as e:
                     response.append(f"Unable to set cache: {e}")
 
-            os.environ['DOCKER_BUILDKIT'] = '1'
             for line in self.client.build(
                 fileobj=context_file,
                 path=self.dockerfile,
