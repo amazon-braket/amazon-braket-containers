@@ -134,6 +134,7 @@ class DockerImage:
                 except Exception as e:
                     response.append(f"Unable to set cache: {e}")
 
+            os.environ['DOCKER_BUILDKIT'] = '1'
             for line in self.client.build(
                 fileobj=context_file,
                 path=self.dockerfile,
