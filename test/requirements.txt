@@ -1,6 +1,6 @@
 amazon-braket-schemas
 amazon-braket-sdk
-boto3==1.37.10
+boto3==1.37.14
 certifi>=2023.7.22
 invoke
 mock
