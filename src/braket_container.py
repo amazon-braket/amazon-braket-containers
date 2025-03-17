@@ -13,6 +13,7 @@
 import contextlib
 import errno
 import importlib
+import threading
 import inspect
 import os
 import json
@@ -36,6 +37,12 @@ ERROR_LOG_PATH = os.path.join(OPT_ML, "output")
 ERROR_LOG_FILE = os.path.join(ERROR_LOG_PATH, "failure")
 SETUP_SCRIPT_PATH = os.path.join(OPT_BRAKET, "additional_setup")
 
+_local = threading.local()
+_error_log_lock = threading.Lock()
+_path_lock = threading.Lock()
+_chdir_lock = threading.Lock()
+_unpack_lock = threading.Lock()
+
 print("Boto3 Version: ", boto3.__version__)
 
 
@@ -47,12 +54,13 @@ def _log_failure(*args, display=True):
     Args:
         args: variable list of text to write to the file.
     """
-    Path(ERROR_LOG_PATH).mkdir(parents=True, exist_ok=True)
-    with open(ERROR_LOG_FILE, 'a') as error_log:
-        for text in args:
-            error_log.write(text)
-            if display:
-                print(text)
+    with _error_log_lock:
+        Path(ERROR_LOG_PATH).mkdir(parents=True, exist_ok=True)
+        with open(ERROR_LOG_FILE, 'a') as error_log:
+            for text in args:
+                error_log.write(text)
+                if display:
+                    print(text)
 
 
 def log_failure_and_exit(*args):
@@ -91,6 +99,12 @@ def create_symlink():
             log_failure_and_exit(f"Symlink failure.\n Exception: {e}")
 
 
+def get_s3_client():
+    if not hasattr(_local, 's3_client'):
+        _local.s3_client = boto3.client("s3")
+    return _local.s3_client
+
+
 def download_s3_file(s3_uri: str, local_path: str) -> str:
     """
     Downloads a file to a local path.
@@ -101,7 +115,8 @@ def download_s3_file(s3_uri: str, local_path: str) -> str:
     Returns:
         str: the path to the file containing the downloaded path.
     """
-    s3_client = boto3.client("s3")
+    
+    s3_client = get_s3_client()
     parsed_url = urlparse(s3_uri, allow_fragments=False)
     s3_bucket = parsed_url.netloc
     s3_key = parsed_url.path.lstrip("/")
@@ -138,7 +153,8 @@ def unpack_code_and_add_to_path(local_s3_file: str, compression_type: str):
     """
     if compression_type and compression_type.strip().lower() in ["gzip", "zip"]:
         try:
-            shutil.unpack_archive(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
+            with _unpack_lock:
+                shutil.unpack_archive(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
         except Exception as e:
             log_failure_and_exit(
                 f"Got an exception while trying to unpack archive: {local_s3_file} of type: "
@@ -146,7 +162,9 @@ def unpack_code_and_add_to_path(local_s3_file: str, compression_type: str):
             )
     else:
         shutil.copy(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
-    sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
+    with _path_lock:
+        if EXTRACTED_CUSTOMER_CODE_PATH not in sys.path:
+            sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
 
 
 def try_bind_hyperparameters_to_customer_method(customer_method: Callable):
@@ -243,12 +261,13 @@ def extract_customer_code(entry_point: str) -> Callable:
 
 @contextlib.contextmanager
 def in_extracted_code_dir():
-    current_dir = os.getcwd()
-    try:
-        os.chdir(EXTRACTED_CUSTOMER_CODE_PATH)
-        yield
-    finally:
-        os.chdir(current_dir)
+    with _chdir_lock:
+        current_dir = os.getcwd()
+        try:
+            os.chdir(EXTRACTED_CUSTOMER_CODE_PATH)
+            yield
+        finally:
+            os.chdir(current_dir)
 
 
 def wrap_customer_code(customer_method: Callable) -> Callable:
@@ -301,6 +320,8 @@ def join_customer_script(customer_code_process: multiprocessing.Process):
     try:
         customer_code_process.join()
     except Exception as e:
+        customer_code_process.terminate()
+        customer_code_process.join()
         log_failure_and_exit(f"Job did not exit gracefully.\nException: {e}")
     print("Code Run Finished")
     return customer_code_process.exitcode
