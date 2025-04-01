@@ -21,6 +21,10 @@ context:
     requirements:
       source: ../../base/jobs/docker/1.0/py3/requirements.txt
       target: requirements.txt
+    dockerignore:
+      source: ../../base/jobs/docker/1.0/py3/.dockerignore
+      target: .dockerignore
+  
 
 images:
   BuildBaseCPUJobsPy3DockerImage:
