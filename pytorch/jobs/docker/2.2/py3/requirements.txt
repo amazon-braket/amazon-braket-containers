@@ -2,9 +2,9 @@ amazon-braket-default-simulator==1.26.4
 amazon-braket-pennylane-plugin==1.31.2
 amazon-braket-schemas==1.23.3
 amazon-braket-sdk==1.91.0
-awscli==1.38.24
-botocore==1.37.24
-boto3==1.37.24
+awscli==1.38.29
+botocore==1.37.29
+boto3==1.37.29
 dask==2024.8.0
 decorator==5.2.1
 h5py==3.13.0
@@ -18,13 +18,13 @@ openfermion==1.7.0
 pandas==2.2.3
 PennyLane==0.38.0
 PennyLane-Lightning[gpu]==0.38.0
-pydantic==2.11.1
+pydantic==2.11.2
 requests==2.32.3
 sagemaker-training==4.9.0
 scikit-learn==1.6.1
 six==1.17.0
 scipy==1.15.2
-typing_extensions==4.12.2
+typing_extensions==4.13.1
 
 # https://nvd.nist.gov/vuln/detail/CVE-2023-37920
 certifi>=2023.7.22
