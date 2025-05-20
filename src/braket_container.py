@@ -161,7 +161,7 @@ def unpack_code_and_add_to_path(local_s3_file: str, compression_type: str):
                 f"{compression_type}.\nException: {e}"
             )
     else:
-        shutil.copy(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
+        shutil.copytree(local_s3_file, EXTRACTED_CUSTOMER_CODE_PATH)
     with _path_lock:
         if EXTRACTED_CUSTOMER_CODE_PATH not in sys.path:
             sys.path.append(EXTRACTED_CUSTOMER_CODE_PATH)
