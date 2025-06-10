@@ -19,7 +19,7 @@ pandas==2.2.3
 PennyLane==0.38.0
 PennyLane-Lightning[gpu]==0.38.0
 pydantic==2.11.5
-requests==2.32.3
+requests==2.32.4
 sagemaker-training==4.9.0
 scikit-learn==1.6.1
 six==1.17.0
