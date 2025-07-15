@@ -3,9 +3,9 @@ amazon-braket-pennylane-plugin==1.31.3
 amazon-braket-schemas==1.24.2
 amazon-braket-sdk==1.95.0
 autoray==0.6.12
-awscli==1.41.3
-botocore==1.39.3
-boto3==1.39.3
+awscli==1.41.4
+botocore==1.39.4
+boto3==1.39.4
 dask==2024.8.0
 h5py==3.14.0
 ipykernel==6.29.5
