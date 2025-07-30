@@ -24,7 +24,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.10"]
-        container-type: ["base", "pytorch", "tensorflow"]
+        container-type: ["base", "pytorch", "tensorflow", "cudaq"]
     runs-on: ${{ matrix.os }}
     env:
       PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag
