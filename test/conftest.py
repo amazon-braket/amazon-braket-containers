@@ -25,8 +25,8 @@ def pytest_addoption(parser):
     parser.addoption('--s3-location', default=os.getenv("S3_LOCATION"))
     parser.addoption('--role', default=os.getenv("ROLE_NAME"))
     parser.addoption('--tag', default=os.getenv("IMAGE_TAG"))
-    parser.addoption('--use-local-jobs', default=os.getenv("USE_LOCAL_JOBS"))
-    parser.addoption('--use-local-sim', default=os.getenv("USE_LOCAL_SIM"))
+    parser.addoption('--use-local-jobs', default=os.getenv("USE_LOCAL_JOBS", "True"))
+    parser.addoption('--use-local-sim', default=os.getenv("USE_LOCAL_SIM", "True"))
 
 
 @pytest.fixture(scope='session')
@@ -71,8 +71,6 @@ def image_list(request, account, region):
 @pytest.fixture(scope='session')
 def use_local_jobs(request):
     value = request.config.getoption('--use-local-jobs')
-    if value is None:
-        return True  # Default to local if not specified
     if isinstance(value, str):
         return value.lower() in ('true', '1', 'yes')
     return bool(value)
@@ -81,8 +79,6 @@ def use_local_jobs(request):
 @pytest.fixture(scope='session')
 def use_local_sim(request):
     value = request.config.getoption('--use-local-sim')
-    if value is None:
-        return True  # Default to local if not specified
     if isinstance(value, str):
         return value.lower() in ('true', '1', 'yes')
     return bool(value)
