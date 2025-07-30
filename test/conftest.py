@@ -70,12 +70,22 @@ def image_list(request, account, region):
 
 @pytest.fixture(scope='session')
 def use_local_jobs(request):
-    return request.config.getoption('--use-local-jobs')
+    value = request.config.getoption('--use-local-jobs')
+    if value is None:
+        return True  # Default to local if not specified
+    if isinstance(value, str):
+        return value.lower() in ('true', '1', 'yes')
+    return bool(value)
 
 
 @pytest.fixture(scope='session')
 def use_local_sim(request):
-    return request.config.getoption('--use-local-sim')
+    value = request.config.getoption('--use-local-sim')
+    if value is None:
+        return True  # Default to local if not specified
+    if isinstance(value, str):
+        return value.lower() in ('true', '1', 'yes')
+    return bool(value)
 
 
 @pytest.fixture
