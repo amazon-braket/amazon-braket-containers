@@ -84,6 +84,12 @@ def entry_point(
 
     interface = qaoa_utils.QAOAInterface.get_interface(pl_interface)
 
+    # Get PennyLane-compatible interface name
+    if hasattr(interface, 'get_pennylane_interface'):
+        pennylane_interface = interface.get_pennylane_interface()
+    else:
+        pennylane_interface = pl_interface
+
     g = nx.gnm_random_graph(4, 4, seed=seed)
     num_nodes = len(g.nodes)
 
@@ -103,7 +109,7 @@ def entry_point(
 
     np.random.seed(seed)
 
-    @qml.qnode(dev, interface=pl_interface)
+    @qml.qnode(dev, interface=pennylane_interface)
     def cost_function(params):
         circuit(params)
         return qml.expval(cost_h)
@@ -113,40 +119,74 @@ def entry_point(
     optimizer = interface.get_sgd_optimizer(stepsize, params)
     print("Optimization start")
 
-    for iteration in range(num_iterations):
+    if interface.supports_full_optimization():
+        # CUDA-Q path: run full optimization
         t0 = time.time()
-
-        # Evaluates the cost, then does a gradient step to new params
-        params, cost_before = interface.get_cost_and_step(cost_function, params, optimizer)
-        # Convert params to a Numpy array so they're easier to handle for us
-        np_params = interface.convert_params_to_numpy(params)
-
+        final_params, final_cost = interface.run_full_optimization(
+            cost_function, params, optimizer, num_iterations)
         t1 = time.time()
-
-        if iteration == 0:
-            print("Initial cost:", cost_before)
-        else:
-            print(f"Cost at step {iteration}:", cost_before)
-
-        # Log the loss before the update step as a metric
-        log_metric(
-            metric_name="Cost",
-            value=cost_before,
-            iteration_number=iteration,
-        )
-
-        # Save the current params and previous cost to a checkpoint
+        
+        print(f"Initial cost: {float(cost_function(params))}")
+        print(f"Final cost: {final_cost}")
+        
+        # Simulate step-by-step logging for consistency
+        for iteration in range(num_iterations + 1):
+            cost_value = final_cost if iteration == num_iterations else float(cost_function(params))
+            log_metric(
+                metric_name="Cost",
+                value=cost_value,
+                iteration_number=iteration,
+            )
+        
+        np_params = interface.convert_params_to_numpy(final_params)
         save_job_checkpoint(
             checkpoint_data={
-                "iteration": iteration + 1,
+                "iteration": num_iterations,
                 "params": np_params.tolist(),
-                "cost_before": cost_before,
+                "cost_before": final_cost,
             },
             checkpoint_file_suffix="checkpoint-1",
         )
+        
+        print(f"Completed full optimization in {t1 - t0} seconds")
+        params = final_params
+        
+    else:
+        # Traditional path: step-by-step optimization
+        for iteration in range(num_iterations):
+            t0 = time.time()
 
-        print(f"Completed iteration {iteration + 1}")
-        print(f"Time to complete iteration: {t1 - t0} seconds")
+            # Evaluates the cost, then does a gradient step to new params
+            params, cost_before = interface.get_cost_and_step(cost_function, params, optimizer)
+            # Convert params to a Numpy array so they're easier to handle for us
+            np_params = interface.convert_params_to_numpy(params)
+
+            t1 = time.time()
+
+            if iteration == 0:
+                print("Initial cost:", cost_before)
+            else:
+                print(f"Cost at step {iteration}:", cost_before)
+
+            # Log the loss before the update step as a metric
+            log_metric(
+                metric_name="Cost",
+                value=cost_before,
+                iteration_number=iteration,
+            )
+
+            # Save the current params and previous cost to a checkpoint
+            save_job_checkpoint(
+                checkpoint_data={
+                    "iteration": iteration + 1,
+                    "params": np_params.tolist(),
+                    "cost_before": cost_before,
+                },
+                checkpoint_file_suffix="checkpoint-1",
+            )
+
+            print(f"Completed iteration {iteration + 1}")
+            print(f"Time to complete iteration: {t1 - t0} seconds")
 
     final_cost = float(cost_function(params))
     log_metric(
@@ -156,6 +196,7 @@ def entry_point(
     )
 
     print(f"Cost at step {num_iterations}:", final_cost)
+    np_params = interface.convert_params_to_numpy(params)
 
     save_job_result({"params": np_params.tolist(), "cost": final_cost})
 
