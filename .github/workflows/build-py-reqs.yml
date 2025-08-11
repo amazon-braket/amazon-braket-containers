@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        path: ["base/jobs/docker/1.0/py3/requirements.txt", "pytorch/jobs/docker/2.2/py3/requirements.txt", "tensorflow/jobs/docker/2.14/py3/requirements.txt", "cudaq/jobs/docker/0.11/py3/requirements.txt"]
+        path: ["base/jobs/docker/1.0/py3/requirements.txt", "pytorch/jobs/docker/2.2/py3/requirements.txt", "tensorflow/jobs/docker/2.14/py3/requirements.txt", "cudaq/jobs/docker/0.12/py3/requirements.txt"]
     steps:
       - uses: actions/checkout@v4
       - name: setup python
