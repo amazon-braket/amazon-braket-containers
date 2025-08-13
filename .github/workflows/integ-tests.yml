@@ -40,7 +40,7 @@ jobs:
           /usr/lib/jvm || true
     - name: Check disk space after clean up
       run: df . -h
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
       with:
