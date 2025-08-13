@@ -40,13 +40,13 @@ jobs:
           /usr/lib/jvm || true
     - name: Check disk space after clean up
       run: df . -h
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
       with:
         python-version: ${{ matrix.python-version }}
     - name: configure aws credentials
-      uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df
+      uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
       with:
         role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestBuildRole
         role-session-name: github_role_session
