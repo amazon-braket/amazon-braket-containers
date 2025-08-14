@@ -157,6 +157,16 @@ def image_builder(buildspec):
             context=context,
             cache_tag=os.getenv("PREBUILD_TAG")
         )
+        if image_object.cache_tag:
+            try:
+                subprocess.run(
+                    f"docker pull {image_object.repository}:{image_object.cache_tag}",
+                    shell=True,
+                    check=True
+                )
+            except:
+                FORMATTER.print(f"Cache not available for {image_name}, proceeding without cache")
+                image_object.cache_tag = None
 
         IMAGES.append(image_object)
 
