@@ -17,6 +17,7 @@ updates:
       - "/pytorch/jobs/docker/*/py3/"
       - "/base/jobs/docker/*/py3"
       - "/tensorflow/jobs/docker/*/py3/"
+      - "/cudaq/jobs/docker/*/py3/"
     schedule:
       interval: "weekly"
     commit-message:
