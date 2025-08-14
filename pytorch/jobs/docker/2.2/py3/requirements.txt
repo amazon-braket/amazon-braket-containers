@@ -1,10 +1,10 @@
-amazon-braket-default-simulator==1.26.7
-amazon-braket-pennylane-plugin==1.31.3
-amazon-braket-schemas==1.24.2
-amazon-braket-sdk==1.96.1
-awscli==1.42.8
-botocore==1.40.8
-boto3==1.40.8
+amazon-braket-default-simulator==1.27.0
+amazon-braket-pennylane-plugin==1.32.0
+amazon-braket-schemas==1.25.0
+amazon-braket-sdk==1.97.0
+awscli==1.42.9
+botocore==1.40.9
+boto3==1.40.9
 dask==2024.8.0
 decorator==5.2.1
 h5py==3.14.0
