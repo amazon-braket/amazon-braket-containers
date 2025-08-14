@@ -1,16 +1,16 @@
-amazon-braket-default-simulator==1.26.7
-amazon-braket-pennylane-plugin==1.31.3
-amazon-braket-schemas==1.24.2
-amazon-braket-sdk==1.96.0
+amazon-braket-default-simulator==1.27.0
+amazon-braket-pennylane-plugin==1.32.0
+amazon-braket-schemas==1.25.0
+amazon-braket-sdk==1.97.0
 autoray==0.6.12
-awscli==1.42.2
-botocore==1.40.2
-boto3==1.40.2
+awscli==1.42.9
+botocore==1.40.9
+boto3==1.40.9
 dask==2024.8.0
 h5py==3.14.0
 ipykernel==6.30.1
 jinja2==3.1.6
-keras==2.15.0 # keras uses the v2 api
+keras==3.6.0
 markupsafe==3.0.2
 matplotlib==3.10.1
 numpy==1.26.4
@@ -20,7 +20,7 @@ PennyLane==0.38.0
 PennyLane-Lightning==0.38.0
 pydantic==2.11.7
 requests==2.32.4
-sagemaker-training==5.0.0
+sagemaker-training==5.1.0
 scikit-learn==1.6.1
 six==1.17.0
 scipy==1.15.2
