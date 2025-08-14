@@ -25,6 +25,9 @@ scikit-learn==1.6.1
 six==1.17.0
 scipy==1.15.2
 typing_extensions==4.14.1
+cudaq==0.12.0
+cudaq-qec==0.4.0
+cudaq-solvers==0.4.0
 
 # https://nvd.nist.gov/vuln/detail/CVE-2023-37920
 certifi>=2023.7.22
