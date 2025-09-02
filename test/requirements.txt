@@ -1,7 +1,7 @@
 amazon-braket-default-simulator>=1.29.0
 amazon-braket-schemas
 amazon-braket-sdk
-boto3==1.40.17
+boto3==1.40.21
 certifi>=2023.7.22
 invoke
 mock
