@@ -2,3 +2,7 @@
 cudaq==0.12.0
 cudaq-qec==0.4.0
 cudaq-solvers==0.4.0
+
+# Jupyter Notebook Kernel Dependencies
+ipykernel==6.30.1
+ipython==8.37.0
