@@ -1,11 +1,4 @@
-amazon-braket-default-simulator>=1.29.0
-amazon-braket-schemas
-amazon-braket-sdk
-boto3==1.40.31
-certifi>=2023.7.22
 invoke
 mock
-pennylane>=0.35.0
 pytest
 pytest-xdist
-sagemaker>=2.232.2
