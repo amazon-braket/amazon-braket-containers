@@ -1,5 +1,6 @@
 amazon-braket-sdk==1.102.3
 invoke
 mock
+pennylane==0.38.0
 pytest
 pytest-xdist
