@@ -9,7 +9,7 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - pip install -r test/requirements.txt
+      - pip install -r test/requirements-test.txt
       - echo Performing additional setup...
       - python test/perform_additional_setup.py
   build:

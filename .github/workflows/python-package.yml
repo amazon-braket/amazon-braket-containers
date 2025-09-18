@@ -27,8 +27,8 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install -r test/requirements.txt
         pip install -r test/requirements-ci.txt
+        pip install -r test/requirements-test.txt
     - name: Run unit tests
       run: |
         pytest test/unit_tests
