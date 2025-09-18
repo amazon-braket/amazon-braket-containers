@@ -1,7 +1,11 @@
-amazon-braket-sdk==1.102.3
-autoray==0.7.2
+# This requirements file lists test framework dependencies.
+# Since this file is used to install dependencies for tests
+# inside the containers, it should not contain any libraries
+# which are already present in the container images.
+#
+# Any Braket-related libraries required for execution of unit tests
+# or integration tests should be listed in requirements-ci.txt.
 invoke
 mock
-pennylane==0.38.0
 pytest
 pytest-xdist

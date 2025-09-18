@@ -1,0 +1,8 @@
+# This requirements file lists libraries which are used
+# by the unit tests and integration tests.
+#
+# The test framework dependencies themselves should
+# be listed in requirements.txt.
+amazon-braket-sdk==1.102.3
+autoray==0.7.2
+pennylane==0.38.0

@@ -56,6 +56,7 @@ Similar to building locally, to test locally, you’ll need access to a personal
    requirements.
     ```shell script
     pip install -r test/requirements.txt
+    pip install -r test/requirements-ci.txt
     ```
 
 4. To run the unit tests:
