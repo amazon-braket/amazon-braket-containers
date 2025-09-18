@@ -55,8 +55,7 @@ Similar to building locally, to test locally, you’ll need access to a personal
 3. Assuming your working directory is the cloned repo, create a virtual environment to use the repo and install
    requirements.
     ```shell script
-    pip install -r test/requirements-ci.txt
-    pip install -r test/requirements-test.txt
+    pip install -r test/requirements.txt
     ```
 
 4. To run the unit tests:
