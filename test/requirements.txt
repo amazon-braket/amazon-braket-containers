@@ -6,5 +6,5 @@ pytest-xdist
 
 # other libraries used by the tests
 amazon-braket-sdk==1.102.3
-autoray==0.8.0  # pin until we upgrade to pennylane>=0.42.3
-pennylane==0.41.1
+autoray==0.7.2  # pin until we upgrade to pennylane>=0.42.3
+pennylane==0.38.0
