@@ -3,9 +3,9 @@ amazon-braket-pennylane-plugin==1.33.1
 amazon-braket-schemas==1.26.0
 amazon-braket-sdk==1.102.3
 autoray==0.6.12  # pin for compatibility with tensorflow==2.14
-awscli==1.42.34
-botocore==1.40.34
-boto3==1.40.34
+awscli==1.42.35
+botocore==1.40.35
+boto3==1.40.35
 dask==2024.8.0
 h5py==3.14.0
 ipykernel==6.30.1
