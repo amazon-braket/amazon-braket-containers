@@ -21,13 +21,11 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-      - dependency-name: "autoray"  # pin for pennylane and tensorflow compatibility
+      - dependency-name: "autoray"  # pin for tensorflow 2.14 compatibility
       - dependency-name: "keras"
-        versions: [ ">=3.0.0" ]  # we currently depend on the v2 api of keras
+        versions: [ ">=3.0.0" ]  # tensorflow 2.14 requires keras 2.x
       - dependency-name: "numpy"
-        versions: [ ">=2.0.0" ]  # openfermion 1.7.0 requires on numpy<2.0
-      - dependency-name: "pennylane"
-        versions: [ ">0.38.0" ]
+        versions: [ ">=2.0.0" ]  # openfermion 1.7.0 requires numpy<2.0
     commit-message:
       prefix: infra
     groups:
