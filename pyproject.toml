@@ -1,0 +1,20 @@
+[project]
+name = "amazon-braket-containers"
+version = "0.0.1"
+description = 'Offers a set of managed Docker containers for Amazon Braket hybrid jobs and a starting point for building custom containers.'
+readme = "README.md"
+requires-python = ">=3.10"
+license = "apache-2.0"
+keywords = []
+authors = [{name = "Amazon Web Services"},]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "Natural Language :: English",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+]
+dynamic = ["dependencies"]
