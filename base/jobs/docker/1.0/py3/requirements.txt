@@ -7,7 +7,7 @@ botocore==1.40.34
 boto3==1.40.34
 dask==2024.8.0
 matplotlib==3.10.1
-numpy==1.26.4
+numpy==2.2.6
 pandas==2.3.2
 pennylane==0.42.3
 pennylane-lightning==0.42.0
