@@ -21,8 +21,7 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-      - dependency-name: "autoray"
-        versions: [ ">=0.8.0" ]  # pin until we upgrade to pennylane>=0.42.3
+      - dependency-name: "autoray"  # pin for pennylane and tensorflow compatibility
       - dependency-name: "keras"
         versions: [ ">=3.0.0" ]  # we currently depend on the v2 api of keras
       - dependency-name: "numpy"
