@@ -1,7 +1,7 @@
 ﻿# This is based loosely on :
 # https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
 
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-ec2
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.8.0-gpu-py310-cu129-ubuntu22.04-ec2
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
@@ -31,7 +31,7 @@ RUN apt-get update \
     curl \
     git \
     libtemplate-perl \
-    libssl1.1 \
+    libssl3 \
     openssl \
     unzip \
     wget \
@@ -48,7 +48,7 @@ RUN apt-get update \
     libgdbm-dev \
     liblzma-dev \
     libncursesw5-dev \
-    libreadline-gplv2-dev \
+    libreadline-dev \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
