@@ -5,7 +5,7 @@ amazon-braket-sdk==1.102.4
 awscli==1.42.43
 botocore==1.40.43
 boto3==1.40.43
-dask==2024.8.0  # pin to avoid cloudpickle incompatibility
+dask==2024.8.0
 matplotlib==3.10.6
 numpy==1.26.4
 pandas==2.3.3
