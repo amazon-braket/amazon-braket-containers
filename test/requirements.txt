@@ -5,5 +5,5 @@ pytest
 pytest-xdist
 
 # other libraries used by the tests
-amazon-braket-sdk==1.102.3
+amazon-braket-sdk==1.102.5
 pennylane==0.42.3
