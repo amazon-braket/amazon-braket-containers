@@ -27,7 +27,7 @@ updates:
       - dependency-name: "keras"
         versions: [ ">=3.0.0" ]  # tensorflow 2.14 requires keras 2.x
       - dependency-name: "numpy"
-        versions: [ ">=2.0.0" ]  # tensorflow 2.14 requires numpy 1.x
+        versions: [ ">=2.0.0" ]  # tensorflow 2.14 and pytorch 2.2 require numpy 1.x
     commit-message:
       prefix: infra
     groups:
