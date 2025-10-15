@@ -17,10 +17,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LC_ALL=C.UTF-8
 
 
-ARG PYTHON=python3.10
+ARG PYTHON=python3.12
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.11
+ARG PYTHON_VERSION=3.12.12
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
