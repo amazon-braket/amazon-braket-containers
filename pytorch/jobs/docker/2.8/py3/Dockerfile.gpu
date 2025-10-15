@@ -64,8 +64,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 # Upgrading pip and creating symbolic link for python3
 RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
+RUN ln -sf $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -sf $(which ${PIP}) /usr/bin/pip
 
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
