@@ -26,8 +26,6 @@ updates:
         versions: [ ">2024.8.0" ]  # dask>2024.8.0 requires cloudpickle 3.x
       - dependency-name: "keras"
         versions: [ ">=3.0.0" ]  # tensorflow 2.14 requires keras 2.x
-      - dependency-name: "numpy"
-        versions: [ ">=2.0.0" ]  # openfermion 1.7.0 requires numpy<2.0
     commit-message:
       prefix: infra
     groups:
