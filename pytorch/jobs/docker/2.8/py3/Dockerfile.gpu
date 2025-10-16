@@ -1,6 +1,7 @@
 ﻿# This is based loosely on :
 # https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
 
+# See https://github.com/aws/deep-learning-containers/blob/master/pytorch/training/docker/2.8/py3/cu129/Dockerfile.gpu
 FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.8.0-gpu-py312-cu129-ubuntu22.04-ec2
 
 LABEL maintainer="Amazon Braket"
