@@ -11,6 +11,7 @@ numpy==1.26.4
 pandas==2.3.3
 pennylane==0.42.3
 pennylane-lightning==0.42.0
+qiskit==2.2.1
 qiskit-braket-provider==0.7.0
 requests==2.32.5
 sagemaker-training==5.1.1
