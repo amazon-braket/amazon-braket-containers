@@ -1,12 +1,12 @@
 amazon-braket-default-simulator==1.32.0
 amazon-braket-pennylane-plugin==1.33.6
 amazon-braket-schemas==1.27.0
-amazon-braket-sdk==1.105.0
-awscli==1.42.75
-botocore==1.40.75
-boto3==1.40.75
+amazon-braket-sdk==1.106.0
+awscli==1.43.3
+botocore==1.41.3
+boto3==1.41.3
 certifi>=2023.7.22  # https://nvd.nist.gov/vuln/detail/CVE-2023-37920
-cudaq==0.12.0.post1
+cudaq==0.13.0
 cudaq-qec==0.4.0.post1
 cudaq-solvers==0.4.0
 dask==2024.8.0
