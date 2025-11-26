@@ -6,7 +6,7 @@ LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
 
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10
+ARG PYTHON_VERSION=3.12
 ARG CUDAQ_PATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages
 
 ENV MPI_PATH=/usr/local

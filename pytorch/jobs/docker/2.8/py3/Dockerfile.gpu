@@ -1,7 +1,7 @@
-﻿# This is based loosely on :
+# This is based loosely on :
 # https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
 
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-ec2
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.8.0-gpu-py312-cu129-ubuntu22.04-ec2
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
@@ -17,10 +17,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LC_ALL=C.UTF-8
 
 
-ARG PYTHON=python3.10
+ARG PYTHON=python3.12
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.11
+ARG PYTHON_VERSION=3.12.8
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -31,7 +31,7 @@ RUN apt-get update \
     curl \
     git \
     libtemplate-perl \
-    libssl1.1 \
+    libssl3 \
     openssl \
     unzip \
     wget \
@@ -40,32 +40,11 @@ RUN apt-get update \
     libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    libbz2-dev \
-    libc6-dev \
-    libffi-dev \
-    libgdbm-dev \
-    liblzma-dev \
-    libncursesw5-dev \
-    libreadline-gplv2-dev \
-    libsqlite3-dev \
-    libssl-dev \
-    tk-dev \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Installing Python3
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
-
+# Python 3.12 already provided by base image
 # Upgrading pip and creating symbolic link for python3
 RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
+RUN ln -sf $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -sf $(which ${PIP}) /usr/bin/pip
 
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
@@ -96,4 +75,3 @@ ENV LD_LIBRARY_PATH=/opt/amazon/efa/lib/:$LD_LIBRARY_PATH
 COPY braket_container.py /opt/ml/code/braket_container.py
 
 ENV SAGEMAKER_PROGRAM braket_container.py
-
