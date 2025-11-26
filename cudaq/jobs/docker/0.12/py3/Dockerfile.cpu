@@ -24,15 +24,8 @@ COPY requirements.txt /
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
 
-# Debug: Check what CUDA-Q actually installed
-RUN echo "=== CUDA-Q Installation Debug ==="
-RUN ls -la /usr/local/lib/python3.12/site-packages/ | grep -i cudaq || echo "No cudaq packages found"
-RUN find /usr/local/lib/python3.12/site-packages -name "*cudaq*" -type d 2>/dev/null || echo "No cudaq directories"
-RUN find /usr/local/lib/python3.12/site-packages -name "activate_custom_mpi.sh" -type f 2>/dev/null || echo "MPI script not found anywhere"
-RUN find /usr/local/lib/python3.12/site-packages -name "distributed*" -type d 2>/dev/null || echo "No distributed directories"
-
-# Configure CUDA-Q with MPI (temporarily disabled)
-# RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
+# Configure CUDA-Q with MPI
+RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
 
 # Check compliance
 RUN HOME_DIR=/root \
