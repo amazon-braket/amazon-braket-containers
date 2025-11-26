@@ -10,6 +10,8 @@ ARG PYTHON_SHORT_VERSION=3.12
 ARG CUDAQ_PATH=/usr/local/lib/python${PYTHON_SHORT_VERSION}/site-packages
 
 ENV MPI_PATH=/usr/local
+ENV OMPI_MCA_opal_cuda_support=true
+ENV OMPI_MCA_btl='^openib'
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -22,8 +24,15 @@ COPY requirements.txt /
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
 
-# Configure CUDA-Q with MPI
-RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
+# Debug: Check what CUDA-Q actually installed
+RUN echo "=== CUDA-Q Installation Debug ==="
+RUN ls -la /usr/local/lib/python3.12/site-packages/ | grep -i cudaq || echo "No cudaq packages found"
+RUN find /usr/local/lib/python3.12/site-packages -name "*cudaq*" -type d 2>/dev/null || echo "No cudaq directories"
+RUN find /usr/local/lib/python3.12/site-packages -name "activate_custom_mpi.sh" -type f 2>/dev/null || echo "MPI script not found anywhere"
+RUN find /usr/local/lib/python3.12/site-packages -name "distributed*" -type d 2>/dev/null || echo "No distributed directories"
+
+# Configure CUDA-Q with MPI (temporarily disabled)
+# RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
 
 # Check compliance
 RUN HOME_DIR=/root \
