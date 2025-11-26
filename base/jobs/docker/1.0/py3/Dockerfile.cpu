@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHON_VERSION=3.12.8 \
+    PYTHON_VERSION=3.12.12 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
