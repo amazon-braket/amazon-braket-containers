@@ -22,53 +22,19 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.12"]
-        container-type: ["base", "pytorch", "tensorflow", "cudaq"]
-    runs-on: ${{ matrix.os }}
-    env:
-      PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag
+        container-type: ["base", "pytorch", "tensorflow"]
+    runs-on: ubuntu-latest
     steps:
-    - name: Check disk space
-      run: df . -h
-    - name: Free disk space
-      run: |
-        sudo docker rmi $(docker image ls -aq) >/dev/null 2>&1 || true
-        sudo rm -rf \
-          /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-          /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
-          /usr/lib/jvm || true
-    - name: Check disk space after clean up
-      run: df . -h
-    - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+    - uses: ./.github/actions/build-container
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: configure aws credentials
-      uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8
+        container-type: ${{ matrix.container-type }}
+        python-version: "3.12"
+
+  build-cudaq:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: ./.github/actions/build-container
       with:
-        role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubIntegTestBuildRole
-        role-session-name: github_role_session
-        aws-region: ${{ env.AWS_REGION }}
-    - name: Install Build dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r src/requirements.txt
-    - name: ECR Login
-      run: |
-        aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 292282985366.dkr.ecr.us-east-1.amazonaws.com
-    - name: Build the container
-      run: |
-        python src/main.py --framework ${{ matrix.container-type }}
-    - name: Install Test dependencies
-      run: |
-        pip install -r test/requirements.txt
-    - name: Run Integration Tests
-      run: |
-        pytest test/braket_tests/${{ matrix.container-type }} -vv --role GitHubIntegTestBuildRole --from-build-results ${{ env.BUILD_RESULTS_PATH }} --use-local-jobs True --use-local-sim True
-    - name: Update prebuild tag
-      run: |
-        python src/tag_image.py --build ${{ env.BUILD_RESULTS_PATH }} --tag ${{ env.PREBUILD_TAG }}
+        container-type: "cudaq"
+        python-version: "3.12"
