@@ -97,20 +97,11 @@ class TensorFlowInterface(QAOAInterface):
 
     @classmethod
     def get_cost_and_step(cls, cost_function, params, optimizer):
-        def tf_cost():
-            global _cached_cost_before
-            _cached_cost_before = cost_function(params)
-            return _cached_cost_before
+        with tf.GradientTape() as tape:
+            cost_before = cost_function(params)
 
-        optimizer.minimize(tf_cost, params)
-        cost_before = _cached_cost_before
-
-        # Alternative:
-        # with tf.GradientTape() as tape:
-        #     cost_before = cost_function(params)
-        #
-        # gradients = tape.gradient(cost_before, params)
-        # optimizer.apply_gradients(((gradients, params),))
+        gradients = tape.gradient(cost_before, params)
+        optimizer.apply_gradients([(gradients, params)])
 
         return params, float(cost_before)
 
