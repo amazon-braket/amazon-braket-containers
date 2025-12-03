@@ -22,21 +22,15 @@ jobs:
   build:
     strategy:
       matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.12"]
         container-type: ["base", "pytorch", "tensorflow"]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag
     steps:
     - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
     - uses: ./.github/actions/build-container
       with:
         container-type: ${{ matrix.container-type }}
-        python-version: "3.12"
-
-  build-cudaq:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-    - uses: ./.github/actions/build-container
-      with:
-        container-type: "cudaq"
-        python-version: "3.12"
+        python-version: ${{ matrix.python-version }}

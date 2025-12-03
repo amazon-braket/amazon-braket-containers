@@ -1,7 +1,6 @@
 # CUDA-Q Container based on Amazon Braket Base Image
 
-ARG BASE_IMAGE_URI=292282985366.dkr.ecr.us-east-1.amazonaws.com/amazon-braket-base-jobs:latest
-FROM ${BASE_IMAGE_URI}
+FROM 292282985366.dkr.ecr.us-east-1.amazonaws.com/amazon-braket-base-jobs:latest
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
