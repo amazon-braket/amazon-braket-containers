@@ -14,7 +14,7 @@ phases:
           pip install -r base/jobs/docker/1.0/py3/requirements.txt
         fi
         pip install -r $FRAMEWORK/jobs/docker/*/py3/requirements.txt
-      - pip install pytest pytest-xdist sagemaker
+      - pip install pytest pytest-xdist "sagemaker>=2.232.2,<3.0"
       - echo Performing additional setup...
       - python test/perform_additional_setup.py
   build:
