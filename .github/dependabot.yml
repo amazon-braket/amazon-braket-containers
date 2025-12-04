@@ -21,13 +21,8 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-      - dependency-name: "autoray"  # pin for tensorflow 2.14 compatibility
       - dependency-name: "dask"
         versions: [ ">2024.8.0" ]  # dask>2024.8.0 requires cloudpickle 3.x
-      - dependency-name: "keras"
-        versions: [ ">=3.0.0" ]  # tensorflow 2.14 requires keras 2.x
-      - dependency-name: "numpy"
-        versions: [ ">=2.0.0" ]  # pin for tensorflow 2.14 compatibility
     commit-message:
       prefix: infra
     groups:

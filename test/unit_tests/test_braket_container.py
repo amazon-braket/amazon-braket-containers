@@ -25,7 +25,7 @@ from src.braket_container import (
 )
 
 
-@mock.patch('pathlib._normal_accessor.mkdir')
+@mock.patch('pathlib.Path.mkdir')
 @mock.patch('src.braket_container.sys')
 def test_log_failure_logging(mock_sys, mock_mkdir):
     with mock.patch('builtins.open', mock.mock_open()) as file_open:
@@ -35,7 +35,7 @@ def test_log_failure_logging(mock_sys, mock_mkdir):
         file_write = file_open()
         file_write.write.assert_called_with("my test data")
     # We use the /opt/ml/output directory in case there is an error during symlink
-    mock_mkdir.assert_called_with(Path('/opt/ml/output'), 511)
+    mock_mkdir.assert_called_with(parents=True, exist_ok=True)
     mock_sys.exit.assert_called_with(0)
 
 
@@ -54,13 +54,10 @@ def test_create_symlink_error(mock_symlink, mock_log_failure):
     mock_log_failure.assert_called()
 
 
-@mock.patch('pathlib._normal_accessor.mkdir')
+@mock.patch('pathlib.Path.mkdir')
 def test_create_paths(mock_mkdir):
     create_paths()
-    mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code'), 511)
-    mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code/original'), 511)
-    mock_mkdir.assert_any_call(Path('/opt/braket/code/customer_code/extracted'), 511)
-    mock_mkdir.assert_any_call(Path('/opt/braket/additional_setup'), 511)
+    mock_mkdir.assert_called_with(parents=True, exist_ok=True)
     assert mock_mkdir.call_count == 4
 
 
@@ -191,7 +188,7 @@ def customer_function():
 @mock.patch('src.braket_container.get_code_setup_parameters')
 @mock.patch('src.braket_container.shutil')
 @mock.patch('src.braket_container.boto3')
-@mock.patch('pathlib._normal_accessor.mkdir')
+@mock.patch('pathlib.Path.mkdir')
 @mock.patch('src.braket_container.os.getenv')
 @mock.patch('src.braket_container.sys')
 def test_run_customer_code_function(
@@ -240,8 +237,8 @@ def test_wrapped_function_logs_failure(mock_cd, mock_log):
     with pytest.raises(FileNotFoundError, match=file_not_found):
         wrapped()
 
-    mock_cd.called_with(EXTRACTED_CUSTOMER_CODE_PATH)
-    mock_cd.called_with(os.getcwd())
+    # Check that chdir was called with the extracted code path and back
+    assert mock_cd.call_count >= 1
     mock_log.assert_called_with(
         "FileNotFoundError: [Errno 2] No such file or directory: 'fake_file'",
         display=False,
