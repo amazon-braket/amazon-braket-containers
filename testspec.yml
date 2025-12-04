@@ -9,12 +9,14 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - pip install --upgrade pip
       - |
         if [ "$FRAMEWORK" = "cudaq" ]; then
           pip install -r base/jobs/docker/1.0/py3/requirements.txt
         fi
         pip install -r $FRAMEWORK/jobs/docker/*/py3/requirements.txt
       - pip install pytest pytest-xdist "sagemaker>=2.232.2,<3.0"
+      - pip install "antlr4-python3-runtime==4.13.2" --force-reinstall
       - echo Performing additional setup...
       - python test/perform_additional_setup.py
   build:
