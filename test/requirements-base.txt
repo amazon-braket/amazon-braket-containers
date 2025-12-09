@@ -1,0 +1,10 @@
+# Base test dependencies - used by all tests
+# Test framework
+invoke
+mock
+pytest
+pytest-xdist
+
+# Braket test dependencies
+amazon-braket-sdk==1.105.0
+pennylane==0.42.3

@@ -1,10 +1,10 @@
-# test framework dependencies
-invoke
-mock
-pytest
-pytest-xdist
+# Main requirements file for local development
+# Includes all test dependencies
 
-# other libraries used by the tests
-amazon-braket-sdk==1.105.0
-pennylane==0.42.3
-sagemaker>=2.232.2
+# Base test dependencies (pytest + braket-sdk)
+-r requirements-base.txt
+
+# SageMaker test dependencies
+# Note: This will cause dependency conflicts with antlr4-python3-runtime
+# CI/CD handles this by running tests separately
+-r requirements-sagemaker.txt

@@ -12,12 +12,7 @@ phases:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - pip install --upgrade pip
-      - |
-        if [ "$FRAMEWORK" = "cudaq" ]; then
-          pip install -r base/jobs/docker/1.0/py3/requirements.txt
-        fi
-        pip install -r $FRAMEWORK/jobs/docker/*/py3/requirements.txt
-      - pip install pytest pytest-xdist
+      - pip install -r test/requirements-base.txt
       - echo Performing additional setup...
       - python test/perform_additional_setup.py
   build:
@@ -26,15 +21,12 @@ phases:
       - echo Testing images at $CODEBUILD_SRC_DIR_BUILD_RESULTS...
       - pytest test/unit_tests
       - |
-        echo Running SageMaker tests...
-        pip install "sagemaker>=2.232.2,<3.0"
-        pytest test/sagemaker_tests -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
-        echo Cleaning up SageMaker dependencies to restore antlr4-python3-runtime for Braket tests...
-        pip uninstall -y sagemaker sagemaker-core omegaconf
-      - |
         echo Running Braket tests...
-        pip install "antlr4-python3-runtime==4.13.2" --force-reinstall --no-deps
         pytest test/braket_tests/$FRAMEWORK -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
+      - |
+        echo Running SageMaker tests...
+        pip install -r test/requirements-sagemaker.txt
+        pytest test/sagemaker_tests -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
   post_build:
     commands:
       - echo Testing step finished on `date`
