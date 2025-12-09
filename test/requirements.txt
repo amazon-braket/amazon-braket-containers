@@ -5,6 +5,6 @@ pytest
 pytest-xdist
 
 # other libraries used by the tests
-amazon-braket-sdk==1.105.0
+amazon-braket-sdk==1.106.4
 pennylane==0.42.3
 sagemaker>=2.232.2
