@@ -31,6 +31,7 @@ phases:
         pip uninstall -y sagemaker sagemaker-core omegaconf
       - |
         echo Running Braket tests...
+        pip install "antlr4-python3-runtime==4.13.2" --force-reinstall --no-deps
         pytest test/braket_tests/$FRAMEWORK -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
   post_build:
     commands:
