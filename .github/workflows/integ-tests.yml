@@ -22,10 +22,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.12"]
         container-type: ["base", "pytorch", "tensorflow"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     env:
       PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag
     steps:
@@ -33,4 +31,4 @@ jobs:
     - uses: ./.github/actions/build-container
       with:
         container-type: ${{ matrix.container-type }}
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.12"
