@@ -1,6 +1,3 @@
-# This is based loosely on :
-# https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
-
 # Stage 1: Build OpenMPI
 FROM public.ecr.aws/lts/ubuntu:22.04 AS openmpi-builder
 
@@ -38,7 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHON_VERSION=3.12.12 \
+    PYTHON_VERSION=3.10.11 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -95,8 +92,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SAGEMAKER_PROGRAM=braket_container.py
 
 ARG HOME_DIR=/root
-ARG PYTHON=python3.12
-ARG PIP=pip3
 
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
@@ -129,19 +124,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && mkdir -p ${HOME_DIR}/.ssh/ /var/run/sshd \
     && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
-    && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config
-
-# Upgrading pip and creating symbolic links
-RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
-RUN ln -sf $(which ${PYTHON}) /usr/local/bin/python \
- && ln -sf $(which ${PIP}) /usr/bin/pip \
- && ln -sf $(which ${PIP}) /usr/bin/pip3
+    && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
+    && ln -sf $(which python3) /usr/local/bin/python \
+    && ln -sf $(which pip3) /usr/bin/pip
 
 WORKDIR /
 
 # Install Python dependencies
 COPY requirements.txt /
-RUN ${PIP} install --no-cache-dir -r requirements.txt \
+RUN pip3 install --no-cache-dir -r requirements.txt \
     && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
