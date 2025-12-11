@@ -94,10 +94,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
-    PATH=/usr/local/openmpi/bin/:$PATH \
+    PATH=/usr/local/bin:/usr/local/openmpi/bin/:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py
 
 ARG HOME_DIR=/root
+ARG PYTHON_PATH=/usr/local/bin/python3
 
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
@@ -154,7 +155,7 @@ RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amaz
     && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
     && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
     && chmod +x /usr/local/bin/testOSSCompliance ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON_PATH} \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 \
     && rm -rf ${HOME_DIR}/oss_compliance*
 
 # Entry script
