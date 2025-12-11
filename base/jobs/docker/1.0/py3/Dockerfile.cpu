@@ -42,6 +42,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+ARG PYTHON_PATH=/usr/local/bin/python3
+
 
 # Install build dependencies and Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -69,7 +71,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                   --prefix=/usr/local \
     && make -j $(nproc) \
     && make install \
-    && python3 -m pip --no-cache-dir install --upgrade pip setuptools wheel \
+    && ${PYTHON_PATH} -m ensurepip --upgrade \
+    && ${PYTHON_PATH} -m pip --no-cache-dir install --upgrade pip setuptools wheel \
     && cd / \
     && rm -rf /tmp/Python-${PYTHON_VERSION}* \
     && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true \
@@ -128,8 +131,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
-    && ln -sf $(which python3) /usr/local/bin/python \
-    && ln -sf $(which pip3) /usr/bin/pip
+    && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip
 
 WORKDIR /
 
@@ -139,12 +142,19 @@ RUN pip3 install --no-cache-dir -r requirements.txt \
     && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
+# Debug: Check what Python/pip exists in container
+RUN echo "=== Container Python Debug ===" \
+    && ls -la /usr/local/bin/python* || echo "No python in /usr/local/bin" \
+    && ls -la /usr/local/bin/pip* || echo "No pip in /usr/local/bin" \
+    && ${PYTHON_PATH} --version || echo "python3 failed" \
+    && ${PYTHON_PATH} -m pip --version || echo "pip module failed"
+
 # Run compliance script
 RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
     && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
     && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
     && chmod +x /usr/local/bin/testOSSCompliance ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON_PATH} \
     && rm -rf ${HOME_DIR}/oss_compliance*
 
 # Entry script
