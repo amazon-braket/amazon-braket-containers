@@ -72,19 +72,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && make install \
     && ${PYTHON_PATH} -m ensurepip --upgrade \
     && ${PYTHON_PATH} -m pip --no-cache-dir install --upgrade pip setuptools wheel \
-    && echo "=== Python build stage debug BEFORE cleanup ===" \
-    && ls -la /usr/local/bin/ \
-    && ${PYTHON_PATH} --version \
-    && ${PYTHON_PATH} -m pip --version \
     && cd / \
     && rm -rf /tmp/Python-${PYTHON_VERSION}* \
     && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true \
     && find /usr/local -type f -name "*.a" -delete \
     && find /usr/local -type f -name "*.la" -delete \
-    && rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info \
-    && echo "=== Python build stage debug AFTER cleanup ===" \
-    && ls -la /usr/local/bin/ \
-    && ${PYTHON_PATH} --version || echo "Python deleted by cleanup!"
+    && rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info
 
 # Final Stage
 FROM public.ecr.aws/lts/ubuntu:22.04
@@ -109,12 +102,6 @@ ARG PYTHON_PATH=/usr/local/bin/python3
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
 COPY --from=python-builder /usr/local /usr/local
-
-# Debug: Check what was copied
-RUN echo "=== After copying from python-builder ===" \
-    && ls -la /usr/local/bin/ | head -20 \
-    && find /usr/local -name "python*" -type f 2>/dev/null | head -10 \
-    && find /usr/local -name "pip*" -type f 2>/dev/null | head -10
 
 # Install build deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -146,8 +133,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
     && ln -sf ${PYTHON_PATH} /usr/bin/python3 \
-    && ln -sf /usr/local/bin/pip3 /usr/bin/pip \
-    && ln -sf /usr/local/bin/pip3 /usr/bin/pip3
+    && ln -sf ${PYTHON_PATH} /usr/bin/python \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip
 
 WORKDIR /
 
@@ -156,13 +144,6 @@ COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt \
     && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-
-# Debug: What's available after pip install
-RUN echo "=== After pip install ===" \
-    && which python3 || echo "python3 not found" \
-    && which pip3 || echo "pip3 not found" \
-    && python3 --version || echo "python3 failed" \
-    && pip3 --version || echo "pip3 failed"
 
 # Run compliance script
 RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
