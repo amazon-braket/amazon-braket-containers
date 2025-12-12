@@ -73,12 +73,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && make install \
     && ${PYTHON_PATH} -m ensurepip --upgrade \
     && ${PYTHON_PATH} -m pip --no-cache-dir install --upgrade pip setuptools wheel \
+    && echo "=== Python build stage debug BEFORE cleanup ===" \
+    && ls -la /usr/local/bin/ \
+    && ${PYTHON_PATH} --version \
+    && ${PYTHON_PATH} -m pip --version \
     && cd / \
     && rm -rf /tmp/Python-${PYTHON_VERSION}* \
     && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true \
     && find /usr/local -type f -name "*.a" -delete \
     && find /usr/local -type f -name "*.la" -delete \
-    && rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info
+    && rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info \
+    && echo "=== Python build stage debug AFTER cleanup ===" \
+    && ls -la /usr/local/bin/ \
+    && ${PYTHON_PATH} --version || echo "Python deleted by cleanup!"
 
 # Final Stage
 FROM public.ecr.aws/lts/ubuntu:22.04
