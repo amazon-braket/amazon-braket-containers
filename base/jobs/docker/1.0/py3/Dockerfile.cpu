@@ -133,7 +133,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
-    && ln -sf /usr/local/bin/pip3 /usr/bin/pip
+    && ln -sf ${PYTHON_PATH} /usr/bin/python3 \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip3
 
 WORKDIR /
 
@@ -147,8 +149,12 @@ RUN pip3 install --no-cache-dir -r requirements.txt \
 RUN echo "=== Container Python Debug ===" \
     && ls -la /usr/local/bin/python* || echo "No python in /usr/local/bin" \
     && ls -la /usr/local/bin/pip* || echo "No pip in /usr/local/bin" \
+    && ls -la /usr/bin/python* || echo "No python in /usr/bin" \
+    && ls -la /usr/bin/pip* || echo "No pip in /usr/bin" \
     && ${PYTHON_PATH} --version || echo "python3 failed" \
-    && ${PYTHON_PATH} -m pip --version || echo "pip module failed"
+    && ${PYTHON_PATH} -m pip --version || echo "pip module failed" \
+    && which python3 || echo "python3 not in PATH" \
+    && which pip3 || echo "pip3 not in PATH"
 
 # Run compliance script
 RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
