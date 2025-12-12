@@ -104,6 +104,12 @@ ARG PYTHON_PATH=/usr/local/bin/python3
 COPY --from=openmpi-builder /usr/local /usr/local
 COPY --from=python-builder /usr/local /usr/local
 
+# Debug: Check what was copied
+RUN echo "=== After copying from python-builder ===" \
+    && ls -la /usr/local/bin/ | head -20 \
+    && find /usr/local -name "python*" -type f 2>/dev/null | head -10 \
+    && find /usr/local -name "pip*" -type f 2>/dev/null | head -10
+
 # Install build deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
@@ -147,12 +153,10 @@ RUN pip3 install --no-cache-dir -r requirements.txt \
 
 # Debug: What's available after pip install
 RUN echo "=== After pip install ===" \
-    && which python3 \
-    && which pip3 \
-    && ls -la $(which python3) \
-    && ls -la $(which pip3) \
-    && python3 --version \
-    && pip3 --version
+    && which python3 || echo "python3 not found" \
+    && which pip3 || echo "pip3 not found" \
+    && python3 --version || echo "python3 failed" \
+    && pip3 --version || echo "pip3 failed"
 
 # Run compliance script
 RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
