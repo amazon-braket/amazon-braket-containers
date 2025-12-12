@@ -145,16 +145,14 @@ RUN pip3 install --no-cache-dir -r requirements.txt \
     && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
-# Debug: Check what Python/pip exists in container
-RUN echo "=== Container Python Debug ===" \
-    && ls -la /usr/local/bin/python* || echo "No python in /usr/local/bin" \
-    && ls -la /usr/local/bin/pip* || echo "No pip in /usr/local/bin" \
-    && ls -la /usr/bin/python* || echo "No python in /usr/bin" \
-    && ls -la /usr/bin/pip* || echo "No pip in /usr/bin" \
-    && ${PYTHON_PATH} --version || echo "python3 failed" \
-    && ${PYTHON_PATH} -m pip --version || echo "pip module failed" \
-    && which python3 || echo "python3 not in PATH" \
-    && which pip3 || echo "pip3 not in PATH"
+# Debug: What's available after pip install
+RUN echo "=== After pip install ===" \
+    && which python3 \
+    && which pip3 \
+    && ls -la $(which python3) \
+    && ls -la $(which pip3) \
+    && python3 --version \
+    && pip3 --version
 
 # Run compliance script
 RUN curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
