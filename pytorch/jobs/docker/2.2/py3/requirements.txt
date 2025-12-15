@@ -1,12 +1,12 @@
 amazon-braket-default-simulator==1.32.0
 amazon-braket-pennylane-plugin==1.33.6
 amazon-braket-schemas==1.27.0
-amazon-braket-sdk==1.106.4
-awscli==1.43.11
-botocore==1.42.5
-boto3==1.42.5
+amazon-braket-sdk==1.106.5
+awscli==1.44.0
+botocore==1.42.10
+boto3==1.42.10
 certifi>=2023.7.22  # https://nvd.nist.gov/vuln/detail/CVE-2023-37920
-cudaq==0.12.0.post1
+cudaq==0.13.0
 cudaq-qec==0.4.0.post1
 cudaq-solvers==0.4.0
 dask==2024.8.0
@@ -16,7 +16,7 @@ ipykernel==7.1.0
 jinja2==3.1.6
 keras==2.15.0  # keras uses the v2 api
 markupsafe==3.0.3
-matplotlib==3.10.7
+matplotlib==3.10.8
 numpy==1.26.4
 openfermion==1.7.1
 pandas==2.3.3
