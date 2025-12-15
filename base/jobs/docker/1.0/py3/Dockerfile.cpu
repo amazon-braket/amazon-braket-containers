@@ -66,6 +66,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && tar -xf Python-${PYTHON_VERSION}.tgz \
     && cd Python-${PYTHON_VERSION} \
     && ./configure --enable-optimizations \
+                  --with-lto \
                   --without-doc-strings \
                   --prefix=/usr/local \
     && make -j $(nproc) \
