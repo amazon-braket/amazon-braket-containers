@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && echo -e "hwloc_base_binding_policy = none\nrmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf \
     && cd / \
     && rm -rf /tmp/openmpi \
-    && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true
+    && find /usr/local -type f -executable ! -path "*/include/*" -exec strip --strip-unneeded {} \; || true
 
 # Stage 2: Build Python
 FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
