@@ -22,7 +22,7 @@ jobs:
   build:
     strategy:
       matrix:
-        container-type: ["base", "pytorch", "tensorflow"]
+        container-type: ["base", "cudaq", "pytorch", "tensorflow"]
     runs-on: ubuntu-latest
     env:
       PREBUILD_TAG : ${{ matrix.container-type }}_prebuild_tag

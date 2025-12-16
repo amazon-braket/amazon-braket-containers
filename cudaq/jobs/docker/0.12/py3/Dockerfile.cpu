@@ -1,6 +1,7 @@
 # CUDA-Q Container based on Amazon Braket Base Image
 
-FROM 292282985366.dkr.ecr.us-east-1.amazonaws.com/amazon-braket-base-jobs:latest
+# FROM 292282985366.dkr.ecr.us-east-1.amazonaws.com/amazon-braket-base-jobs:latest
+From 519701197550.dkr.ecr.us-west-1.amazonaws.com/amazon-braket-base-jobs:latest
 
 LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
