@@ -3,6 +3,9 @@ cudaq==0.12.0.post1
 cudaq-qec==0.4.0.post1
 cudaq-solvers==0.4.0
 
+# MPI support as recommended by CUDA-Q
+mpi4py
+
 # Jupyter Notebook Kernel Dependencies
 ipykernel==7.1.0
 ipython==8.37.0
