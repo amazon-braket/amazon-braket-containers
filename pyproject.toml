@@ -1,7 +1,7 @@
 [project]
 name = "amazon-braket-containers"
 version = "0.0.1"
-description = 'Offers a set of managed Docker containers for Amazon Braket hybrid jobs and a starting point for building custom containers.'
+description = "Offers a set of managed Docker containers for Amazon Braket hybrid jobs and a starting point for building custom containers."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "apache-2.0"

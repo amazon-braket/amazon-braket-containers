@@ -1,15 +1,15 @@
-name: 'Build Container'
-description: 'Build and test a Braket container'
+name: "Build Container"
+description: "Build and test a Braket container"
 inputs:
   container-type:
-    description: 'Container type to build'
+    description: "Container type to build"
     required: true
   python-version:
-    description: 'Python version'
+    description: "Python version"
     required: true
-    default: '3.12'
+    default: "3.12"
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Check disk space
       run: df . -h
