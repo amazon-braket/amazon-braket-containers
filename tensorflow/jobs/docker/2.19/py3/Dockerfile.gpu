@@ -17,8 +17,7 @@ RUN apt-get update \
 COPY requirements.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        -r requirements.txt \
-    && ${PIP} install --no-cache-dir --force-reinstall cloudpickle==3.1.2
+        -r requirements.txt
 
 # install cuQuantum
 RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz
