@@ -52,7 +52,8 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 COPY requirements.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
-        -r requirements.txt
+        -r requirements.txt \
+    && ${PIP} install --no-cache-dir --force-reinstall cloudpickle==3.1.2
 
 # install cuQuantum
 RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-24.03.0.4_cuda12-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-24.03.0.4_cuda12-archive.tar.xz
