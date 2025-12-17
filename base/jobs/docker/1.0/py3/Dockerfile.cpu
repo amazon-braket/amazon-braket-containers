@@ -143,6 +143,7 @@ WORKDIR /
 # Install Python dependencies
 COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r requirements.txt \
+    && pip3 install --no-cache-dir --force-reinstall cloudpickle==3.1.2 \
     && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
