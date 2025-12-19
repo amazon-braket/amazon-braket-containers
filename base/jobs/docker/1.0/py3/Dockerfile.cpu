@@ -32,15 +32,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && echo -e "hwloc_base_binding_policy = none\nrmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf \
     && cd / \
     && rm -rf /tmp/openmpi \
-    && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true
+    && find /usr/local -type f -executable ! -path "*/include/*" -exec strip --strip-unneeded {} \; || true
 
 # Stage 2: Build Python
 FROM public.ecr.aws/lts/ubuntu:22.04 AS python-builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHON_VERSION=3.10.11 \
+    PYTHON_VERSION=3.12.12 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
+
+ARG PYTHON_PATH=/usr/local/bin/python3
 
 
 # Install build dependencies and Python
@@ -69,7 +71,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                   --prefix=/usr/local \
     && make -j $(nproc) \
     && make install \
-    && python3 -m pip --no-cache-dir install --upgrade pip setuptools wheel \
+    && ${PYTHON_PATH} -m ensurepip --upgrade \
+    && ${PYTHON_PATH} -m pip --no-cache-dir install --upgrade pip setuptools wheel \
     && cd / \
     && rm -rf /tmp/Python-${PYTHON_VERSION}* \
     && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true \
@@ -91,10 +94,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
-    PATH=/usr/local/openmpi/bin/:$PATH \
+    PATH=/usr/local/bin:/usr/local/openmpi/bin/:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py
 
 ARG HOME_DIR=/root
+ARG PYTHON_PATH=/usr/local/bin/python3
 
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
@@ -128,8 +132,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
-    && ln -sf $(which python3) /usr/local/bin/python \
-    && ln -sf $(which pip3) /usr/bin/pip
+    && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
+    && ln -sf ${PYTHON_PATH} /usr/bin/python3 \
+    && ln -sf ${PYTHON_PATH} /usr/bin/python \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip
 
 WORKDIR /
 
