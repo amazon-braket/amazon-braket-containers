@@ -16,6 +16,7 @@ phases:
       - echo The following is only required if we use DLC images as our base 'FROM' images.
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 292282985366.dkr.ecr.us-east-1.amazonaws.com
+      - aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin 519701197550.dkr.ecr.us-west-1.amazonaws.com
   build:
     commands:
       - echo Build started on `date`
