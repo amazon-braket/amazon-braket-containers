@@ -1,0 +1,8 @@
+# CUDA-Q quantum computing framework packages
+cudaq==0.13.0
+cudaq-qec==0.5.0
+cudaq-solvers==0.5.0
+cupy-cuda13x==13.6.0
+
+# MPI support as recommended by CUDA-Q
+mpi4py

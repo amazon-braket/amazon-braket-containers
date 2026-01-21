@@ -6,10 +6,15 @@ LABEL maintainer="Amazon Braket"
 LABEL major_version="1"
 
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10
-ARG CUDAQ_PATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages
+ARG PYTHON_SHORT_VERSION=3.12
+ARG MPI_BASE_PATH=/usr/local
+ARG CUDAQ_PATH=${MPI_BASE_PATH}/lib/python${PYTHON_SHORT_VERSION}/site-packages
 
-ENV MPI_PATH=/usr/local
+ENV MPI_PATH=${MPI_BASE_PATH}
+ENV OMPI_MCA_opal_cuda_support=true
+ENV OMPI_MCA_btl='^openib'
+ENV CXX=g++
+ENV LD_LIBRARY_PATH=${MPI_BASE_PATH}/lib:$LD_LIBRARY_PATH
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
