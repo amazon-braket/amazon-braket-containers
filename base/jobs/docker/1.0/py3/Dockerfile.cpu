@@ -2,7 +2,7 @@
 # https://github.com/aws/amazon-sagemaker-examples/blob/master/advanced_functionality/custom-training-containers/script-mode-container/docker/Dockerfile
 
 # Stage 1: Build OpenMPI
-FROM public.ecr.aws/lts/ubuntu:22.04 AS openmpi-builder
+FROM public.ecr.aws/lts/ubuntu:24.04 AS openmpi-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV OPENMPI_VERSION=5.0.7
