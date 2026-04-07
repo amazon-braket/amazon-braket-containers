@@ -1,5 +1,5 @@
 # CUDA-Q quantum computing framework packages
-cudaq==0.13.0
+cudaq==0.14.0
 cudaq-qec==0.5.0.post1
 cudaq-solvers==0.5.0.post1
 
