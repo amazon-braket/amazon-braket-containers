@@ -29,7 +29,7 @@ updates:
       - dependency-name: "requests"
         versions: [ ">=2.33.0" ]  # openfermion requires requests<2.33
       - dependency-name: "sagemaker"
-        versions: [ ">=3.0.0" ]  # test imports require sagemaker<3.0
+        versions: [ ">=2.236.0" ]  # >=2.236.0 requires omegaconf which conflicts with antlr4-python3-runtime in braket-default-simulator
     commit-message:
       prefix: infra
     groups:
