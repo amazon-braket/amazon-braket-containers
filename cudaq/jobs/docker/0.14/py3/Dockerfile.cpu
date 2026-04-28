@@ -11,7 +11,6 @@ ARG MPI_BASE_PATH=/usr/local
 ARG CUDAQ_PATH=${MPI_BASE_PATH}/lib/python${PYTHON_SHORT_VERSION}/site-packages
 
 ENV MPI_PATH=${MPI_BASE_PATH}
-ENV OMPI_MCA_opal_cuda_support=true
 ENV OMPI_MCA_btl='^openib'
 ENV CXX=g++
 ENV LD_LIBRARY_PATH=${MPI_BASE_PATH}/lib:$LD_LIBRARY_PATH
