@@ -11,7 +11,7 @@ dask==2024.8.0
 h5py==3.16.0
 ipykernel==7.2.0
 jinja2==3.1.6
-jupyterlab==4.5.6
+jupyterlab==4.5.7
 markupsafe==3.0.3
 matplotlib==3.10.9
 notebook==7.5.6

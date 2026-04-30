@@ -182,7 +182,6 @@ def customer_function():
     return 0
 
 
-@mock.patch("src.braket_container.wrap_customer_code")
 @mock.patch("src.braket_container.multiprocessing")
 @mock.patch("src.braket_container.importlib")
 @mock.patch("src.braket_container.get_code_setup_parameters")
@@ -200,7 +199,6 @@ def test_run_customer_code_function(
     mock_get_code_setup,
     mock_importlib,
     mock_mp,
-    mock_wrap_code,
     hyperparameters_json,
 ):
     mock_getenv.side_effect = lambda x, y = None: (
@@ -218,8 +216,15 @@ def test_run_customer_code_function(
 
     run_customer_code()
 
-    mock_wrap_code.assert_called_with(mock_importlib.import_module.return_value.customer_function)
-    mock_mp.Process.assert_called_with(target=mock_wrap_code.return_value, kwargs={})
+    customer_fn = mock_importlib.import_module.return_value.customer_function
+    # Process target must be a picklable module-level function (not a closure),
+    # because cudaq imports switch multiprocessing to forkserver which pickles
+    # the target.
+    mock_mp.Process.assert_called_with(
+        target=wrap_customer_code,
+        args=(customer_fn,),
+        kwargs={},
+    )
     mock_process.start.assert_called_with()
     mock_process.join.assert_called_with()
 
@@ -228,14 +233,30 @@ def customer_function_fails():
     open("fake_file")
 
 
+def test_wrap_customer_code_is_module_level_picklable():
+    """Regression test for a pre-existing bug where `wrap_customer_code` was a
+    closure factory returning a nested function, which `multiprocessing.Process`
+    could not pickle under the `forkserver` start method (imposed by some user
+    imports, notably cudaq).
+
+    The fix was to make `wrap_customer_code` a module-level function taking the
+    customer_method as an argument. This test guards that invariant by pickling
+    it directly.
+    """
+    import pickle
+
+    # Module-level functions pickle cleanly.
+    data = pickle.dumps(wrap_customer_code)
+    restored = pickle.loads(data)
+    assert restored is wrap_customer_code
+
+
 @mock.patch("src.braket_container._log_failure")
 @mock.patch("os.chdir")
-def test_wrapped_function_logs_failure(mock_cd, mock_log):
-    wrapped = wrap_customer_code(customer_function_fails)
-
+def test_wrap_customer_code_logs_failure(mock_cd, mock_log):
     file_not_found = re.escape("[Errno 2] No such file or directory: 'fake_file'")
     with pytest.raises(FileNotFoundError, match=file_not_found):
-        wrapped()
+        wrap_customer_code(customer_function_fails)
 
     # Check that chdir was called with the extracted code path and back
     assert mock_cd.call_count >= 1
