@@ -24,7 +24,7 @@ import sys
 import multiprocessing
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Any
 
 import boto3
 
@@ -270,21 +270,27 @@ def in_extracted_code_dir():
             os.chdir(current_dir)
 
 
-def wrap_customer_code(customer_method: Callable) -> Callable:
-    def wrapped_customer_code(**kwargs):
-        try:
-            with in_extracted_code_dir():
-                return customer_method(**kwargs)
-        except Exception as e:
-            exception_type = type(e).__name__
-            exception_string = (
-                exception_type
-                if not str(e)
-                else f"{exception_type}: {e}"
-            )
-            _log_failure(exception_string, display=False)
-            raise e
-    return wrapped_customer_code
+def wrap_customer_code(customer_method: Callable, **kwargs) -> Any:
+    """Run the customer method inside the extracted code dir, logging any
+    exception before re-raising.
+
+    This is a module-level function (not a closure factory) so it can be
+    pickled by `multiprocessing.Process`. Some imported libraries (e.g. cudaq)
+    change the default start method from fork to forkserver, which pickles
+    the target; a nested closure would break that path.
+    """
+    try:
+        with in_extracted_code_dir():
+            return customer_method(**kwargs)
+    except Exception as e:
+        exception_type = type(e).__name__
+        exception_string = (
+            exception_type
+            if not str(e)
+            else f"{exception_type}: {e}"
+        )
+        _log_failure(exception_string, display=False)
+        raise e
 
 
 def kick_off_customer_script(customer_code: Callable) -> multiprocessing.Process:
@@ -298,8 +304,10 @@ def kick_off_customer_script(customer_code: Callable) -> multiprocessing.Process
         Process: the process handle to the running process.
     """
     print("Running Code As Process")
-    wrapped_customer_code = wrap_customer_code(customer_code)
-    process_kwargs = {"target": wrapped_customer_code}
+    process_kwargs = {
+        "target": wrap_customer_code,
+        "args": (customer_code,),
+    }
 
     function_args = try_bind_hyperparameters_to_customer_method(customer_code)
     if function_args is not None:

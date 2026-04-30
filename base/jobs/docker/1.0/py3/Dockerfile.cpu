@@ -5,7 +5,8 @@
 FROM public.ecr.aws/lts/ubuntu:24.04 AS openmpi-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OPENMPI_VERSION=5.0.7
+ENV OPENMPI_VERSION=4.1.8
+ENV OPENMPI_SERIES=v4.1
 
 # Install build dependencies and install OpenMPI
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -15,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /tmp/openmpi \
     && cd /tmp/openmpi \
-    && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-${OPENMPI_VERSION}.tar.gz \
+    && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/${OPENMPI_SERIES}/openmpi-${OPENMPI_VERSION}.tar.gz \
     && tar zxf openmpi-${OPENMPI_VERSION}.tar.gz \
     && cd openmpi-${OPENMPI_VERSION} \
     && ./configure --enable-orterun-prefix-by-default \
@@ -29,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
     && echo '#!/bin/bash\nmpirun.real --allow-run-as-root "$@"' > /usr/local/bin/mpirun \
     && chmod a+x /usr/local/bin/mpirun \
-    && echo -e "hwloc_base_binding_policy = none\nrmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf \
+    && printf 'hwloc_base_binding_policy = none\nrmaps_base_mapping_policy = slot\n' >> /usr/local/etc/openmpi-mca-params.conf \
     && cd / \
     && rm -rf /tmp/openmpi \
     && find /usr/local -type f -executable ! -path "*/include/*" -exec strip --strip-unneeded {} \; || true
