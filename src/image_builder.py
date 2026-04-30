@@ -148,6 +148,10 @@ def image_builder(buildspec):
             "extra_build_args": extra_build_args
         }
 
+        prebuild_tag = os.getenv("PREBUILD_TAG")
+        if prebuild_tag == "latest":
+            prebuild_tag = None
+
         image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
@@ -155,7 +159,7 @@ def image_builder(buildspec):
             tag=image_tag,
             to_build=image_config["build"],
             context=context,
-            cache_tag=os.getenv("PREBUILD_TAG")
+            cache_tag=prebuild_tag
         )
         if image_object.cache_tag:
             try:
