@@ -20,6 +20,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 ARG PYTHON=python3.12
 ARG PIP=pip3
 ARG PYTHON_SHORT_VERSION=3.12
+ARG MPI_BASE_PATH=/opt/amazon/openmpi
+ARG CUDAQ_PATH=/usr/local/lib/python${PYTHON_SHORT_VERSION}/site-packages
+
+# CUDA-Q's distributed interface needs to locate an MPI installation and a
+# C++ compiler at image-build time to compile its MPI plugin. The DLC ships
+# OpenMPI under /opt/amazon/openmpi; g++ is provided by build-essential.
+ENV MPI_PATH=${MPI_BASE_PATH}
+ENV CXX=g++
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -53,6 +61,10 @@ COPY requirements.txt /
 # Installing our custom python libraries
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
+
+# Configure CUDA-Q with MPI (uses the DLC's OpenMPI at $MPI_PATH).
+# Without this step, cudaq.mpi.* APIs raise "No MPI support can be found".
+RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
 
 # install cuQuantum
 RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-24.03.0.4_cuda12-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-24.03.0.4_cuda12-archive.tar.xz
