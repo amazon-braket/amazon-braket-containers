@@ -45,8 +45,8 @@ def test_openmpi_version_pinned(image_list):
         assert result.returncode == 0, (
             f"mpirun --version exited {result.returncode}: {result.combined}"
         )
-        # Output looks like: "mpirun.real (OpenRTE) 4.1.8"
-        match = re.search(r"\(Open(?:RTE|MPI|-MPI)\)\s+(\d+)\.(\d+)\.(\d+)", result.combined)
+        # Output looks like: "mpirun.real (OpenRTE) 4.1.8" or "mpirun (Open MPI) 4.1.6"
+        match = re.search(r"\(Open[- ]?(?:RTE|MPI)\)\s+(\d+)\.(\d+)\.(\d+)", result.combined)
         assert match, f"Could not parse OpenMPI version from: {result.combined!r}"
         major_minor = f"{match.group(1)}.{match.group(2)}"
         assert major_minor == EXPECTED_OPENMPI_MAJOR_MINOR, (
