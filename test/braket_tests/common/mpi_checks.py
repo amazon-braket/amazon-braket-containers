@@ -84,27 +84,30 @@ def assert_mpi4py_init_no_crash(image_list):
 
 
 # CUDA-Q's activate_custom_mpi.sh compiles this shared object against whatever
-# MPI headers are present in the image at build time (base's from-source OpenMPI
-# in the cudaq image, the DLC's OpenMPI under /opt/amazon/openmpi in the pytorch
-# image). Both images install cudaq from pip into the same site-packages layout,
-# so the plugin ends up at this path either way. Absence of the file means
-# activate_custom_mpi.sh did not run or failed silently during image build, in
-# which case ``cudaq.mpi`` APIs raise ``RuntimeError: No MPI support can be found``.
-CUDAQ_MPI_PLUGIN_PATH = (
-    "/usr/local/lib/python3.12/site-packages/distributed_interfaces/"
-    "libcudaq_distributed_interface_mpi.so"
-)
+# MPI headers are present in the image at build time. It lives next to the
+# cudaq package in site-packages (or dist-packages on Debian-layout Pythons),
+# so we probe via cudaq.__file__ rather than hard-coding the path. Absence of
+# the file means activate_custom_mpi.sh did not run or failed silently during
+# image build, in which case ``cudaq.mpi`` APIs raise
+# ``RuntimeError: No MPI support can be found``.
+CUDAQ_MPI_PLUGIN_FILENAME = "libcudaq_distributed_interface_mpi.so"
 
 
 def assert_cudaq_mpi_plugin_present(image_list):
     """Assert CUDA-Q's custom MPI plugin ``.so`` exists in each image."""
     assert len(image_list) > 0, "Unable to find images for testing"
+    probe = (
+        "import os, cudaq; "
+        f"p = os.path.join(os.path.dirname(cudaq.__file__), '..', "
+        f"'distributed_interfaces', {CUDAQ_MPI_PLUGIN_FILENAME!r}); "
+        "assert os.path.isfile(p), p"
+    )
     for image_path in image_list:
-        result = run_in_image(image_path, ["test", "-f", CUDAQ_MPI_PLUGIN_PATH])
+        result = run_in_image(image_path, ["python", "-c", probe])
         assert result.returncode == 0, (
-            f"CUDA-Q MPI plugin missing at {CUDAQ_MPI_PLUGIN_PATH} in {image_path}. "
+            f"CUDA-Q MPI plugin {CUDAQ_MPI_PLUGIN_FILENAME} missing in {image_path}. "
             f"activate_custom_mpi.sh likely did not run or failed silently during "
-            f"image build."
+            f"image build.\n{result.combined}"
         )
 
 

@@ -7,23 +7,22 @@ LABEL major_version="1"
 
 ARG PIP=pip3
 ARG PYTHON_SHORT_VERSION=3.12
-ARG MPI_BASE_PATH=/usr/local
-ARG CUDAQ_PATH=${MPI_BASE_PATH}/lib/python${PYTHON_SHORT_VERSION}/site-packages
+ARG MPI_BASE_PATH=/usr
+ARG CUDAQ_PATH=/usr/local/lib/python${PYTHON_SHORT_VERSION}/dist-packages
 
 ENV MPI_PATH=${MPI_BASE_PATH}
 ENV OMPI_MCA_btl='^openib'
-ENV CXX=g++
-ENV LD_LIBRARY_PATH=${MPI_BASE_PATH}/lib:$LD_LIBRARY_PATH
+ENV CXX=mpic++
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends libopenmpi-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
 # Copy the dependencies file
 COPY requirements.txt /
 # Installing our custom python libraries including CUDA-Q
-RUN ${PIP} install --no-cache --upgrade \
+RUN ${PIP} install --no-cache --upgrade --break-system-packages \
         -r requirements.txt
 
 # Configure CUDA-Q with MPI
