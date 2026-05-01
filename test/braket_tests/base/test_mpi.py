@@ -21,6 +21,10 @@ and MCA parameter configuration in base/jobs/docker/1.0/py3/Dockerfile.cpu.
 import re
 
 from ..common.image_run_util import run_in_image
+from ..common.mpi_checks import (
+    assert_mpi4py_init_no_crash,
+    assert_mpi_runtime_launches_cleanly,
+)
 
 
 # Strictly pin to OpenMPI 4.1.x.
@@ -94,3 +98,19 @@ def test_mpi_mca_params_applied(image_list):
                 f'Expected MCA param {param}={value} loaded from config file '
                 f"in {image_path}, but did not find it in ompi_info output."
             )
+
+
+def test_mpi_runtime_launches_cleanly(image_list):
+    """Launching a trivial rank in the image's default env must succeed cleanly.
+    Guards against MCA flags inconsistent with how OpenMPI was built in the
+    base Dockerfile (e.g. enabling a transport that wasn't compiled in).
+    """
+    assert_mpi_runtime_launches_cleanly(image_list)
+
+
+def test_mpi4py_init_no_crash_default_env(image_list):
+    """mpi4py must import and complete MPI_Init cleanly against the base image's
+    from-source OpenMPI build. Exercises actual libmpi load + init, which is a
+    stronger check than the mpirun-only tests above.
+    """
+    assert_mpi4py_init_no_crash(image_list)

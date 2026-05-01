@@ -25,16 +25,10 @@ libfabric/EFA + NCCL for high-bandwidth GPU collectives, not CUDA-aware MPI.
 """
 
 from ..common.image_run_util import run_in_image
-
-
-# CUDA-Q's activate_custom_mpi.sh compiles this shared object against the
-# MPI headers at image-build time. In the PyTorch image the compiler uses
-# the DLC's OpenMPI under /opt/amazon/openmpi. Absence of this file means
-# activate_custom_mpi.sh was not run (or failed silently), in which case
-# cudaq.mpi APIs raise `RuntimeError: No MPI support can be found`.
-CUDAQ_MPI_PLUGIN_PATH = (
-    "/usr/local/lib/python3.12/site-packages/distributed_interfaces/"
-    "libcudaq_distributed_interface_mpi.so"
+from ..common.mpi_checks import (
+    assert_cudaq_mpi_initialize_finalize,
+    assert_cudaq_mpi_plugin_present,
+    assert_mpi_runtime_launches_cleanly,
 )
 
 
@@ -49,63 +43,29 @@ def test_mpirun_available(image_list):
 
 
 def test_mpi_runtime_launches_cleanly(image_list):
-    """Regression test mirroring the cudaq image check: `mpirun` must be able
-    to launch a trivial process in the image's default environment without
-    emitting errors or crashing. This catches any Dockerfile change that sets
-    an MCA flag inconsistent with how the underlying OpenMPI was built.
+    """Regression test mirroring the base/cudaq image checks: `mpirun` must be
+    able to launch a trivial process in the image's default environment without
+    emitting errors or crashing. Catches any Dockerfile change that sets an MCA
+    flag inconsistent with how the underlying OpenMPI was built.
 
     Uses /bin/true so we don't depend on mpi4py being installed in the DLC.
     """
-    assert len(image_list) > 0, "Unable to find images for testing"
-    for image_path in image_list:
-        result = run_in_image(
-            image_path,
-            ["bash", "-lc", "mpirun -n 1 --allow-run-as-root /bin/true"],
-        )
-        assert result.returncode == 0, (
-            f"mpirun failed in {image_path} (exit {result.returncode}).\n"
-            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
-        )
-        combined_lower = result.combined.lower()
-        for bad in ("segmentation fault", "was not compiled with"):
-            assert bad not in combined_lower, (
-                f"mpirun emitted unexpected error {bad!r} in {image_path}:\n"
-                f"{result.combined}"
-            )
+    assert_mpi_runtime_launches_cleanly(image_list)
 
 
 def test_cudaq_mpi_plugin_present(image_list):
     """The pytorch image installs cudaq from pip but must also run
     activate_custom_mpi.sh during image build to compile the MPI plugin
-    against the DLC's OpenMPI. Without this, cudaq.mpi APIs are unusable.
+    against the DLC's OpenMPI under /opt/amazon/openmpi. Without this,
+    cudaq.mpi APIs raise ``RuntimeError: No MPI support can be found``.
     """
-    assert len(image_list) > 0, "Unable to find images for testing"
-    for image_path in image_list:
-        result = run_in_image(image_path, ["test", "-f", CUDAQ_MPI_PLUGIN_PATH])
-        assert result.returncode == 0, (
-            f"CUDA-Q MPI plugin missing at {CUDAQ_MPI_PLUGIN_PATH} in {image_path}. "
-            f"activate_custom_mpi.sh likely did not run during image build."
-        )
+    assert_cudaq_mpi_plugin_present(image_list)
 
 
 def test_cudaq_mpi_initialize_finalize(image_list):
     """End-to-end check that CUDA-Q's MPI subsystem initializes and finalizes
     cleanly in the pytorch image. Specifically guards against regressions where
-    the cudaq pip install is present but its custom MPI plugin isn't wired up,
-    causing cudaq.mpi.* to raise `RuntimeError: No MPI support can be found`.
+    the cudaq pip install is present but its custom MPI plugin isn't wired up
+    against the DLC's OpenMPI.
     """
-    assert len(image_list) > 0, "Unable to find images for testing"
-    script = (
-        "import cudaq; "
-        "cudaq.mpi.initialize(); "
-        "assert cudaq.mpi.rank() == 0; "
-        "assert cudaq.mpi.num_ranks() == 1; "
-        "cudaq.mpi.finalize()"
-    )
-    for image_path in image_list:
-        result = run_in_image(image_path, ["python", "-c", script])
-        assert result.returncode == 0, (
-            f"cudaq.mpi initialize/finalize failed in {image_path} "
-            f"(exit {result.returncode}).\n"
-            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
-        )
+    assert_cudaq_mpi_initialize_finalize(image_list)
