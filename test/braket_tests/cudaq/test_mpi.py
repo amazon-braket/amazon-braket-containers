@@ -22,7 +22,9 @@ from ..common.mpi_checks import (
     assert_cudaq_mpi_initialize_finalize,
     assert_cudaq_mpi_plugin_present,
     assert_mpi4py_init_no_crash,
+    assert_mpirun_multirank_bcast,
 )
+from ..common.image_run_util import run_in_image
 
 
 def test_mpi_init_no_crash_default_env(image_list):
@@ -50,3 +52,28 @@ def test_cudaq_mpi_initialize_finalize(image_list):
     in addition to basic MPI runtime sanity.
     """
     assert_cudaq_mpi_initialize_finalize(image_list)
+
+
+def test_cuda_aware_mpi_built(image_list):
+    """OpenMPI must be built with --with-cuda for cuStateVec mgpu support.
+    Without CUDA-aware MPI, cuStateVec segfaults when passing GPU device
+    pointers to MPI_Isend/MPI_Irecv during distributed state vector swaps.
+    """
+    assert len(image_list) > 0, "Unable to find images for testing"
+    for image_path in image_list:
+        result = run_in_image(
+            image_path,
+            [
+                "bash", "-c",
+                "ompi_info --parsable --all | grep mpi_built_with_cuda_support:value:true",
+            ],
+        )
+        assert result.returncode == 0, (
+            f"OpenMPI not built with CUDA support in {image_path}.\n"
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+
+
+def test_mpirun_multirank_bcast(image_list):
+    """Multi-rank MPI communication must work in the CUDA-Q container."""
+    assert_mpirun_multirank_bcast(image_list)

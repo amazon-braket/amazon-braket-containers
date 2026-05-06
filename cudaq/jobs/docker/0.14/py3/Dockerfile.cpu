@@ -26,6 +26,40 @@ COPY requirements.txt /
 RUN ${PIP} install --no-cache --upgrade \
         -r requirements.txt
 
+# Rebuild OpenMPI with CUDA-aware support.
+# cuStateVec's distributed index bit swap API passes GPU device pointers to
+# MPI_Isend/MPI_Irecv, which requires CUDA-aware MPI (--with-cuda).
+# See: https://docs.nvidia.com/cuda/cuquantum/latest/custatevec/overview/distributed-index-bit-swap.html
+ENV CUDA_HOME=${CUDAQ_PATH}/nvidia/cuda_runtime
+ENV OPENMPI_VERSION=4.1.8
+ENV OPENMPI_SERIES=v4.1
+RUN mkdir -p ${CUDA_HOME}/lib64/stubs \
+    && echo 'void cuInit() {}' | gcc -shared -o ${CUDA_HOME}/lib64/stubs/libcuda.so -x c - \
+    && cd /tmp \
+    && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/${OPENMPI_SERIES}/openmpi-${OPENMPI_VERSION}.tar.gz \
+    && tar xzf openmpi-${OPENMPI_VERSION}.tar.gz \
+    && cd openmpi-${OPENMPI_VERSION} \
+    && ./configure \
+        --with-cuda=${CUDA_HOME} \
+        --enable-orterun-prefix-by-default \
+        --disable-debug \
+        --enable-shared \
+        --disable-mpi-fortran \
+        --disable-oshmem \
+        --prefix=/usr/local \
+    && make -j $(nproc) all \
+    && make install \
+    && ldconfig \
+    && rm -rf /tmp/openmpi-* \
+    && mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
+    && printf '#!/bin/bash\nmpirun.real --allow-run-as-root "$@"\n' > /usr/local/bin/mpirun \
+    && chmod +x /usr/local/bin/mpirun \
+    && printf 'hwloc_base_binding_policy = none\nrmaps_base_mapping_policy = slot\n' \
+        >> /usr/local/etc/openmpi-mca-params.conf
+
+# Rebuild mpi4py against the new CUDA-aware OpenMPI
+RUN ${PIP} install --no-cache-dir --force-reinstall mpi4py
+
 # Configure CUDA-Q with MPI
 RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
 
