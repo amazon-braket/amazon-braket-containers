@@ -335,6 +335,16 @@ def join_customer_script(customer_code_process: multiprocessing.Process):
     return customer_code_process.exitcode
 
 
+def _is_mpi_active() -> bool:
+    """Check if this process was launched under mpirun.
+
+    The OMPI_COMM_WORLD_SIZE environment variable is set by OpenMPI's mpirun
+    for all ranks. This avoids importing mpi4py (which would auto-initialize
+    MPI as a side effect).
+    """
+    return bool(os.getenv("OMPI_COMM_WORLD_SIZE"))
+
+
 def run_customer_code() -> None:
     """
     Downloads and runs the customer code. If the customer code exists
@@ -346,9 +356,19 @@ def run_customer_code() -> None:
     unpack_code_and_add_to_path(local_s3_file, compression_type)
     install_additional_requirements()
     customer_executable = extract_customer_code(entry_point)
-    customer_process = kick_off_customer_script(customer_executable)
-    if (exit_code := join_customer_script(customer_process)) != 0:
-        sys.exit(exit_code)
+
+    if _is_mpi_active():
+        # Run directly in the parent process to preserve MPI context.
+        # Forking after MPI_Init is discouraged by OpenMPI and causes
+        # finalization failures under mpirun.
+        print("MPI is active — running customer code in-process (no fork)")
+        kwargs = try_bind_hyperparameters_to_customer_method(customer_executable) or {}
+        wrap_customer_code(customer_executable, **kwargs)
+        print("Code Run Finished")
+    else:
+        customer_process = kick_off_customer_script(customer_executable)
+        if (exit_code := join_customer_script(customer_process)) != 0:
+            sys.exit(exit_code)
 
 
 def setup_and_run():

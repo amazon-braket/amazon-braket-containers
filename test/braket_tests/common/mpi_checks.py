@@ -130,3 +130,38 @@ def assert_cudaq_mpi_initialize_finalize(image_list):
             f"(exit {result.returncode}).\n"
             f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
+
+
+def assert_mpirun_multirank_bcast(image_list):
+    """Assert mpirun -np 2 can perform a basic MPI collective (bcast).
+
+    This is an integration test that verifies multi-rank MPI communication
+    works end-to-end inside the container. It catches issues such as forking
+    after MPI_Init (which corrupts shared-memory transport) and misconfigured
+    MCA parameters that prevent inter-process communication.
+    """
+    assert len(image_list) > 0, "Unable to find images for testing"
+    script = (
+        "from mpi4py import MPI; "
+        "comm = MPI.COMM_WORLD; "
+        "data = 42 if comm.Get_rank() == 0 else None; "
+        "data = comm.bcast(data, root=0); "
+        "assert data == 42; "
+        "print(f'rank {comm.Get_rank()} bcast OK')"
+    )
+    for image_path in image_list:
+        result = run_in_image(
+            image_path,
+            [
+                "bash", "-c",
+                f'mpirun -np 2 --oversubscribe --allow-run-as-root python -c "{script}"',
+            ],
+        )
+        assert result.returncode == 0, (
+            f"MPI bcast failed in {image_path} (exit {result.returncode}).\n"
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+        assert "bcast OK" in result.stdout, (
+            f"Expected 'bcast OK' in output from {image_path}.\n"
+            f"stdout:\n{result.stdout}"
+        )
