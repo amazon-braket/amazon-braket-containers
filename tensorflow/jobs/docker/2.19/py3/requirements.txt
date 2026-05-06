@@ -1,12 +1,12 @@
 aiohttp>=3.13.5  # https://nvd.nist.gov/vuln/detail/CVE-2026-34520
-amazon-braket-default-simulator==1.39.0
+amazon-braket-default-simulator==1.39.1
 amazon-braket-pennylane-plugin==1.34.1
 amazon-braket-schemas==1.29.1
 amazon-braket-sdk==1.117.1
-awscli==1.45.1
-botocore==1.43.1
-boto3==1.43.1
-cryptography>=47.0.0  # https://nvd.nist.gov/vuln/detail/CVE-2026-39892
+awscli==1.45.4
+botocore==1.43.4
+boto3==1.43.4
+cryptography>=48.0.0  # https://nvd.nist.gov/vuln/detail/CVE-2026-39892
 dask==2024.8.0
 h5py==3.16.0
 ipykernel==7.2.0
