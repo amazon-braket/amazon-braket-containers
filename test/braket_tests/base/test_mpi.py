@@ -24,6 +24,7 @@ from ..common.image_run_util import run_in_image
 from ..common.mpi_checks import (
     assert_mpi4py_init_no_crash,
     assert_mpi_runtime_launches_cleanly,
+    assert_mpirun_multirank_bcast,
 )
 
 
@@ -114,3 +115,11 @@ def test_mpi4py_init_no_crash_default_env(image_list):
     stronger check than the mpirun-only tests above.
     """
     assert_mpi4py_init_no_crash(image_list)
+
+
+def test_mpirun_multirank_bcast(image_list):
+    """Multi-rank MPI communication must work inside the container.
+    Verifies mpirun -np 2 with a basic bcast collective succeeds, catching
+    issues like fork-after-MPI_Init or broken shared-memory transport.
+    """
+    assert_mpirun_multirank_bcast(image_list)
