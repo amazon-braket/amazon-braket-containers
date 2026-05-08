@@ -35,52 +35,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /tmp/openmpi \
     && find /usr/local -type f -executable ! -path "*/include/*" -exec strip --strip-unneeded {} \; || true
 
-# Stage 2: Build Python
-FROM public.ecr.aws/lts/ubuntu:24.04 AS python-builder
-
-ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHON_VERSION=3.12.12 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-ARG PYTHON_PATH=/usr/local/bin/python3
-
-
-# Install build dependencies and Python
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    ca-certificates \
-    wget \
-    libssl-dev \
-    libbz2-dev \
-    libc6-dev \
-    libffi-dev \
-    libgdbm-dev \
-    liblzma-dev \
-    libncursesw5-dev \
-    libsqlite3-dev \
-    tk-dev \
-    zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && cd /tmp \
-    && wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
-    && tar -xf Python-${PYTHON_VERSION}.tgz \
-    && cd Python-${PYTHON_VERSION} \
-    && ./configure --enable-optimizations \
-                  --with-lto \
-                  --without-doc-strings \
-                  --prefix=/usr/local \
-    && make -j $(nproc) \
-    && make install \
-    && ${PYTHON_PATH} -m ensurepip --upgrade \
-    && ${PYTHON_PATH} -m pip --no-cache-dir install --upgrade pip setuptools wheel \
-    && cd / \
-    && rm -rf /tmp/Python-${PYTHON_VERSION}* \
-    && find /usr/local -type f -executable -exec strip --strip-unneeded {} \; || true \
-    && find /usr/local -type f -name "*.a" -delete \
-    && find /usr/local -type f -name "*.la" -delete \
-    && rm -rf /usr/local/share/doc /usr/local/share/man /usr/local/share/info
-
 # Final Stage
 FROM public.ecr.aws/lts/ubuntu:24.04
 
@@ -99,11 +53,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SAGEMAKER_PROGRAM=braket_container.py
 
 ARG HOME_DIR=/root
-ARG PYTHON_PATH=/usr/local/bin/python3
+ARG PYTHON_PATH=/usr/bin/python3
 
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
-COPY --from=python-builder /usr/local /usr/local
 
 # Install build deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -117,6 +70,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3t64 \
     openssl \
     unzip \
+    python3.12 \
+    python3.12-dev \
+    python3-dev \
+    python3-pip \
     libgtk2.0-dev \
     cmake \
     protobuf-compiler \
@@ -134,16 +91,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
-    && ln -sf ${PYTHON_PATH} /usr/bin/python3 \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
-    && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
-    && ln -sf /usr/local/bin/pip3 /usr/bin/pip
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip3 \
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip \
+    && ln -sf /usr/bin/pip3 /usr/bin/pip
 
 WORKDIR /
 
 # Install Python dependencies
 COPY requirements.txt /
-RUN pip3 install --no-cache-dir -r requirements.txt \
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt \
     && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 

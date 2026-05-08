@@ -1,32 +1,80 @@
-# CUDA-Q Container based on Amazon Braket Base Image
+# This is similar to the base container, but builds OpenMPI
+# with CUDA-aware support so that CUDA-Q MPI is supported.
+FROM public.ecr.aws/lts/ubuntu:24.04
 
-FROM 292282985366.dkr.ecr.us-east-1.amazonaws.com/amazon-braket-base-jobs:latest
+LABEL maintainer="Amazon Braket" \
+      major_version="1"
 
-LABEL maintainer="Amazon Braket"
-LABEL major_version="1"
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NONINTERACTIVE_SEEN=true \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
+    PATH=/usr/local/bin:/usr/local/openmpi/bin/:$PATH \
+    SAGEMAKER_PROGRAM=braket_container.py
+
+ARG HOME_DIR=/root
+ARG PYTHON_PATH=/usr/bin/python3
+
+# Install build deps (mirror of base/jobs/docker/1.0/py3/Dockerfile.cpu)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssh-client \
+    openssh-server \
+    build-essential \
+    ca-certificates \
+    curl \
+    git \
+    libtemplate-perl \
+    libssl3t64 \
+    openssl \
+    unzip \
+    python3.12 \
+    python3.12-dev \
+    python3-dev \
+    python3-pip \
+    libgtk2.0-dev \
+    cmake \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/* \
+              /usr/share/doc \
+              /usr/share/man \
+              /usr/share/locale \
+              /var/cache/debconf \
+              /var/lib/dpkg/info \
+              /var/log/* \
+    && rm -rf /usr/local/lib/*.a \
+    && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
+    && mkdir -p ${HOME_DIR}/.ssh/ /var/run/sshd \
+    && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
+    && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
+    && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
+    && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
+    && ln -sf ${PYTHON_PATH} /usr/bin/python \
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip3 \
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip \
+    && ln -sf /usr/bin/pip3 /usr/bin/pip
+
+WORKDIR /
 
 ARG PIP=pip3
 ARG PYTHON_SHORT_VERSION=3.12
 ARG MPI_BASE_PATH=/usr/local
-ARG CUDAQ_PATH=${MPI_BASE_PATH}/lib/python${PYTHON_SHORT_VERSION}/site-packages
+ARG CUDAQ_PATH=${MPI_BASE_PATH}/lib/python${PYTHON_SHORT_VERSION}/dist-packages
 
 ENV MPI_PATH=${MPI_BASE_PATH}
 ENV OMPI_MCA_btl='^openib'
 ENV CXX=g++
-ENV LD_LIBRARY_PATH=${MPI_BASE_PATH}/lib:$LD_LIBRARY_PATH
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
 
 # Copy the dependencies file
 COPY requirements.txt /
 # Installing our custom python libraries including CUDA-Q
-RUN ${PIP} install --no-cache --upgrade \
+RUN ${PIP} install --no-cache --upgrade --break-system-packages \
         -r requirements.txt
 
-# Rebuild OpenMPI with CUDA-aware support.
+# Build OpenMPI with CUDA-aware support.
 # cuStateVec's distributed index bit swap API passes GPU device pointers to
 # MPI_Isend/MPI_Irecv, which requires CUDA-aware MPI (--with-cuda).
 # See: https://docs.nvidia.com/cuda/cuquantum/latest/custatevec/overview/distributed-index-bit-swap.html
@@ -58,7 +106,7 @@ RUN mkdir -p ${CUDA_HOME}/lib64/stubs \
         >> /usr/local/etc/openmpi-mca-params.conf
 
 # Rebuild mpi4py against the new CUDA-aware OpenMPI
-RUN ${PIP} install --no-cache-dir --force-reinstall mpi4py
+RUN ${PIP} install --no-cache-dir --break-system-packages --force-reinstall mpi4py
 
 # Configure CUDA-Q with MPI
 RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
