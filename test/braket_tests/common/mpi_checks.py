@@ -86,13 +86,17 @@ def assert_mpi4py_init_no_crash(image_list):
 # CUDA-Q's activate_custom_mpi.sh compiles this shared object against whatever
 # MPI headers are present in the image at build time (base's from-source OpenMPI
 # in the cudaq image, the DLC's OpenMPI under /opt/amazon/openmpi in the pytorch
-# image). Both images install cudaq from pip into the same site-packages layout,
-# so the plugin ends up at this path either way. Absence of the file means
+# image). The plugin lives next to ``activate_custom_mpi.sh`` inside CUDA-Q's
+# ``distributed_interfaces`` package, which is under ``site-packages`` for
+# from-source Python installs (pytorch DLC) and ``dist-packages`` for apt
+# python3.12 (current cudaq image). Absence of the file means
 # activate_custom_mpi.sh did not run or failed silently during image build, in
 # which case ``cudaq.mpi`` APIs raise ``RuntimeError: No MPI support can be found``.
-CUDAQ_MPI_PLUGIN_PATH = (
+CUDAQ_MPI_PLUGIN_CANDIDATES = (
     "/usr/local/lib/python3.12/site-packages/distributed_interfaces/"
-    "libcudaq_distributed_interface_mpi.so"
+    "libcudaq_distributed_interface_mpi.so",
+    "/usr/local/lib/python3.12/dist-packages/distributed_interfaces/"
+    "libcudaq_distributed_interface_mpi.so",
 )
 
 
@@ -100,11 +104,15 @@ def assert_cudaq_mpi_plugin_present(image_list):
     """Assert CUDA-Q's custom MPI plugin ``.so`` exists in each image."""
     assert len(image_list) > 0, "Unable to find images for testing"
     for image_path in image_list:
-        result = run_in_image(image_path, ["test", "-f", CUDAQ_MPI_PLUGIN_PATH])
+        # Pass if the plugin is found at any of the supported locations.
+        shell_test = " || ".join(
+            f"test -f {path}" for path in CUDAQ_MPI_PLUGIN_CANDIDATES
+        )
+        result = run_in_image(image_path, ["sh", "-c", shell_test])
         assert result.returncode == 0, (
-            f"CUDA-Q MPI plugin missing at {CUDAQ_MPI_PLUGIN_PATH} in {image_path}. "
-            f"activate_custom_mpi.sh likely did not run or failed silently during "
-            f"image build."
+            f"CUDA-Q MPI plugin missing at any of {CUDAQ_MPI_PLUGIN_CANDIDATES} "
+            f"in {image_path}. activate_custom_mpi.sh likely did not run or "
+            f"failed silently during image build."
         )
 
 
