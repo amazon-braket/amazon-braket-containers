@@ -1,3 +1,8 @@
 # SageMaker test dependencies
 # Note: Install requirements-base.txt first in CI/CD
-sagemaker==2.235.2  # Pinned: >=2.236.0 requires omegaconf which conflicts with antlr4-python3-runtime in braket-default-simulator
+# Note: omegaconf>=2.4 is required to avoid antlr4 conflict between
+#       sagemaker-core and amazon-braket-default-simulator.
+#       Install with --pre until omegaconf 2.4 is released.
+--pre
+omegaconf==2.4.0.dev11
+sagemaker==2.257.3

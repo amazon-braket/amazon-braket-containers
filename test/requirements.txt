@@ -5,6 +5,4 @@
 -r requirements-base.txt
 
 # SageMaker test dependencies
-# Note: This will cause dependency conflicts with antlr4-python3-runtime
-# CI/CD handles this by running tests separately
 -r requirements-sagemaker.txt
