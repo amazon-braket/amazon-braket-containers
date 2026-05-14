@@ -11,13 +11,14 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import os
 import io
+import os
 from contextlib import redirect_stdout
-import boto3
-from botocore.session import get_session
 
-from sagemaker.estimator import Estimator
+import boto3
+from sagemaker.core.training.configs import Compute
+from sagemaker.train import ModelTrainer
+from sagemaker.train.model_trainer import Mode
 
 MODULE_NAME = "run_script"
 SCRIPT_NAME = MODULE_NAME + ".py"
@@ -40,22 +41,24 @@ def upload_test_script_to_s3(s3_bucket, s3_location):
 
 def single_image_test(account, role, s3_bucket, s3_location, image_path):
     environment_variables = {
-        "AMZN_BRAKET_SCRIPT_S3_URI" : f"s3://{s3_bucket}/{s3_location}/{SCRIPT_NAME}",
+        "AMZN_BRAKET_SCRIPT_S3_URI": f"s3://{s3_bucket}/{s3_location}/{SCRIPT_NAME}",
         "AMZN_BRAKET_SCRIPT_ENTRY_POINT": f"{MODULE_NAME}",
     }
-    estimator = Estimator(image_uri=image_path,
-                          role=f"arn:aws:iam::{account}:role/{role}",
-                          instance_count=1,
-                          instance_type='local',
-                          hyperparameters=environment_variables,
-                          environment=environment_variables)
-    estimator_output = io.StringIO()
-    with redirect_stdout(estimator_output):
+    trainer = ModelTrainer(
+        training_mode=Mode.LOCAL_CONTAINER,
+        training_image=image_path,
+        role=f"arn:aws:iam::{account}:role/{role}",
+        compute=Compute(instance_count=1, instance_type="local"),
+        hyperparameters=environment_variables,
+        environment=environment_variables,
+    )
+    trainer_output = io.StringIO()
+    with redirect_stdout(trainer_output):
         try:
-            estimator.fit()
+            trainer.train(wait=True)
         except Exception as e:
             print(e)
-    output = estimator_output.getvalue()
+    output = trainer_output.getvalue()
     print(output)
     assert output.find("Braket Container Run Success") > 0, "Container did not run successfully"
     assert output.find("exited with code 0") > 0, "Exit code was not zero"

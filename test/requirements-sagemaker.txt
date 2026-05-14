@@ -5,4 +5,5 @@
 #       Install with --pre until omegaconf 2.4 is released.
 --pre
 omegaconf==2.4.0.dev11
-sagemaker==2.257.3
+sagemaker-train
+sagemaker-core
