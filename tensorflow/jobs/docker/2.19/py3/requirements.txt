@@ -21,7 +21,6 @@ pandas==2.3.3
 pennylane==0.45.0
 pennylane-lightning==0.45.0
 pydantic==2.13.4
-requests==2.32.5
 sagemaker-training==5.1.1
 scikit-learn==1.8.0
 six==1.17.0

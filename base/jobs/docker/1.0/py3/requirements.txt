@@ -14,7 +14,7 @@ pennylane==0.45.0
 pennylane-lightning==0.45.0
 qiskit==2.4.1
 qiskit-braket-provider==0.14.3
-requests==2.32.5
+requests==2.34.1
 sagemaker-training==5.1.1
 scikit-learn==1.8.0
 scipy==1.17.1
