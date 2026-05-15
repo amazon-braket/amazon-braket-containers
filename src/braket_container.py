@@ -11,6 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import contextlib
+import dataclasses
 import errno
 import importlib
 import threading
@@ -345,6 +346,121 @@ def _is_mpi_active() -> bool:
     return bool(os.getenv("OMPI_COMM_WORLD_SIZE"))
 
 
+def _is_data_parallel_enabled() -> bool:
+    """Return True if the customer requested data-parallel via the Braket SDK
+    `distribution="data_parallel"` flag, which surfaces inside the container
+    as the `sagemaker_distributed_dataparallel_enabled` hyperparameter.
+    """
+    hp_file = os.getenv("AMZN_BRAKET_HP_FILE")
+    if not hp_file:
+        return False
+    try:
+        with open(hp_file) as f:
+            hp = json.load(f)
+        val = hp.get("sagemaker_distributed_dataparallel_enabled", "")
+    except Exception:
+        return False
+    if isinstance(val, bool):
+        return val
+    return str(val).strip().lower() in ("true", "1", "yes")
+
+
+@dataclasses.dataclass(frozen=True)
+class DataParallelTopology:
+    """DDP topology derived from SageMaker-provided env vars."""
+
+    nnodes: int
+    nproc_per_node: int
+    world_size: int
+    node_rank: int
+    master_addr: str
+    master_port: str
+
+    @property
+    def rank_offset(self) -> int:
+        """Global rank of this node's first worker."""
+        return self.node_rank * self.nproc_per_node
+
+
+def _data_parallel_topology() -> "DataParallelTopology":
+    """Derive the DDP topology from SageMaker-provided env vars."""
+    try:
+        import torch  # noqa: WPS433 — local import to avoid hard dep at import time
+        nproc_per_node = max(torch.cuda.device_count(), 1)
+    except Exception:
+        nproc_per_node = 1
+
+    sm_hosts = json.loads(os.environ.get("SM_HOSTS", "[]"))
+    sm_current_host = os.environ.get("SM_CURRENT_HOST", "")
+    nnodes = max(len(sm_hosts), 1)
+    if nnodes > 1 and sm_current_host:
+        sm_hosts_sorted = sorted(sm_hosts)
+        node_rank = sm_hosts_sorted.index(sm_current_host)
+        master_addr = sm_hosts_sorted[0]
+    else:
+        node_rank = 0
+        master_addr = "127.0.0.1"
+    return DataParallelTopology(
+        nnodes=nnodes,
+        nproc_per_node=nproc_per_node,
+        world_size=nnodes * nproc_per_node,
+        node_rank=node_rank,
+        master_addr=master_addr,
+        master_port=os.environ.get("MASTER_PORT", "23456"),
+    )
+
+
+def _dp_worker_target(local_rank, topology: "DataParallelTopology",
+                      customer_code, kwargs):
+    """Subprocess target for one data-parallel worker.
+
+    Sets the standard PyTorch DDP env vars before invoking the customer code,
+    so customer scripts can call `torch.distributed.init_process_group(
+    backend="nccl", init_method="env://")` (or any equivalent that reads RANK,
+    LOCAL_RANK, WORLD_SIZE, MASTER_ADDR, MASTER_PORT from the environment).
+    """
+    os.environ["RANK"] = str(topology.rank_offset + local_rank)
+    os.environ["LOCAL_RANK"] = str(local_rank)
+    os.environ["WORLD_SIZE"] = str(topology.world_size)
+    os.environ["MASTER_ADDR"] = topology.master_addr
+    os.environ["MASTER_PORT"] = topology.master_port
+    wrap_customer_code(customer_code, **(kwargs or {}))
+
+
+def kick_off_data_parallel(customer_code: Callable) -> int:
+    """Launch one subprocess per local GPU with PyTorch DDP env vars set.
+
+    Triggered when the customer used `distribution="data_parallel"` in the
+    Braket SDK. Returns the worst exit code across worker processes (0 if
+    all succeeded).
+    """
+    topology = _data_parallel_topology()
+    print(
+        f"data_parallel launch: nnodes={topology.nnodes}, "
+        f"nproc_per_node={topology.nproc_per_node}, "
+        f"world_size={topology.world_size}, node_rank={topology.node_rank}, "
+        f"master={topology.master_addr}:{topology.master_port}"
+    )
+
+    kwargs = try_bind_hyperparameters_to_customer_method(customer_code) or {}
+
+    procs = []
+    for local_rank in range(topology.nproc_per_node):
+        p = multiprocessing.Process(
+            target=_dp_worker_target,
+            args=(local_rank, topology, customer_code, kwargs),
+        )
+        p.start()
+        procs.append(p)
+
+    final_rc = 0
+    for p in procs:
+        p.join()
+        if p.exitcode and not final_rc:
+            final_rc = p.exitcode
+    return final_rc
+
+
 def run_customer_code() -> None:
     """
     Downloads and runs the customer code. If the customer code exists
@@ -364,6 +480,14 @@ def run_customer_code() -> None:
         print("MPI is active — running customer code in-process (no fork)")
         kwargs = try_bind_hyperparameters_to_customer_method(customer_executable) or {}
         wrap_customer_code(customer_executable, **kwargs)
+        print("Code Run Finished")
+    elif _is_data_parallel_enabled():
+        # Customer requested distribution="data_parallel". Launch one process
+        # per local GPU with PyTorch DDP env vars set; customer code uses
+        # standard env:// init.
+        print("data_parallel mode is active — launching one process per GPU")
+        if (exit_code := kick_off_data_parallel(customer_executable)) != 0:
+            sys.exit(exit_code)
         print("Code Run Finished")
     else:
         customer_process = kick_off_customer_script(customer_executable)

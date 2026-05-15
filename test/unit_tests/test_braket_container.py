@@ -353,3 +353,190 @@ def test_bind_hyperparameters_type_error(hyperparameters):
     with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": hp_file}):
         with pytest.raises(ValueError, match=invalid_literal):
             try_bind_hyperparameters_to_customer_method(customer_method_wrong_type)
+
+
+@pytest.fixture
+def dp_hp_files(pytester):
+    pytester.makefile(
+        ".json",
+        dp_on=json.dumps({"sagemaker_distributed_dataparallel_enabled": "true"}),
+    )
+    pytester.makefile(
+        ".json",
+        dp_off=json.dumps({"sagemaker_distributed_dataparallel_enabled": "false"}),
+    )
+    pytester.makefile(".json", dp_missing=json.dumps({}))
+
+
+@pytest.mark.parametrize(
+    "hp_file, expected",
+    (
+        ("dp_on.json", True),
+        ("dp_off.json", False),
+        ("dp_missing.json", False),
+    ),
+)
+def test_is_data_parallel_enabled(hp_file, expected, dp_hp_files):
+    from src.braket_container import _is_data_parallel_enabled
+
+    with mock.patch.dict("os.environ", {"AMZN_BRAKET_HP_FILE": hp_file}):
+        assert _is_data_parallel_enabled() is expected
+
+
+def test_is_data_parallel_enabled_no_hp_file():
+    from src.braket_container import _is_data_parallel_enabled
+
+    with mock.patch.dict("os.environ", clear=True):
+        assert _is_data_parallel_enabled() is False
+
+
+def test_data_parallel_topology_single_node():
+    from src.braket_container import _data_parallel_topology
+
+    fake_torch = mock.MagicMock()
+    fake_torch.cuda.device_count.return_value = 4
+    env = {}  # no SM_HOSTS / SM_CURRENT_HOST
+    with mock.patch.dict("sys.modules", {"torch": fake_torch}), \
+            mock.patch.dict("os.environ", env, clear=True):
+        topo = _data_parallel_topology()
+
+    assert topo.nnodes == 1
+    assert topo.nproc_per_node == 4
+    assert topo.world_size == 4
+    assert topo.node_rank == 0
+    assert topo.master_addr == "127.0.0.1"
+    assert topo.master_port == "23456"
+    assert topo.rank_offset == 0
+
+
+def test_data_parallel_topology_multi_node():
+    from src.braket_container import _data_parallel_topology
+
+    fake_torch = mock.MagicMock()
+    fake_torch.cuda.device_count.return_value = 4
+    env = {
+        "SM_HOSTS": json.dumps(["algo-1", "algo-2"]),
+        "SM_CURRENT_HOST": "algo-2",
+    }
+    with mock.patch.dict("sys.modules", {"torch": fake_torch}), \
+            mock.patch.dict("os.environ", env, clear=True):
+        topo = _data_parallel_topology()
+
+    assert topo.nnodes == 2
+    assert topo.nproc_per_node == 4
+    assert topo.world_size == 8
+    assert topo.node_rank == 1            # algo-2 is the second host once sorted
+    assert topo.master_addr == "algo-1"   # smallest host name is the master
+    # Worker 0 on this node is global rank 4 (offset 1 * 4).
+    assert topo.rank_offset == 4
+
+
+def test_data_parallel_topology_no_torch():
+    from src.braket_container import _data_parallel_topology
+
+    # If torch can't be imported (e.g. unit tests on a machine without it),
+    # the launcher gracefully falls back to a single worker.
+    with mock.patch.dict("sys.modules", {"torch": None}), \
+            mock.patch.dict("os.environ", {}, clear=True):
+        topo = _data_parallel_topology()
+
+    assert topo.nproc_per_node == 1
+    assert topo.world_size == 1
+
+
+def test_dp_worker_sets_env_and_invokes_customer():
+    from src.braket_container import DataParallelTopology, _dp_worker_target
+
+    topology = DataParallelTopology(
+        nnodes=2,
+        nproc_per_node=4,
+        world_size=8,
+        node_rank=1,
+        master_addr="algo-1",
+        master_port="23456",
+    )
+    captured = {}
+
+    def fake_wrap_customer_code(customer_code, **kwargs):
+        # Snapshot the env so we can assert the worker set things correctly
+        # before the customer code was invoked.
+        captured["env"] = {
+            k: os.environ.get(k)
+            for k in ("RANK", "LOCAL_RANK", "WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT")
+        }
+        captured["customer_code"] = customer_code
+        captured["kwargs"] = kwargs
+
+    customer = mock.MagicMock(__name__="customer")
+    with mock.patch.dict("os.environ", {}, clear=True), \
+            mock.patch(
+                "src.braket_container.wrap_customer_code",
+                side_effect=fake_wrap_customer_code,
+            ):
+        _dp_worker_target(
+            local_rank=2,
+            topology=topology,
+            customer_code=customer,
+            kwargs={"foo": "bar"},
+        )
+
+    # node_rank=1 * nproc_per_node=4 + local_rank=2 == global rank 6
+    assert captured["env"]["RANK"] == "6"
+    assert captured["env"]["LOCAL_RANK"] == "2"
+    assert captured["env"]["WORLD_SIZE"] == "8"
+    assert captured["env"]["MASTER_ADDR"] == "algo-1"
+    assert captured["env"]["MASTER_PORT"] == "23456"
+    assert captured["customer_code"] is customer
+    assert captured["kwargs"] == {"foo": "bar"}
+
+
+def test_kick_off_data_parallel_spawns_one_process_per_gpu():
+    from src.braket_container import DataParallelTopology, kick_off_data_parallel
+
+    topology = DataParallelTopology(
+        nnodes=1, nproc_per_node=3, world_size=3, node_rank=0,
+        master_addr="127.0.0.1", master_port="23456",
+    )
+    customer = mock.MagicMock(__name__="customer")
+
+    fake_proc = mock.MagicMock(exitcode=0)
+    with mock.patch("src.braket_container._data_parallel_topology", return_value=topology), \
+            mock.patch(
+                "src.braket_container.try_bind_hyperparameters_to_customer_method",
+                return_value=None,
+            ), \
+            mock.patch(
+                "src.braket_container.multiprocessing.Process", return_value=fake_proc,
+            ) as mock_process:
+        rc = kick_off_data_parallel(customer)
+
+    assert rc == 0
+    assert mock_process.call_count == 3                           # one per GPU
+    assert fake_proc.start.call_count == 3
+    assert fake_proc.join.call_count == 3
+    # Each Process is constructed with local_rank in {0, 1, 2}.
+    local_ranks = [c.kwargs["args"][0] for c in mock_process.call_args_list]
+    assert sorted(local_ranks) == [0, 1, 2]
+
+
+def test_kick_off_data_parallel_propagates_worker_failure():
+    from src.braket_container import DataParallelTopology, kick_off_data_parallel
+
+    topology = DataParallelTopology(
+        nnodes=1, nproc_per_node=2, world_size=2, node_rank=0,
+        master_addr="127.0.0.1", master_port="23456",
+    )
+
+    failing_proc = mock.MagicMock(exitcode=42)
+    with mock.patch("src.braket_container._data_parallel_topology", return_value=topology), \
+            mock.patch(
+                "src.braket_container.try_bind_hyperparameters_to_customer_method",
+                return_value=None,
+            ), \
+            mock.patch(
+                "src.braket_container.multiprocessing.Process",
+                return_value=failing_proc,
+            ):
+        rc = kick_off_data_parallel(mock.MagicMock(__name__="customer"))
+
+    assert rc == 42
