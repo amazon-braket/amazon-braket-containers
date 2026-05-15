@@ -5,9 +5,9 @@ amazon-braket-sdk==1.117.2
 awscli==1.45.7
 botocore==1.43.7
 boto3==1.43.7
-cudaq==0.14.2
-cudaq-qec==0.6.0
-cudaq-solvers==0.6.0
+cuda-quantum-cu12==0.14.2
+cudaq-qec-cu12==0.6.0
+cudaq-solvers-cu12==0.6.0
 dask==2024.8.0
 matplotlib==3.10.9
 mpi4py
