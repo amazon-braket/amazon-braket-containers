@@ -4,6 +4,7 @@ invoke
 mock
 pytest
 pytest-xdist
+torch
 
 # Braket test dependencies
 amazon-braket-sdk==1.117.2
