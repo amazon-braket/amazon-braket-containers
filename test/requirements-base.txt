@@ -7,4 +7,4 @@ pytest-xdist
 
 # Braket test dependencies
 amazon-braket-sdk==1.121.0
-pennylane==0.45.0
+pennylane==0.45.1
