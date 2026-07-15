@@ -4,6 +4,6 @@
 #       sagemaker-core and amazon-braket-default-simulator.
 #       Install with --pre until omegaconf 2.4 is released.
 --pre
-omegaconf==2.4.0.dev11
+omegaconf==2.4.0.dev12
 sagemaker-train==1.11.0
 sagemaker-core==2.11.0
