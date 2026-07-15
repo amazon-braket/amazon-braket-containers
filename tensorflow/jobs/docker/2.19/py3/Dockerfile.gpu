@@ -32,8 +32,7 @@ RUN apt-get update \
 # Copy the dependencies file
 COPY requirements.txt /
 # Installing our custom python libraries
-RUN ${PIP} install --no-cache --upgrade \
-        -r requirements.txt
+RUN ${PIP} install --no-cache --upgrade -r requirements.txt
 
 # install cuQuantum
 RUN wget https://developer.download.nvidia.com/compute/cuquantum/redist/cuquantum/linux-x86_64/cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz && tar xvf ./cuquantum-linux-x86_64-23.03.0.20-archive.tar.xz
