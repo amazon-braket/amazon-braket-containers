@@ -6,7 +6,7 @@ awscli==1.45.53
 botocore==1.43.53
 boto3==1.43.53
 certifi>=2026.6.17  # https://nvd.nist.gov/vuln/detail/CVE-2023-37920
-cuda-quantum-cu12==0.15.0
+cuda-quantum-cu12==0.14.2
 cudaq-qec-cu12==0.6.0
 cudaq-solvers-cu12==0.6.0
 dask==2024.8.0
