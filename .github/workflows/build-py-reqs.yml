@@ -19,9 +19,9 @@ jobs:
       matrix:
         path: ["base/jobs/docker/*/py3/requirements.txt", "pytorch/jobs/docker/*/py3/requirements.txt", "tensorflow/jobs/docker/*/py3/requirements.txt", "cudaq/jobs/docker/*/py3/requirements.txt"]
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - name: setup python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12" # install the python version needed
           
