@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Final Stage
 FROM public.ecr.aws/lts/ubuntu:24.04
 
+# shared-block:begin runtime-env
 LABEL maintainer="Amazon Braket" \
       major_version="1"
 
@@ -54,11 +55,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 ARG HOME_DIR=/root
 ARG PYTHON_PATH=/usr/bin/python3
+# shared-block:end runtime-env
 
 # Copy from previous stages
 COPY --from=openmpi-builder /usr/local /usr/local
 
 # Install build deps
+# shared-block:begin system-deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     openssh-server \
@@ -97,6 +100,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip
+# shared-block:end system-deps
 
 WORKDIR /
 

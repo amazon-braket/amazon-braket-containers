@@ -2,6 +2,7 @@
 # with CUDA-aware support so that CUDA-Q MPI is supported.
 FROM public.ecr.aws/lts/ubuntu:24.04
 
+# shared-block:begin runtime-env
 LABEL maintainer="Amazon Braket" \
       major_version="1"
 
@@ -18,8 +19,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 ARG HOME_DIR=/root
 ARG PYTHON_PATH=/usr/bin/python3
+# shared-block:end runtime-env
 
 # Install build deps (mirror of base/jobs/docker/1.0/py3/Dockerfile.cpu)
+# shared-block:begin system-deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     openssh-server \
@@ -58,6 +61,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip
+# shared-block:end system-deps
 
 WORKDIR /
 
