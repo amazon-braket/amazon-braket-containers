@@ -53,7 +53,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
     && ${PYTHON_PATH} -m pip install --no-cache-dir --break-system-packages \
-        --upgrade pip setuptools wheel \
+        --ignore-installed --upgrade pip setuptools wheel \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
