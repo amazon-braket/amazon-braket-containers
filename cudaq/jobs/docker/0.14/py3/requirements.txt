@@ -1,10 +1,10 @@
-amazon-braket-default-simulator==1.39.6
-amazon-braket-pennylane-plugin==1.35.0
-amazon-braket-schemas==1.31.0
+amazon-braket-default-simulator==1.39.8
+amazon-braket-pennylane-plugin==1.35.1
+amazon-braket-schemas==1.32.1
 amazon-braket-sdk==1.124.3
-awscli==1.45.58
-botocore==1.43.58
-boto3==1.43.58
+awscli==1.45.62
+botocore==1.43.62
+boto3==1.43.62
 cuda-quantum-cu12==0.14.2
 cudaq-qec-cu12==0.6.0
 cudaq-solvers-cu12==0.6.0
@@ -16,7 +16,7 @@ pandas==2.3.3
 pennylane==0.45.1
 pennylane-lightning==0.45.0
 qiskit==2.5.1
-qiskit-braket-provider==0.20.1
+qiskit-braket-provider==0.20.2
 sagemaker-training==5.1.1
 scikit-learn==1.9.0
 scipy==1.18.0
