@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
-    PATH=/usr/local/bin:/usr/local/openmpi/bin/:$PATH \
+    PATH=/usr/local/bin:/usr/local/openmpi/bin:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py
 
 ARG HOME_DIR=/root
@@ -46,16 +46,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
               /var/lib/dpkg/info \
               /var/log/* \
     && rm -rf /usr/local/lib/*.a \
+    && ldconfig \
     && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
     && mkdir -p ${HOME_DIR}/.ssh/ /var/run/sshd \
     && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
+    && ${PYTHON_PATH} -m pip install --no-cache-dir --break-system-packages \
+        --upgrade pip setuptools wheel \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
-    && ln -sf /usr/bin/pip3 /usr/local/bin/pip3 \
-    && ln -sf /usr/bin/pip3 /usr/local/bin/pip \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
+    && ln -sf /usr/local/bin/pip3 /usr/bin/pip
 
 WORKDIR /
 
@@ -105,8 +107,11 @@ RUN mkdir -p ${CUDA_HOME}/lib64/stubs \
     && printf 'hwloc_base_binding_policy = none\nrmaps_base_mapping_policy = slot\n' \
         >> /usr/local/etc/openmpi-mca-params.conf
 
-# Rebuild mpi4py against the new CUDA-aware OpenMPI
-RUN ${PIP} install --no-cache-dir --break-system-packages --force-reinstall mpi4py
+# Rebuild mpi4py against the new CUDA-aware OpenMPI. --no-binary is required:
+# the mpi4py wheel ships prebuilt extensions that dlopen libmpi at import time,
+# so without it pip would simply reinstall the same wheel and compile nothing.
+RUN ${PIP} install --no-cache-dir --break-system-packages --force-reinstall \
+        --no-binary=mpi4py mpi4py
 
 # Configure CUDA-Q with MPI
 RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"
