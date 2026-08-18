@@ -29,6 +29,9 @@ ARG CUDAQ_PATH=/usr/local/lib/python${PYTHON_SHORT_VERSION}/site-packages
 ENV MPI_PATH=${MPI_BASE_PATH}
 ENV CXX=g++
 
+ENV PIP_RETRIES=10 \
+    PIP_DEFAULT_TIMEOUT=60
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
