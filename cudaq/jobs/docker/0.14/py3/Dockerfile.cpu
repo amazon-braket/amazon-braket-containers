@@ -15,6 +15,9 @@ ENV OMPI_MCA_btl='^openib'
 ENV CXX=g++
 ENV LD_LIBRARY_PATH=${MPI_BASE_PATH}/lib:$LD_LIBRARY_PATH
 
+ENV PIP_RETRIES=10 \
+    PIP_DEFAULT_TIMEOUT=60
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/* \
