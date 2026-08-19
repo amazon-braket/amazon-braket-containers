@@ -1,5 +1,10 @@
 version: 0.2
 
+env:
+  variables:
+    PIP_RETRIES: "10"
+    PIP_DEFAULT_TIMEOUT: "60"
+
 phases:
   install:
     runtime-versions:

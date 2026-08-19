@@ -1,4 +1,8 @@
 version: 0.2
+env:
+  variables:
+    PIP_RETRIES: "10"
+    PIP_DEFAULT_TIMEOUT: "60"
 phases:
   install:
     runtime-versions:
@@ -21,9 +25,11 @@ phases:
       - echo Testing images at $CODEBUILD_SRC_DIR_BUILD_RESULTS...
       - pytest test/unit_tests
       - |
+        set -eo pipefail
         echo Running Braket tests...
         pytest test/braket_tests/$FRAMEWORK -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
       - |
+        set -eo pipefail
         echo Running SageMaker tests...
         pip install -r test/requirements-sagemaker.txt
         pytest test/sagemaker_tests -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
