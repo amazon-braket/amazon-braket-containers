@@ -25,11 +25,11 @@ phases:
       - echo Testing images at $CODEBUILD_SRC_DIR_BUILD_RESULTS...
       - pytest test/unit_tests
       - |
-        set -eo pipefail
+        set -e
         echo Running Braket tests...
         pytest test/braket_tests/$FRAMEWORK -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
       - |
-        set -eo pipefail
+        set -e
         echo Running SageMaker tests...
         pip install -r test/requirements-sagemaker.txt
         pytest test/sagemaker_tests -vv --from-build-results $CODEBUILD_SRC_DIR_BUILD_RESULTS/build_results.txt
