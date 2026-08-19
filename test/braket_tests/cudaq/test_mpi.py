@@ -14,11 +14,12 @@
 """Fast smoke tests for MPI behavior in the CUDA-Q image.
 
 These tests run `docker run` one-liners (no AWS, no SageMaker, no GPU), so they
-complete in a few seconds per image. They guard against regressions in how the
-CUDA-Q image composes on top of the base image's OpenMPI build.
+complete in a few seconds per image. They guard against regressions in the
+CUDA-aware OpenMPI build that the CUDA-Q image compiles for itself.
 """
 
 from ..common.mpi_checks import (
+    CUDAQ_MPI_PLUGIN_PATH_DIST_PACKAGES,
     assert_cudaq_mpi_initialize_finalize,
     assert_cudaq_mpi_plugin_present,
     assert_mpi4py_init_no_crash,
@@ -29,26 +30,26 @@ from ..common.image_run_util import run_in_image
 
 def test_mpi_init_no_crash_default_env(image_list):
     """Regression test: when OMPI_MCA_opal_cuda_support=true was set in the
-    CUDA-Q Dockerfile but the base OpenMPI was not built with --with-cuda,
-    MPI_Init would emit `opal_cuda_support` errors and segfault during
-    library initialization on non-GPU hosts. Verifies CUDA-Q's image build
-    didn't reintroduce that (or a similar) misconfiguration on top of base.
+    CUDA-Q Dockerfile but the OpenMPI in the image was not built with
+    --with-cuda, MPI_Init would emit `opal_cuda_support` errors and segfault
+    during library initialization on non-GPU hosts. Verifies CUDA-Q's image
+    build didn't reintroduce that (or a similar) misconfiguration.
     """
     assert_mpi4py_init_no_crash(image_list)
 
 
 def test_cudaq_mpi_plugin_present(image_list):
     """CUDA-Q's custom MPI plugin is compiled by activate_custom_mpi.sh during
-    image build against the base image's from-source OpenMPI. If the plugin is
+    image build against this image's CUDA-aware OpenMPI. If the plugin is
     missing, CUDA-Q's distributed MPI interface will fall back to a stub and
     silently run as a single rank.
     """
-    assert_cudaq_mpi_plugin_present(image_list)
+    assert_cudaq_mpi_plugin_present(image_list, CUDAQ_MPI_PLUGIN_PATH_DIST_PACKAGES)
 
 
 def test_cudaq_mpi_initialize_finalize(image_list):
-    """End-to-end check that CUDA-Q's MPI subsystem initializes against the
-    base image's OpenMPI. Covers linkage of libcudaq_distributed_interface_mpi.so
+    """End-to-end check that CUDA-Q's MPI subsystem initializes against this
+    image's OpenMPI. Covers linkage of libcudaq_distributed_interface_mpi.so
     in addition to basic MPI runtime sanity.
     """
     assert_cudaq_mpi_initialize_finalize(image_list)

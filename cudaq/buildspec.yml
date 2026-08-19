@@ -22,6 +22,9 @@ context:
     requirements:
       source: ../../cudaq/jobs/docker/0.14/py3/requirements.txt
       target: requirements.txt
+    dockerignore:
+      source: ../../cudaq/jobs/docker/0.14/py3/.dockerignore
+      target: .dockerignore
 
 images:
   BuildCudaqCPUJobsPy3DockerImage:

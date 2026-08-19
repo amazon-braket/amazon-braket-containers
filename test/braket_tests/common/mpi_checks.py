@@ -84,27 +84,34 @@ def assert_mpi4py_init_no_crash(image_list):
 
 
 # CUDA-Q's activate_custom_mpi.sh compiles this shared object against whatever
-# MPI headers are present in the image at build time (base's from-source OpenMPI
-# in the cudaq image, the DLC's OpenMPI under /opt/amazon/openmpi in the pytorch
-# image). Both images install cudaq from pip into the same site-packages layout,
-# so the plugin ends up at this path either way. Absence of the file means
-# activate_custom_mpi.sh did not run or failed silently during image build, in
-# which case ``cudaq.mpi`` APIs raise ``RuntimeError: No MPI support can be found``.
-CUDAQ_MPI_PLUGIN_PATH = (
-    "/usr/local/lib/python3.12/site-packages/distributed_interfaces/"
-    "libcudaq_distributed_interface_mpi.so"
+# MPI headers are present in the image at build time (the CUDA-aware OpenMPI
+# built in the cudaq image, the DLC's OpenMPI under /opt/amazon/openmpi in the
+# pytorch image). The plugin lives next to ``activate_custom_mpi.sh`` inside
+# CUDA-Q's ``distributed_interfaces`` package, so its location follows how
+# Python was installed: ``dist-packages`` for apt python3.12 (cudaq image) and
+# ``site-packages`` for from-source Python (pytorch DLC). Callers pass the path
+# expected for their image so each profile asserts on exactly one location.
+# Absence of the file means activate_custom_mpi.sh did not run or failed
+# silently during image build, in which case ``cudaq.mpi`` APIs raise
+# ``RuntimeError: No MPI support can be found``.
+_CUDAQ_MPI_PLUGIN_SO = "distributed_interfaces/libcudaq_distributed_interface_mpi.so"
+CUDAQ_MPI_PLUGIN_PATH_DIST_PACKAGES = (
+    f"/usr/local/lib/python3.12/dist-packages/{_CUDAQ_MPI_PLUGIN_SO}"
+)
+CUDAQ_MPI_PLUGIN_PATH_SITE_PACKAGES = (
+    f"/usr/local/lib/python3.12/site-packages/{_CUDAQ_MPI_PLUGIN_SO}"
 )
 
 
-def assert_cudaq_mpi_plugin_present(image_list):
-    """Assert CUDA-Q's custom MPI plugin ``.so`` exists in each image."""
+def assert_cudaq_mpi_plugin_present(image_list, plugin_path):
+    """Assert CUDA-Q's custom MPI plugin ``.so`` exists at ``plugin_path``."""
     assert len(image_list) > 0, "Unable to find images for testing"
     for image_path in image_list:
-        result = run_in_image(image_path, ["test", "-f", CUDAQ_MPI_PLUGIN_PATH])
+        result = run_in_image(image_path, ["test", "-f", plugin_path])
         assert result.returncode == 0, (
-            f"CUDA-Q MPI plugin missing at {CUDAQ_MPI_PLUGIN_PATH} in {image_path}. "
-            f"activate_custom_mpi.sh likely did not run or failed silently during "
-            f"image build."
+            f"CUDA-Q MPI plugin missing at {plugin_path} in {image_path}. "
+            f"activate_custom_mpi.sh likely did not run or failed silently "
+            f"during image build."
         )
 
 
