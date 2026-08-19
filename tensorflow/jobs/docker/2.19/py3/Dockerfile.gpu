@@ -8,6 +8,9 @@ LABEL major_version="1"
 ARG PIP=pip3
 ARG PYTHON=python3.12
 
+ENV PIP_RETRIES=10 \
+    PIP_DEFAULT_TIMEOUT=60
+
 # Patch OS packages: libtiff5/libtiffxx5 (CVE-2025-61144), libssl3/openssl
 # (CVE-2026-31789). ffmpeg + libav*/libsw* (CVE-2024-35366/35367/35368) have
 # no jammy community fix and are purged since hybrid jobs do not need them.
