@@ -51,7 +51,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8 \
     LD_LIBRARY_PATH=/usr/local/openmpi/lib:/usr/local/lib:$LD_LIBRARY_PATH \
     PATH=/usr/local/bin:/usr/local/openmpi/bin:$PATH \
-    SAGEMAKER_PROGRAM=braket_container.py
+    SAGEMAKER_PROGRAM=braket_container.py \
+    PIP_RETRIES=10 \
+    PIP_DEFAULT_TIMEOUT=60
 
 ARG HOME_DIR=/root
 ARG PYTHON_PATH=/usr/bin/python3
