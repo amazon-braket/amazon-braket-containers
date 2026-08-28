@@ -26,6 +26,7 @@ libfabric/EFA + NCCL for high-bandwidth GPU collectives, not CUDA-aware MPI.
 
 from ..common.image_run_util import run_in_image
 from ..common.mpi_checks import (
+    CUDAQ_MPI_PLUGIN_PATH_SITE_PACKAGES,
     assert_cudaq_mpi_initialize_finalize,
     assert_cudaq_mpi_plugin_present,
     assert_mpi_runtime_launches_cleanly,
@@ -59,7 +60,7 @@ def test_cudaq_mpi_plugin_present(image_list):
     against the DLC's OpenMPI under /opt/amazon/openmpi. Without this,
     cudaq.mpi APIs raise ``RuntimeError: No MPI support can be found``.
     """
-    assert_cudaq_mpi_plugin_present(image_list)
+    assert_cudaq_mpi_plugin_present(image_list, CUDAQ_MPI_PLUGIN_PATH_SITE_PACKAGES)
 
 
 def test_cudaq_mpi_initialize_finalize(image_list):

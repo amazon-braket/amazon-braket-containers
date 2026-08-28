@@ -30,7 +30,7 @@ images:
   BuildBaseCPUJobsPy3DockerImage:
     <<: *JOBS_REPOSITORY
     build: &BASE_CPU_JOBS_PY3 false
-    image_size_baseline: 1786
+    image_size_baseline: 1650
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
