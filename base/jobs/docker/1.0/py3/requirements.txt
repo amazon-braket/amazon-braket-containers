@@ -3,8 +3,8 @@ amazon-braket-pennylane-plugin==1.35.1
 amazon-braket-schemas==1.32.1
 amazon-braket-sdk==1.126.1
 awscli==1.46.0
-botocore==1.43.79
-boto3==1.43.79
+botocore==1.43.80
+boto3==1.43.80
 dask==2024.8.0
 matplotlib==3.11.1
 mpi4py
