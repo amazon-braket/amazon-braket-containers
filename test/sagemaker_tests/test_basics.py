@@ -42,12 +42,7 @@ def upload_test_script_to_s3(s3_bucket, s3_location):
 
 
 def tag_image_with_default_command(image_path):
-    """Returns a local tag for image_path whose only difference is a default command.
-
-    The job images carry no command of their own and rely on the caller to run
-    ``train``, which SageMaker managed training passes but ModelTrainer local
-    container mode does not.
-    """
+    """Required for the tests to work with ModelTrainer local container mode."""
     local_tag = f"{image_path.rsplit('/', 1)[-1].replace(':', '-')}-default-command"
     subprocess.run(
         ["docker", "build", "--quiet", "--tag", local_tag, "-"],

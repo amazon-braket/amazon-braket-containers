@@ -58,7 +58,6 @@ runs:
       run: |
         pytest test/braket_tests/${{ inputs.container-type }} -vv --role GitHubIntegTestBuildRole --from-build-results ${{ env.BUILD_RESULTS_PATH }} --use-local-jobs True --use-local-sim True
       shell: bash
-    # Exercises the image's default command, which the Braket tests do not.
     - name: Run SageMaker Tests
       run: |
         pip install -r test/requirements-sagemaker.txt
