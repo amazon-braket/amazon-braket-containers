@@ -13,6 +13,7 @@
 
 import io
 import os
+import subprocess
 from contextlib import redirect_stdout
 
 import boto3
@@ -23,6 +24,7 @@ from sagemaker.train.model_trainer import Mode
 MODULE_NAME = "run_script"
 SCRIPT_NAME = MODULE_NAME + ".py"
 SCRIPT_PATH = "./test/resources/"
+CONTAINER_COMMAND = "train"
 
 
 def test_basics(account, region, role, s3_bucket, s3_location, image_list):
@@ -39,6 +41,22 @@ def upload_test_script_to_s3(s3_bucket, s3_location):
     s3_client.upload_file(SCRIPT_PATH + SCRIPT_NAME, s3_bucket, f"{s3_location}/{SCRIPT_NAME}")
 
 
+def tag_image_with_default_command(image_path):
+    """Returns a local tag for image_path whose only difference is a default command.
+
+    The job images carry no command of their own and rely on the caller to run
+    ``train``, which SageMaker managed training passes but ModelTrainer local
+    container mode does not.
+    """
+    local_tag = f"{image_path.rsplit('/', 1)[-1].replace(':', '-')}-default-command"
+    subprocess.run(
+        ["docker", "build", "--quiet", "--tag", local_tag, "-"],
+        input=f'FROM {image_path}\nCMD ["{CONTAINER_COMMAND}"]\n'.encode(),
+        check=True,
+    )
+    return local_tag
+
+
 def single_image_test(account, role, s3_bucket, s3_location, image_path):
     environment_variables = {
         "AMZN_BRAKET_SCRIPT_S3_URI": f"s3://{s3_bucket}/{s3_location}/{SCRIPT_NAME}",
@@ -46,7 +64,7 @@ def single_image_test(account, role, s3_bucket, s3_location, image_path):
     }
     trainer = ModelTrainer(
         training_mode=Mode.LOCAL_CONTAINER,
-        training_image=image_path,
+        training_image=tag_image_with_default_command(image_path),
         role=f"arn:aws:iam::{account}:role/{role}",
         compute=Compute(instance_count=1, instance_type="local"),
         hyperparameters=environment_variables,
