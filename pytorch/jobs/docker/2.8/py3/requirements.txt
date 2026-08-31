@@ -2,9 +2,9 @@ amazon-braket-default-simulator==1.40.1
 amazon-braket-pennylane-plugin==1.35.1.post0
 amazon-braket-schemas==1.32.1
 amazon-braket-sdk==1.126.1
-awscli==1.46.0
-botocore==1.43.81
-boto3==1.43.81
+awscli==1.46.1
+botocore==1.43.82
+boto3==1.43.82
 certifi>=2026.7.22  # https://nvd.nist.gov/vuln/detail/CVE-2023-37920
 cuda-quantum-cu12==0.14.2
 cudaq-qec-cu12==0.6.0
@@ -21,7 +21,7 @@ openfermion==1.8.1
 pandas==2.3.3
 pennylane==0.45.1
 pennylane-lightning[gpu]==0.45.0
-pydantic==2.13.4
+pydantic==2.13.5
 sagemaker-training==5.1.1
 scikit-learn==1.9.0
 six==1.17.0
