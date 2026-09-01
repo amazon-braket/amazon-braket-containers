@@ -13,6 +13,7 @@
 
 import io
 import os
+import subprocess
 from contextlib import redirect_stdout
 
 import boto3
@@ -23,6 +24,7 @@ from sagemaker.train.model_trainer import Mode
 MODULE_NAME = "run_script"
 SCRIPT_NAME = MODULE_NAME + ".py"
 SCRIPT_PATH = "./test/resources/"
+CONTAINER_COMMAND = "train"
 
 
 def test_basics(account, region, role, s3_bucket, s3_location, image_list):
@@ -31,7 +33,7 @@ def test_basics(account, region, role, s3_bucket, s3_location, image_list):
               f" --password-stdin {account}.dkr.ecr.{region}.amazonaws.com")
     upload_test_script_to_s3(s3_bucket, s3_location)
     for image_path in image_list:
-        single_image_test(account, role, s3_bucket, s3_location, image_path)
+        single_image_test(account, region, role, s3_bucket, s3_location, image_path)
 
 
 def upload_test_script_to_s3(s3_bucket, s3_location):
@@ -39,18 +41,44 @@ def upload_test_script_to_s3(s3_bucket, s3_location):
     s3_client.upload_file(SCRIPT_PATH + SCRIPT_NAME, s3_bucket, f"{s3_location}/{SCRIPT_NAME}")
 
 
-def single_image_test(account, role, s3_bucket, s3_location, image_path):
-    environment_variables = {
+def tag_image_with_default_command(image_path):
+    """Required for the tests to work with ModelTrainer local container mode."""
+    local_tag = f"{image_path.rsplit('/', 1)[-1].replace(':', '-')}-default-command"
+    subprocess.run(
+        ["docker", "build", "--quiet", "--tag", local_tag, "-"],
+        input=f'FROM {image_path}\nCMD ["{CONTAINER_COMMAND}"]\n'.encode(),
+        check=True,
+    )
+    return local_tag
+
+
+def container_credentials(region):
+    credentials = boto3.Session().get_credentials()
+    assert credentials is not None, "No AWS credentials found to pass to the container"
+    frozen_credentials = credentials.get_frozen_credentials()
+    environment = {
+        "AWS_REGION": region,
+        "AWS_DEFAULT_REGION": region,
+        "AWS_ACCESS_KEY_ID": frozen_credentials.access_key,
+        "AWS_SECRET_ACCESS_KEY": frozen_credentials.secret_key,
+    }
+    if frozen_credentials.token:
+        environment["AWS_SESSION_TOKEN"] = frozen_credentials.token
+    return environment
+
+
+def single_image_test(account, region, role, s3_bucket, s3_location, image_path):
+    hyperparameters = {
         "AMZN_BRAKET_SCRIPT_S3_URI": f"s3://{s3_bucket}/{s3_location}/{SCRIPT_NAME}",
         "AMZN_BRAKET_SCRIPT_ENTRY_POINT": f"{MODULE_NAME}",
     }
     trainer = ModelTrainer(
         training_mode=Mode.LOCAL_CONTAINER,
-        training_image=image_path,
+        training_image=tag_image_with_default_command(image_path),
         role=f"arn:aws:iam::{account}:role/{role}",
         compute=Compute(instance_count=1, instance_type="local"),
-        hyperparameters=environment_variables,
-        environment=environment_variables,
+        hyperparameters=hyperparameters,
+        environment={**hyperparameters, **container_credentials(region)},
     )
     trainer_output = io.StringIO()
     with redirect_stdout(trainer_output):
