@@ -17,7 +17,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/usr/local/bin:/usr/local/openmpi/bin:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py \
     PIP_RETRIES=10 \
-    PIP_DEFAULT_TIMEOUT=60
+    PIP_DEFAULT_TIMEOUT=60 \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1
 
 ARG HOME_DIR=/root
 ARG PYTHON_PATH=/usr/bin/python3
@@ -57,8 +59,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
-    && ${PYTHON_PATH} -m pip install --no-cache-dir --break-system-packages \
-        --ignore-installed --upgrade pip setuptools wheel \
+    && ${PYTHON_PATH} -m pip install --no-cache-dir --ignore-installed --upgrade pip setuptools wheel \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
@@ -79,8 +80,7 @@ ENV CXX=g++
 # Copy the dependencies file
 COPY requirements.txt /
 # Installing our custom python libraries including CUDA-Q
-RUN ${PIP} install --no-cache --upgrade --break-system-packages \
-        -r requirements.txt
+RUN ${PIP} install --no-cache --upgrade -r requirements.txt
 
 # Build OpenMPI with CUDA-aware support.
 # cuStateVec's distributed index bit swap API passes GPU device pointers to
@@ -116,8 +116,7 @@ RUN mkdir -p ${CUDA_HOME}/lib64/stubs \
 # Rebuild mpi4py against the new CUDA-aware OpenMPI. --no-binary is required:
 # the mpi4py wheel ships prebuilt extensions that dlopen libmpi at import time,
 # so without it pip would simply reinstall the same wheel and compile nothing.
-RUN ${PIP} install --no-cache-dir --break-system-packages --force-reinstall \
-        --no-binary=mpi4py mpi4py
+RUN ${PIP} install --no-cache-dir --force-reinstall --no-binary=mpi4py mpi4py
 
 # Configure CUDA-Q with MPI
 RUN bash "${CUDAQ_PATH}/distributed_interfaces/activate_custom_mpi.sh"

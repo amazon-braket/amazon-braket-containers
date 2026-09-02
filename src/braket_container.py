@@ -237,7 +237,8 @@ def install_additional_requirements() -> None:
                 requirements_file_path = os.path.join(root, "requirements.txt")
                 subprocess.run(
                     ["python", "-m", "pip", "install", "-r", requirements_file_path],
-                    cwd=EXTRACTED_CUSTOMER_CODE_PATH
+                    cwd=EXTRACTED_CUSTOMER_CODE_PATH,
+                    check=True
                 )
         print("Additional Requirements Check Finished")
     except Exception as e:
