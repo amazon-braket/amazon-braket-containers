@@ -53,7 +53,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/usr/local/bin:/usr/local/openmpi/bin:$PATH \
     SAGEMAKER_PROGRAM=braket_container.py \
     PIP_RETRIES=10 \
-    PIP_DEFAULT_TIMEOUT=60
+    PIP_DEFAULT_TIMEOUT=60 \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1
 
 ARG HOME_DIR=/root
 ARG PYTHON_PATH=/usr/bin/python3
@@ -96,8 +98,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
-    && ${PYTHON_PATH} -m pip install --no-cache-dir --break-system-packages \
-        --ignore-installed --upgrade pip setuptools wheel \
+    && ${PYTHON_PATH} -m pip install --no-cache-dir --ignore-installed --upgrade pip setuptools wheel \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
@@ -108,7 +109,7 @@ WORKDIR /
 
 # Install Python dependencies
 COPY requirements.txt /
-RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt \
+RUN pip3 install --no-cache-dir -r requirements.txt \
     && rm -rf ${HOME_DIR}/.cache/pip \
     && find /usr/local/lib/python* -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 

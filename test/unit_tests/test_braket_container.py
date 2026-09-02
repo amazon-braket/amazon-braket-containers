@@ -2,6 +2,7 @@ import importlib
 import json
 import os
 import re
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -173,8 +174,32 @@ def test_install_additional_requirements(mock_os, mock_subprocess, file_walk_res
     mock_subprocess.run.assert_called_with(
         ["python", "-m", "pip", "install", "-r", "joined_path"],
         cwd="/opt/braket/code/customer_code/extracted",
+        check=True,
     )
     assert mock_subprocess.run.call_count == 1
+
+
+def _failing_pip(*args, check=False, **kwargs):
+    """subprocess.run semantics for a command that exits non-zero."""
+    if check:
+        raise subprocess.CalledProcessError(1, args[0])
+    return subprocess.CompletedProcess(args[0], 1)
+
+
+@mock.patch("src.braket_container._log_failure")
+@mock.patch("src.braket_container.sys")
+@mock.patch("src.braket_container.subprocess.run", side_effect=_failing_pip)
+@mock.patch("src.braket_container.os.walk")
+def test_install_additional_requirements_fails_loudly(
+    mock_walk, mock_run, mock_sys, mock_log_failure
+):
+    """A failed dependency install must fail the job, not be silently ignored."""
+    mock_walk.return_value = [("my_root", [], ["requirements.txt"])]
+
+    install_additional_requirements()
+
+    mock_sys.exit.assert_called_once_with(0)
+    assert "Unable to install requirements" in mock_log_failure.call_args[0][0]
 
 
 def customer_function():
