@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 DOCKERFILES = (
     "base/jobs/docker/1.0/py3/Dockerfile.cpu",
-    "cudaq/jobs/docker/0.14/py3/Dockerfile.cpu",
+    "cudaq/jobs/docker/0.16/py3/Dockerfile.cpu",
 )
 
 # Fails if a block is renamed or its markers are deleted from every Dockerfile.
