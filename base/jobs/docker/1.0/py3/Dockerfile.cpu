@@ -80,7 +80,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.12 \
     python3.12-dev \
     python3-dev \
-    python3-pip \
     libgtk2.0-dev \
     cmake \
     protobuf-compiler \
@@ -98,7 +97,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ssh-keygen -q -t rsa -N '' -f ${HOME_DIR}/.ssh/id_rsa \
     && cp ${HOME_DIR}/.ssh/id_rsa.pub ${HOME_DIR}/.ssh/authorized_keys \
     && printf "Host *\n  StrictHostKeyChecking no\n" >> ${HOME_DIR}/.ssh/config \
-    && ${PYTHON_PATH} -m pip install --no-cache-dir --ignore-installed --upgrade pip setuptools wheel \
+    && curl -fsSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py \
+    && ${PYTHON_PATH} /tmp/get-pip.py --no-cache-dir --ignore-installed pip setuptools wheel \
+    && rm -f /tmp/get-pip.py \
     && ln -sf ${PYTHON_PATH} /usr/local/bin/python \
     && ln -sf ${PYTHON_PATH} /usr/bin/python \
     && ln -sf /usr/local/bin/pip3 /usr/bin/pip3 \
