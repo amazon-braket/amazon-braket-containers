@@ -1,5 +1,4 @@
 # SageMaker test dependencies
 # Note: Install requirements-base.txt first in CI/CD
-omegaconf==2.4.0
 sagemaker-train==1.23.0
 sagemaker-core==2.23.0
