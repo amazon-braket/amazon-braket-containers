@@ -1,9 +1,5 @@
 # SageMaker test dependencies
 # Note: Install requirements-base.txt first in CI/CD
-# Note: omegaconf>=2.4 is required to avoid antlr4 conflict between
-#       sagemaker-core and amazon-braket-default-simulator.
-#       Install with --pre until omegaconf 2.4 is released.
---pre
-omegaconf==2.4.0rc1
+omegaconf==2.4.0
 sagemaker-train==1.23.0
 sagemaker-core==2.23.0
