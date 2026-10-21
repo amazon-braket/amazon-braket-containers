@@ -35,10 +35,10 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install patched pip from the hash-locked bootstrap requirements.
-COPY requirements-bootstrap.txt /
-RUN ${PYTHON} -m pip install --no-cache-dir --no-deps --require-hashes \
-        -r /requirements-bootstrap.txt
+# Install pip using the refreshed system CA bundle.
+RUN curl -fsSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py \
+ && ${PYTHON} /tmp/get-pip.py --no-cache-dir --ignore-installed pip \
+ && rm -f /tmp/get-pip.py
 
 # Copy the dependencies file
 COPY requirements.txt /
