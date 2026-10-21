@@ -12,14 +12,17 @@ ENV PIP_RETRIES=10 \
     PIP_DEFAULT_TIMEOUT=60
 
 # Patch OS packages: libtiff5/libtiffxx5 (CVE-2025-61144), libssl3/openssl
-# (CVE-2026-31789). ffmpeg + libav*/libsw* (CVE-2024-35366/35367/35368) have
-# no jammy community fix and are purged since hybrid jobs do not need them.
+# (CVE-2026-31789), ca-certificates (current CA roots). ffmpeg + libav*/libsw*
+# (CVE-2024-35366/35367/35368) have no jammy community fix and are purged
+# since hybrid jobs do not need them.
 RUN apt-get update \
  && apt-get install -y --only-upgrade --no-install-recommends \
         libtiff5 \
         libtiffxx5 \
         libssl3 \
         openssl \
+ && apt-get install -y --no-install-recommends ca-certificates curl \
+ && update-ca-certificates \
  && apt-get purge -y --auto-remove \
         ffmpeg \
         'libavcodec*' \
@@ -31,6 +34,11 @@ RUN apt-get update \
         'libavdevice*' \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# Install pip using the refreshed system CA bundle.
+RUN curl -fsSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py \
+ && ${PYTHON} /tmp/get-pip.py --no-cache-dir --ignore-installed pip \
+ && rm -f /tmp/get-pip.py
 
 # Copy the dependencies file
 COPY requirements.txt /
