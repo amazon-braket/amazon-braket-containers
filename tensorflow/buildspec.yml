@@ -22,6 +22,9 @@ context:
     requirements:
       source: ../../tensorflow/jobs/docker/2.19/py3/requirements.txt
       target: requirements.txt
+    bootstrap_requirements:
+      source: ../../tensorflow/jobs/docker/2.19/py3/requirements-bootstrap.txt
+      target: requirements-bootstrap.txt
 
 images:
   BuildTensorflowGPUJobsPy3DockerImage:
