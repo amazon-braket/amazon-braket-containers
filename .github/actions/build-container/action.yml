@@ -45,6 +45,8 @@ runs:
         aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 292282985366.dkr.ecr.us-east-1.amazonaws.com
+        # Authenticate base image pulls from public.ecr.aws to avoid data cap issues.
+        aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
       shell: bash
     - name: Build the container
       run: |
